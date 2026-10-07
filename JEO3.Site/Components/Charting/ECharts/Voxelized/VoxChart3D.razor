@@ -1,0 +1,77 @@
+﻿@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+@namespace JEO3.Site.Components.Charting
+
+@* Clear container matching your dark dashboard theme *@
+<div id="@_containerId" class="schema-contour-3d" style="width: @(Width); height: @(Height); background-color: #0a0c10;">
+
+
+
+    <label style="position:absolute;top:5px;left:45%;text-align:center !important;color:var(--rz-white) !important;z-index:9999 !important">Drag to rotate. Scroll to zoom.</label>
+</div>
+
+@code {
+    // Parameters to keep it highly reusable across your application
+    [Parameter] public string Title { get; set; } = "Voxelized Heat Map Logo";
+    [Parameter] public string Width { get; set; } = "1530px";
+    [Parameter] public string Height { get; set; } = "900px";
+    
+    // Crucial: This points to the image you want to voxelize!
+    [Parameter] public string ImageUrl { get; set; } = "../../img/branding/vox.jpg"; 
+
+    private readonly string _containerId = $"chart-3d-{Guid.NewGuid():N}";
+    private IJSObjectReference? _module;
+    private bool _jsAvailable = false;
+    private bool _isDisposed = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _jsAvailable = true;
+
+            // Imports your updated voxelized charts3d.js script context thread
+            _module = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/echarts/charts3d.js");
+            await BuildVoxelChartAsync();
+        }
+    }
+
+    private async Task BuildVoxelChartAsync()
+    {
+        if (_isDisposed || !_jsAvailable || _module == null || string.IsNullOrEmpty(ImageUrl)) return;
+
+        try
+        {
+            // Execute directly out of the isolated module footprint
+            await _module.InvokeVoidAsync(
+                "renderVox3DChart",
+                _containerId,
+                Title,
+                null, // xAxisTitle (Unused by raw voxel script)
+                null, // yAxisTitle
+                null, // intensityLabel
+                null, // xAxisData
+                null, // yAxisData
+                ImageUrl // Passed directly as the image source path asset string
+            );
+        }
+        catch
+        {
+            // Fail-safe block
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_module != null)
+        {
+            try
+            {
+                await _module.DisposeAsync();
+            }
+            catch { }
+        }
+
+        _isDisposed = true;
+    }
+}

@@ -1,0 +1,351 @@
+﻿@using JEO3.Generation
+@using JEO3.Schema
+@using JEO3.Site.Components.Icons
+@using JEO3.Site.Components.Treeview
+
+@namespace JEO3.Site.Dashboard
+
+<!--------------------------------------------------- TABLES ------------------------------------------------------------>
+
+<RadzenSplitter Style="height:100%; width:100%;" Orientation="Orientation.Vertical">
+	<RadzenSplitterPane @bind-Collapsed="@W.UI.Appearance.IsPaneCollapsedTables" Size="77%" Collapsible="true" Style="@(W.UI.Appearance.IsPaneFullScreenQueryEditor ? "display: none !important;" : "")">
+		<RadzenTabs RenderMode="TabRenderMode.Client"
+					@bind-SelectedIndex="@selectedTableTabIndex"
+					@bind-SelectedIndex:after="OnTablesTabIndexChanged"
+					class="main-nav-tabs"
+					Style="background: var(--jeo-primary-rz) !important; color: var(--rz-white) !important;">
+			<Tabs>
+				<RadzenTabsItem>
+					<Template>
+						<VSIcon Width="22" Height="22" Name="Consortium" Type="VSIconType.VSCodeGithub" Class="fa-mr7 fa-ml2" Extension="ImageType.svg"></VSIcon> Tables Tree
+					</Template>
+					<ChildContent>
+
+						<div class="dashboard-pane-container" @ref="tablesTreePaneDiv">
+							<div class="dashboard-pane-titlebar-container">
+								<div class="dashboard-pane-titlebar">
+									<div class="titlebar-left-wrapper">
+										<span class="titlebar-text-bold">Explorer</span>
+									</div>
+									<div class="dashboard-pane-titlebar-right-container titlebar-right-wrapper-gap">
+										<button type="button" class="dashboard-pane-titlebar-right-expand-button toggle-fullscreen-btn"
+												@onclick=" @(async () => await TogglePaneExpansionFullScreen(tablesTreePaneDiv))">
+												@if (W.UI.Appearance.IsPaneFullScreenResults)
+												{
+													<IconMinimize />
+												}
+												else
+												{
+													<IconMaximize />
+												}
+										</button>
+									</div>
+								</div>
+							</div>
+
+							<div class="dashboard-pane-body-container-scroll">
+								@if (W.UI.Appearance.IsSchemaLoaded)
+								{
+									<div class="monitor-grid" style="display: flex;
+										flex-wrap: wrap;
+										gap: 12px;
+										align-items: flex-start;">
+										<JeoTreeView Items="@(new List<IObject>() { W.Context.Database})"
+													 OnClick="@OnTreeNodeClick" 
+													 />
+									</div>
+									@* CellContextMenu="@OnTableContextMenu" *@
+
+								}
+							</div>
+						</div>
+					</ChildContent>
+				</RadzenTabsItem>
+				<RadzenTabsItem>
+					<Template>
+						<VSIcon Width="22" Height="22" Name="API_Center" Type="VSIconType.VSCodeGithub" Class="fa-mr7 fa-ml2" Extension="ImageType.svg"></VSIcon> Tables List
+					</Template>
+					<ChildContent>
+
+						<div class="dashboard-pane-container" @ref="tablesPaneDiv">
+							<div class="dashboard-pane-titlebar-container">
+								<div class="dashboard-pane-titlebar">
+									<div class="titlebar-left-wrapper">
+										<span class="titlebar-text-bold">Tables</span>
+									</div>
+									<div class="dashboard-pane-titlebar-right-container titlebar-right-wrapper-gap">
+										<button type="button" class="dashboard-pane-titlebar-right-expand-button toggle-fullscreen-btn"
+												@onclick="@(async () => await TogglePaneExpansionFullScreen(tablesPaneDiv))">
+												@if (W.UI.Appearance.IsPaneFullScreenResults)
+												{
+													<IconMinimize />
+												}
+												else
+												{
+													<IconMaximize />
+												}
+										</button>
+									</div>
+								</div>
+							</div>
+
+							<div class="dashboard-pane-body-container-scroll">
+								<RadzenDataGrid id="table-grid" Data="@W.UI.Grids.Core.Tables" @bind-Value="@W.UI.Grids.Selected.Tables" TItem="ITable" RowSelect="OnTableRowSelected" SelectionMode="DataGridSelectionMode.Single" AllowFiltering="true" AllowColumnResize="true"
+												FilterMode="FilterMode.Simple" AllowPaging="false" AllowSorting="true" AllowVirtualization="true" FilterCaseSensitivity="@FilterCaseSensitivity"
+												CellContextMenu="@OnTableContextMenu">
+									<Columns>
+										<RadzenDataGridColumn Property="@nameof(ITable.TablePath)" Title="Name" Width="207px" Resizable="true" Frozen="@frozen3" />
+										<RadzenDataGridColumn Property="@nameof(ITable.Rows)" Title="Rows" Width="60px" Resizable="true" Frozen="@frozen4" />
+										<RadzenDataGridColumn Property="@nameof(ITable.CreatedBy)" Title="CreatedBy" Width="90px" Resizable="true" />
+										<RadzenDataGridColumn Property="@nameof(ITable.CreatedDate)" Title="CreatedDate" Width="110px" Resizable="true" />
+										<RadzenDataGridColumn Property="@nameof(ITable.DateLastModified)" Title="DateLastModified" Width="110px" Resizable="true" />
+										@* <RadzenDataGridColumn Property="@nameof(ITable.DatabaseName)" Title="DatabaseName" Width="100px" Resizable="true" /> *@
+										@* <RadzenDataGridColumn Property="@nameof(ITable.Durability)" Title="Durability" Width="80px" Resizable="true" /> *@
+										<RadzenDataGridColumn Property="@nameof(ITable.FullName)" Title="FullName" Width="80px" Resizable="true" />
+										<RadzenDataGridColumn Property="@nameof(ITable.Identifier)" Title="Identifier" Width="80px" Resizable="true" />
+										<RadzenDataGridColumn Property="@nameof(ITable.IsLargeTable)" Title="IsLargeTable" Width="60px" Resizable="true" />
+										<RadzenDataGridColumn Property="@nameof(ITable.IsMemoryOptimized)" Title="IsMemoryOptimized" Width="60px" Resizable="true" />
+										<RadzenDataGridColumn Property="@nameof(ITable.IsTemporary)" Title="IsTemporary" Width="60px" Resizable="true" />
+										<RadzenDataGridColumn Property="@nameof(ITable.IsView)" Title="IsView" Width="60px" Resizable="true" />
+									</Columns>
+								</RadzenDataGrid>
+							</div>
+						</div>
+					</ChildContent>
+				</RadzenTabsItem>
+			</Tabs>
+		</RadzenTabs>
+
+		
+
+	</RadzenSplitterPane>
+
+	<!--------------------------------------------------- COLUMNS ------------------------------------------------------------>
+
+	<RadzenSplitterPane @bind-Collapsed="@W.UI.Appearance.IsPaneCollapsedColumns" Size="80px" Collapsible="true" Style="@(W.UI.Appearance.IsPaneFullScreenQueryEditor ? "display: none !important;" : "")">
+		<div class="dashboard-pane-container" @ref="columnsPaneDiv">
+			<div class="dashboard-pane-titlebar-container">
+				<div class="dashboard-pane-titlebar">
+					<div class="titlebar-left-wrapper">
+						<span class="titlebar-text-bold">@W.SelectedTable.TablePath</span>
+					</div>
+					<div class="dashboard-pane-titlebar-right-container titlebar-right-wrapper-gap">
+
+						<button type="button" class="dashboard-pane-titlebar-right-expand-button toggle-fullscreen-btn"
+							@onclick="@(async ()=> await TogglePaneExpansionFullScreen(columnsPaneDiv))">
+								@if (W.UI.Appearance.IsPaneFullScreenResults)
+								{
+									<IconMinimize />
+								}
+								else
+								{
+									<IconMaximize />
+								}
+						</button>
+					</div>
+				</div>
+			</div>
+			<div class="dashboard-pane-body-container-scroll">
+				<RadzenDataGrid Data="@W.UI.Grids.Core.Columns" @bind-Value="@W.UI.Grids.Selected.Columns"
+								TItem="IColumn" RowSelect="@OnColumnSelected" SelectionMode="DataGridSelectionMode.Single" AllowFiltering="true" AllowColumnResize="true"
+								FilterMode="FilterMode.Simple" AllowPaging="false" AllowSorting="true" AllowVirtualization="true" FilterCaseSensitivity="@FilterCaseSensitivity">
+					<Columns>
+						<RadzenDataGridColumn Property="@nameof(IColumn.Name)" Title="Name" Width="120px" Resizable="true" />
+						<RadzenDataGridColumn Property="@nameof(IColumn.DataType)" Title="Type" Width="50px" Resizable="true" />
+						<RadzenDataGridColumn Property="@nameof(IColumn.OrdinalPosition)" Title="#" Width="15px" />
+						<RadzenDataGridColumn Property="@nameof(IColumn.MaximumLength)" Title="Len" Width="20px" />
+						<RadzenDataGridColumn Title="Null" Filterable="false" Width="23px">
+							<Template Context="data">
+								<input type="checkbox" checked="@data.IsNullable" disabled @onclick:stopPropagation="true" class="checkbox-no-pointer" />
+							</Template>
+						</RadzenDataGridColumn>
+						<RadzenDataGridColumn Title="PK" Filterable="false" Width="23px">
+							<Template Context="data">
+								<input type="checkbox" checked="@data.IsPrimaryKey" disabled @onclick:stopPropagation="true" class="checkbox-no-pointer" />
+							</Template>
+						</RadzenDataGridColumn>
+					</Columns>
+				</RadzenDataGrid>
+			</div>
+		</div>
+	</RadzenSplitterPane>
+
+	<!--------------------------------------------------- ALL OBJECTS ------------------------------------------------------------>
+
+	<RadzenSplitterPane @bind-Collapsed="@W.UI.Appearance.IsPaneCollapsedAllObjects" Collapsible="true" Size="15%" Style="@(W.UI.Appearance.IsPaneFullScreenQueryEditor ? "display: none !important;" : "")">
+		<div class="dashboard-pane-container" @ref="allColumnsPaneDiv">
+			<div class="dashboard-pane-titlebar-container">
+				<div class="dashboard-pane-titlebar">
+					<div class="titlebar-left-wrapper">
+						<span class="titlebar-text-bold">All Columns</span>
+					</div>
+					<div class="dashboard-pane-titlebar-right-container titlebar-right-wrapper-gap">
+
+						<RadzenCheckBox TValue="bool" @bind-value="@W.UI.Grids.AutoFilterAllObjects" />
+						<span class="titlebar-count-text">Filter</span>
+
+						<button type="button" class="dashboard-pane-titlebar-right-expand-button toggle-fullscreen-btn"
+								@onclick="@(async () => await TogglePaneExpansionFullScreen(allColumnsPaneDiv))">
+							@if (W.UI.Appearance.IsPaneFullScreenResults)
+							{
+								<IconMinimize />
+							}
+							else
+							{
+								<IconMaximize />
+							}
+						</button>
+					</div>
+				</div>
+			</div>
+			<div class="dashboard-pane-body-container-scroll">
+				<RadzenDataGrid @ref="gridAllObjects" Data=@W.UI.Grids.Core.AllObjects @bind-Value="@W.UI.Grids.Selected.AllObjects" TItem="IColumn" SelectionMode="DataGridSelectionMode.Single" AllowFiltering="true" AllowColumnResize="true"
+								FilterMode="FilterMode.Simple" AllowPaging="false" AllowSorting="true" AllowVirtualization="true" FilterCaseSensitivity="@FilterCaseSensitivity">
+					<Columns>
+						<RadzenDataGridColumn Property="@nameof(IColumn.TablePath)" Title="Table" Width="130px" Resizable="true" Frozen="@frozen" />
+						<RadzenDataGridColumn Property="@nameof(IColumn.Name)" Title="Column" FilterValue="@W.UI.Grids.SearchColumnName" Width="130px" Resizable="true" Frozen="@frozen2">
+							<FilterTemplate>
+								<input type="text" class="rz-textbox filter-input-full-width" @bind-value="@W.UI.Grids.SearchColumnName" @bind-value:event="oninput" @onchange="@(args => OnColumnSearchFilterChange(args.Value))" />
+							</FilterTemplate>
+						</RadzenDataGridColumn>
+						<RadzenDataGridColumn Property="@nameof(IColumn.OrdinalPosition)" Title="#" Width="50px" />
+						<RadzenDataGridColumn Property="@nameof(IColumn.DataType)" Title="Type" Width="70px" />
+						<RadzenDataGridColumn Property="@nameof(IColumn.MaximumLength)" Title="Len" Width="60px" />
+						<RadzenDataGridColumn Property="@nameof(IColumn.Precision)" Title="Precision" Width="70px" />
+						<RadzenDataGridColumn Property="@nameof(IColumn.Scale)" Title="Scale" Width="60px" />
+						<RadzenDataGridColumn Property="@nameof(IColumn.IsNullable)" Title="NULL?" Width="65px" Type="typeof(bool)">
+							<Template Context="data">
+								<RadzenCheckBox Value="@data.IsNullable" Disabled="true" TripleState="false" />
+							</Template>
+							<FilterTemplate Context="column">
+								<RadzenDropDown Data="@(new[] { new { Text = "Yes", Value = true }, new { Text = "No", Value = false } })"
+												TextProperty="Text" ValueProperty="Value"
+												Value="@column.GetFilterValue()"
+												Change="@(args => column.SetFilterValue(args))"
+												AllowClear="true" Style="width:60px;" />
+							</FilterTemplate>
+						</RadzenDataGridColumn>
+						<RadzenDataGridColumn Property="@nameof(IColumn.IsPrimaryKey)" Title="PK" Width="39px" Type="typeof(bool)">
+							<Template Context="data">
+								<RadzenCheckBox Value="@data.IsPrimaryKey" Disabled="true" TripleState="false" />
+							</Template>
+							<FilterTemplate Context="column">
+								<RadzenDropDown Data="@(new[] { new { Text = "Yes", Value = true }, new { Text = "No", Value = false } })"
+												TextProperty="Text" ValueProperty="Value"
+												Value="@column.GetFilterValue()"
+												Change="@(args => column.SetFilterValue(args))"
+												AllowClear="true" Style="width:39px;" />
+							</FilterTemplate>
+						</RadzenDataGridColumn>
+						<RadzenDataGridColumn Property="@nameof(IColumn.IsForeignKey)" Title="FK" Width="39px" Type="typeof(bool)">
+							<Template Context="data">
+								<RadzenCheckBox Value="@data.IsForeignKey" Disabled="true" TripleState="false" />
+							</Template>
+							<FilterTemplate Context="column">
+								<RadzenDropDown Data="@(new[] { new { Text = "Yes", Value = true }, new { Text = "No", Value = false } })"
+												TextProperty="Text" ValueProperty="Value"
+												Value="@column.GetFilterValue()"
+												Change="@(args => column.SetFilterValue(args))"
+												AllowClear="true" Style="width:39px;" />
+							</FilterTemplate>
+						</RadzenDataGridColumn>
+						<RadzenDataGridColumn Property="@nameof(IColumn.IsIdentity)" Title="ID" Width="39px" Type="typeof(bool)">
+							<Template Context="data">
+								<RadzenCheckBox Value="@data.IsIdentity" Disabled="true" TripleState="false" />
+							</Template>
+							<FilterTemplate Context="column">
+								<RadzenDropDown Data="@(new[] { new { Text = "Yes", Value = true }, new { Text = "No", Value = false } })"
+												TextProperty="Text" ValueProperty="Value"
+												Value="@column.GetFilterValue()"
+												Change="@(args => column.SetFilterValue(args))"
+												AllowClear="true" Style="width:39px;" />
+							</FilterTemplate>
+						</RadzenDataGridColumn>
+						<RadzenDataGridColumn Property="@nameof(IColumn.IsIndexKey)" Title="IK" Width="39px" Type="typeof(bool)">
+							<Template Context="data">
+								<RadzenCheckBox Value="@data.IsIndexKey" Disabled="true" TripleState="false" />
+							</Template>
+							<FilterTemplate Context="column">
+								<RadzenDropDown Data="@(new[] { new { Text = "Yes", Value = true }, new { Text = "No", Value = false } })"
+												TextProperty="Text" ValueProperty="Value"
+												Value="@column.GetFilterValue()"
+												Change="@(args => column.SetFilterValue(args))"
+												AllowClear="true" Style="width:39px;" />
+							</FilterTemplate>
+						</RadzenDataGridColumn>
+						<RadzenDataGridColumn Property="@nameof(IColumn.IsUnique)" Title="UQ" Width="41px" Type="typeof(bool)">
+							<Template Context="data">
+								<RadzenCheckBox Value="@data.IsUnique" Disabled="true" TripleState="false" />
+							</Template>
+							<FilterTemplate Context="column">
+								<RadzenDropDown Data="@(new[] { new { Text = "Yes", Value = true }, new { Text = "No", Value = false } })"
+												TextProperty="Text" ValueProperty="Value"
+												Value="@column.GetFilterValue()"
+												Change="@(args => column.SetFilterValue(args))"
+												AllowClear="true" Style="width:41px;" />
+							</FilterTemplate>
+						</RadzenDataGridColumn>
+						<RadzenDataGridColumn Property="@nameof(IColumn.IsComputed)" Title="Computed" Width="76px" Type="typeof(bool)">
+							<Template Context="data">
+								<RadzenCheckBox Value="@data.IsComputed" Disabled="true" TripleState="false" />
+							</Template>
+							<FilterTemplate Context="column">
+								<RadzenDropDown Data="@(new[] { new { Text = "Yes", Value = true }, new { Text = "No", Value = false } })"
+												TextProperty="Text" ValueProperty="Value"
+												Value="@column.GetFilterValue()"
+												Change="@(args => column.SetFilterValue(args))"
+												AllowClear="true" Style="width:76px;" />
+							</FilterTemplate>
+						</RadzenDataGridColumn>						
+						<RadzenDataGridColumn Title="Indexes" Width="65px">
+							<Template Context="data">
+								<label>@data.Indexes.Count</label>
+							</Template>
+						</RadzenDataGridColumn>
+						<RadzenDataGridColumn Title="MissingIndexes" Width="75px">
+							<Template Context="data">
+								<label>@data.MissingIndexes.Count</label>
+							</Template>
+						</RadzenDataGridColumn>
+						<RadzenDataGridColumn Title="Constraints" Width="75px">
+							<Template Context="data">
+								<label>@data.CheckConstraints.Count</label>
+							</Template>
+						</RadzenDataGridColumn>
+						<RadzenDataGridColumn Title="ForeignKeys" Width="75px">
+							<Template Context="data">
+								<label>@data.ForeignKeys.Count</label>
+							</Template>
+						</RadzenDataGridColumn>
+						<RadzenDataGridColumn Title="ReferencedByForeignKeys" Width="95px">
+							<Template Context="data">
+								<label>@data.ReferencedByForeignKeys.Count</label>
+							</Template>
+						</RadzenDataGridColumn>
+						<RadzenDataGridColumn Property="@nameof(IColumn.ColumnDefault)" Title="ColumnDefault" Width="100px" />
+						<RadzenDataGridColumn Property="@nameof(IColumn.Description)" Title="Description" Width="175px" />
+					</Columns>
+				</RadzenDataGrid>
+			</div>
+		</div>
+	</RadzenSplitterPane>
+
+</RadzenSplitter>
+
+@code {
+	private async Task OpenTableContextMenu(DataGridCellMouseEventArgs<ITable> args) =>
+		ContextMenuService.Open(args, ds =>
+			@<RadzenMenu>
+				<RadzenMenuItem Text="All Database Indexes" Value="args.Data" Click="@(e => GenerateAllDatabaseIndexes(e, args.Data, false))" />
+				<RadzenMenuItem Text="Missing Database Indexes" Value="args.Data" Click="@(e => GenerateMissingDatabaseIndexes(e, args.Data, true))" />
+				<RadzenMenuItem Text="Table Procedures :)" Value="args.Data" Click="@(e => GenerateSQLProcedures(e, args.Data))" />
+				<RadzenMenuItem Text="Legacy Generators" Value="args.Data">
+					@foreach (GenerationMethod method in Enum.GetValues(typeof(GenerationMethod)))
+					{
+						<RadzenMenuItem Text="@method.GetDisplayDescription()" Value="@method"
+										Click="@(async () => await OnArchiveGeneratorSelected.InvokeAsync(method))" />
+					}
+				</RadzenMenuItem>
+			</RadzenMenu>
+		);
+}

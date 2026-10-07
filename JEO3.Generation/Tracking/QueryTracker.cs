@@ -1,0 +1,274 @@
+﻿using System.Diagnostics;
+using JEO3.Generation.Models;
+using JEO3.Schema;
+
+namespace JEO3.Generation
+{
+    public sealed class QueryTracker : IQueryTracker
+    {
+        #region Properties
+
+        // DO NOT INCREASE ABOVE 3000!!!!!
+        private const int MAX_NODE_LIMIT = 2500;
+        private const bool DEBUG = true;
+
+        public QueryTable Root { get; }
+        public List<QueryTable> Nodes { get; } = [];
+
+        // Events Halting Traversal
+        public List<TraversalEvent> Events { get; } = [];
+        // Options
+        public QueryGenerationOptions Options { get; init; }
+        //Aliasing
+        private TableAliasGenerator _aliasGenerator { get; init; }
+        // Informational Only
+        private HashSet<int> VisitedRelations { get; } = [];
+
+        #endregion
+
+        #region Initialization
+
+        public QueryTracker(ITable rootTable, QueryGenerationOptions options)
+        {
+            Options = options;
+            _aliasGenerator = new TableAliasGenerator();
+
+            var root = new QueryTable()
+            {
+                Depth = 0,
+                Direction = TraversalDirection.Root,
+                Table = rootTable,
+                Alias = _aliasGenerator.Next(rootTable.Name)
+            };
+
+            Root = root;
+            Nodes.Add(root);
+        }
+
+        #endregion
+
+        #region Event Checks
+
+        internal QueryTable TryAddVisit(QueryTable node, IRelation relation, TraversalDirection direction, bool enforceGlobalDedup)
+        {
+            var isSelfNullable = relation.IsNullable;
+            var parentRequiresLeft = node.RequiresLeftJoin;
+
+            var newNode = new QueryTable()
+            {
+                Table = (direction == TraversalDirection.Up ? relation.ParentTable : relation.ReferencedTable) ?? new Table(),
+                Parent = node,
+                Relationship = relation,
+                Direction = direction,
+                Depth = node.Depth + 1,
+                RequiresLeftJoin = parentRequiresLeft || isSelfNullable,
+                Alias = _aliasGenerator.Next(direction == TraversalDirection.Up ? relation.ParentTable.Name : relation.ReferencedTable.Name)
+            };
+
+            Nodes.Add(newNode);
+            VisitedRelations.Add(relation.ObjectId);
+
+            return newNode;
+        }
+
+        internal bool CheckMaxDepthReached(QueryTable current, TraversalDirection direction, int levelsRemaining)
+        {
+            if (levelsRemaining <= 0)
+            {
+                var evnt = new TraversalEvent(current.Parent?.TableObjectId ?? 0, current.TableObjectId, current.RelationshipObjectId, TraversalStopReason.MaxDepth, direction, current.Depth);
+                Events.Add(evnt);
+                return true;
+            }
+
+            // HARD LIMIT: Prevent runaway graph explosion by limiting the number of nodes tracked
+            if (Nodes.Count > MAX_NODE_LIMIT)
+            {
+                var evnt = new TraversalEvent(current.Parent?.TableObjectId ?? 0, current.TableObjectId, current.RelationshipObjectId, TraversalStopReason.MaxDepth, direction, current.Depth);
+                Events.Add(evnt);
+                // Debugging Ceiling
+                if (DEBUG && Nodes.Count % 200 == 0) { Trace.WriteLine($"Ceiling reached: Stopping traversal to prevent graph explosion. {Nodes.Count}"); }
+                return true;
+            }
+            return false;
+        }
+
+        internal bool CheckStopTraversal(HashSet<string> sharedBranchPath, QueryTable current, IRelation relationship, TraversalDirection direction)
+        {
+            var targetTable = direction == TraversalDirection.Up
+                ? relationship.ParentTable
+                : relationship.ReferencedTable;
+
+            var exclusionReason = IsRelationExcluded(relationship);
+
+            if (exclusionReason != TraversalStopReason.None)
+            {
+                var evnt = new TraversalEvent(
+                    current.TableObjectId,
+                    targetTable?.ObjectId ?? 0,
+                    relationship.ObjectId,
+                    exclusionReason,
+                    direction,
+                    current.Depth
+                );
+                Events.Add(evnt);
+                return true;
+            }
+
+            // Read-only cycle validation against our current line-of-sight path
+            if (sharedBranchPath.Contains(relationship.KeyName))
+            {
+                var evnt = new TraversalEvent(
+                    (int)current.Table.ObjectId,
+                    targetTable?.ObjectId ?? 0,
+                    relationship.ObjectId,
+                    TraversalStopReason.CycleDetected,
+                    direction,
+                    current.Depth
+                );
+                Events.Add(evnt);
+                return true;
+            }
+
+            return false;
+        }
+
+
+        // SLOW
+        // NEW: sibling to TryAddVisit, not a replacement. Adds a node that is meant to
+        // terminate immediately - the caller never recurses into what this returns.
+        // Used by DiagramDrivenGraphGenerator to surface one-hop parent lookups off
+        // down-pass nodes (e.g. the lookup table a junction table points at) without
+        // opening full bidirectional recursion. Deliberately skips VisitedRelations /
+        // dedup bookkeeping since these nodes are diagram-only and are never walked
+        // into or joined in generated SQL text.
+        internal QueryTable TryAddReferenceLeaf(QueryTable node, IRelation relation, TraversalDirection direction)
+        {
+            var newNode = new QueryTable()
+            {
+                Table = (direction == TraversalDirection.Up ? relation.ParentTable : relation.ReferencedTable) ?? new Table(),
+                Parent = node,
+                Relationship = relation,
+                Direction = direction,
+                Depth = node.Depth + 1,
+                RequiresLeftJoin = node.RequiresLeftJoin || relation.IsNullable,
+                Alias = _aliasGenerator.Next(direction == TraversalDirection.Up ? relation.ParentTable.Name : relation.ReferencedTable.Name),
+                IsReferenceLeaf = true
+            };
+
+            Nodes.Add(newNode);
+            return newNode;
+        }
+
+        // MORE ACCURATE - MORE ACCURATE
+        //internal QueryTable? TryAddReferenceLeaf(QueryTable node, IRelation relation, TraversalDirection direction)
+        //{
+        //    var targetId = direction == TraversalDirection.Up ? relation.ParentTable?.ObjectId : relation.ReferencedTable?.ObjectId;
+
+        //    if (targetId == null) return null;
+
+        //    // FIX: Scope the check to the current lineage line-of-sight instead of globally killing the node
+        //    var lineageCheck = node;
+        //    while (lineageCheck != null)
+        //    {
+        //        if (lineageCheck.TableObjectId == targetId)
+        //        {
+        //            return null; // Truly a cycle within this specific branch context
+        //        }
+        //        lineageCheck = lineageCheck.Parent;
+        //    }
+
+        //    var newNode = new QueryTable()
+        //    {
+        //        Table = (direction == TraversalDirection.Up ? relation.ParentTable : relation.ReferencedTable) ?? new Table(),
+        //        Parent = node,
+        //        Relationship = relation,
+        //        Direction = direction,
+        //        Depth = node.Depth + 1,
+        //        RequiresLeftJoin = node.RequiresLeftJoin || relation.IsNullable,
+        //        Alias = _aliasGenerator.Next(direction == TraversalDirection.Up ? relation.ParentTable.Name : relation.ReferencedTable.Name),
+        //        IsReferenceLeaf = true
+        //    };
+
+        //    Nodes.Add(newNode);
+        //    return newNode;
+        //}
+        #endregion
+
+        #region Traversal Checks
+
+        internal TraversalStopReason IsRelationExcluded(IRelation relation)
+        {
+            var uqColNames = relation.ColumnPairs.Select(v => v.ParentColumnName).Concat(relation.ColumnPairs.Select(v => v.ReferencedColumnName)).Distinct().ToList();
+            // Look inside the options block to see if this specific relation is marked IsDisabled
+            bool isBlacklisted = Options.Traversal.RelationConstraints.Any(c => c.KeyName == relation.KeyName && c.IsDisabled)
+                || (Options.Traversal.OmitFromSelectsList.Count > 0 && Options.Traversal.OmitFromSelectsList.Any(c => uqColNames.Contains(c)));
+            return isBlacklisted
+                ? TraversalStopReason.RelationExcludedOmitted
+                : (relation.IsNullable && Options.Traversal.IgnoreNullableForeignKeys)
+                ? TraversalStopReason.RelationExcludedNullableKey : TraversalStopReason.None;
+        }
+
+        internal bool IsPathAllowed(IRelation relation, bool movingToChild)
+        {
+            // A. Re-use existing firewall blacklist/nullable key filtering
+            if (IsRelationExcluded(relation) != TraversalStopReason.None)
+            {
+                return false;
+            }
+
+            var targetTable = movingToChild ? relation.ReferencedTable : relation.ParentTable;
+
+            // Check PreventRootTypeRecursion: If we're moving to a child and the target table is the same as the root table, we should prevent recursion.
+            if (Options.Traversal.PreventRootTypeRecursion && movingToChild && targetTable.ObjectId == Root.Table.ObjectId)
+            {
+                return false;
+            }
+
+            // Check IgnoreTablesWithZeroRows: If the target table has zero rows and the option is set, we should ignore this path.
+            return (targetTable?.Rows) != 0 || !Options.Traversal.IgnoreTablesWithZeroRows;
+        }
+
+        #endregion
+
+        #region Post-Traversal Cleanup
+
+        public void ReclaimAliases()
+        {
+            if (!Nodes.Any()) return;
+
+            // Group the active nodes by their stripped, alphabetical base alias
+            var groups = Nodes
+                .Select(node => new
+                {
+                    Node = node,
+                    // Strips trailing digits: "SOH194" -> "SOH", "POL85" -> "POL"
+                    BaseAlias = System.Text.RegularExpressions.Regex.Replace(node.Alias, @"\d+$", "")
+                })
+                .GroupBy(x => x.BaseAlias)
+                .ToList();
+
+            foreach (var group in groups)
+            {
+                var groupList = group.ToList();
+
+                if (groupList.Count == 1)
+                {
+                    // Only one table of this type exists in the active query -> Clean reclaim!
+                    groupList[0].Node.Alias = group.Key;
+                }
+                else
+                {
+                    // Multiple instances exist -> Normalize to sequential, human-readable numbers
+                    for (int i = 0; i < groupList.Count; i++)
+                    {
+                        groupList[i].Node.Alias = i == 0
+                            ? group.Key              // First one gets the pristine base (e.g., "SOH")
+                            : $"{group.Key}{i + 1}"; // Subsequent ones get clean sequence numbers (e.g., "SOH2")
+                    }
+                }
+            }
+        }
+
+        #endregion
+    }
+}

@@ -1,0 +1,74 @@
+@* @namespace AwesomeTreeView
+@typeparam TItem
+
+<div class="atv-root" tabindex="0" @ref="_containerRef" @onkeydown="OnKeyDownAsync" @onkeydown:preventDefault="@_preventDefaultOnKeydown">
+    @if (ShowSearchBox)
+    {
+        <div class="atv-search">
+            <input type="text" placeholder="@SearchPlaceholder" value="@_filterText" @oninput="OnFilterInputAsync" />
+            @if (!string.IsNullOrEmpty(_filterText))
+            {
+                <button class="atv-clear" @onclick="ClearFilterAsync">✕</button>
+            }
+        </div>
+    }
+
+    <Virtualize @ref="_virtualize" Items="_visibleFlat" Context="node" ItemSize="RowHeight">
+        <div class="atv-row @(node == _focusedNode ? "atv-focused" : "") @(node.IsSelected ? "atv-selected" : "")"
+             style="padding-left:@(node.Level * IndentPx)px"
+             draggable="@(AllowDragDrop ? "true" : "false")"
+             @ondragstart="() => OnDragStart(node)"
+             @ondragover="e => OnDragOverRow(e, node)"
+             @ondragover:preventDefault="AllowDragDrop"
+             @ondrop="() => OnDropRowAsync(node)"
+             @ondragleave="() => _dropTarget = null"
+             @onclick="() => SelectNodeAsync(node)"
+             @onclick:stopPropagation="true">
+
+            @if (_dropTarget == node)
+            {
+                <div class="atv-drop-indicator @_dropPosition.ToString().ToLowerInvariant()"></div>
+            }
+
+            @if (node.HasChildren)
+            {
+                <span class="atv-toggle @(node.IsExpanded ? "expanded" : "")" @onclick="() => ToggleExpandAsync(node)" @onclick:stopPropagation="true">
+                    @(node.IsLoading ? "⏳" : "▶")
+                </span>
+            }
+            else
+            {
+                <span class="atv-toggle-spacer"></span>
+            }
+
+            @if (ShowCheckboxes)
+            {
+                <input type="checkbox" class="atv-checkbox"
+                       @ref="@(CheckboxRefCapture(node))"
+                       checked="@(node.Check == CheckState.Checked)"
+                       @onchange="() => ToggleCheckAsync(node)"
+                       @onclick:stopPropagation="true" />
+            }
+
+            @if (!string.IsNullOrEmpty(node.Icon))
+            {
+                <span class="atv-icon">@node.Icon</span>
+            }
+
+            @if (NodeTemplate is not null)
+            {
+                @NodeTemplate(node)
+            }
+            else
+            {
+                <span class="atv-text">@HighlightedText(node)</span>
+            }
+        </div>
+    </Virtualize>
+
+    @if (!_visibleFlat.Any())
+    {
+        <div class="atv-empty">@EmptyText</div>
+    }
+</div>
+ *@

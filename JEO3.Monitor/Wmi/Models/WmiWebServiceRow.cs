@@ -1,0 +1,104 @@
+﻿namespace JEO3.Monitor.Wmi
+{
+    public sealed class WmiWebServiceRow
+    {
+        public UInt32 AnonymousUsersPersec { get; set; }
+        public UInt64 BytesReceivedPersec { get; set; }
+        public UInt64 BytesSentPersec { get; set; }
+        public UInt64 BytesTotalPersec { get; set; }
+        public string Caption { get; set; }
+        public UInt32 CGIRequestsPersec { get; set; }
+        public UInt32 ConnectionAttemptsPersec { get; set; }
+        public UInt32 CopyRequestsPersec { get; set; }
+        public UInt32 CurrentAnonymousUsers { get; set; }
+        public UInt32 CurrentBlockedAsyncIORequests { get; set; }
+        public UInt32 Currentblockedbandwidthbytes { get; set; }
+        public UInt32 CurrentCALcountforauthenticatedusers { get; set; }
+        public UInt32 CurrentCALcountforSSLconnections { get; set; }
+        public UInt32 CurrentCGIRequests { get; set; }
+        public UInt32 CurrentConnections { get; set; }
+        public UInt32 CurrentISAPIExtensionRequests { get; set; }
+        public UInt32 CurrentNonAnonymousUsers { get; set; }
+        public UInt32 DeleteRequestsPersec { get; set; }
+        public string Description { get; set; }
+        public UInt32 FilesPersec { get; set; }
+        public UInt32 FilesReceivedPersec { get; set; }
+        public UInt32 FilesSentPersec { get; set; }
+        public UInt64 Frequency_Object { get; set; }
+        public UInt64 Frequency_PerfTime { get; set; }
+        public UInt64 Frequency_Sys100NS { get; set; }
+        public UInt32 GetRequestsPersec { get; set; }
+        public UInt32 HeadRequestsPersec { get; set; }
+        public UInt32 ISAPIExtensionRequestsPersec { get; set; }
+        public UInt32 LockedErrorsPersec { get; set; }
+        public UInt32 LockRequestsPersec { get; set; }
+        public UInt32 LogonAttemptsPersec { get; set; }
+        public UInt32 MaximumAnonymousUsers { get; set; }
+        public UInt32 MaximumCALcountforauthenticatedusers { get; set; }
+        public UInt32 MaximumCALcountforSSLconnections { get; set; }
+        public UInt32 MaximumCGIRequests { get; set; }
+        public UInt32 MaximumConnections { get; set; }
+        public UInt32 MaximumISAPIExtensionRequests { get; set; }
+        public UInt32 MaximumNonAnonymousUsers { get; set; }
+        public UInt32 MeasuredAsyncIOBandwidthUsage { get; set; }
+        public UInt32 MkcolRequestsPersec { get; set; }
+        public UInt32 MoveRequestsPersec { get; set; }
+        public String Name { get; set; }
+        public UInt32 NonAnonymousUsersPersec { get; set; }
+        public UInt32 NotFoundErrorsPersec { get; set; }
+        public UInt32 OptionsRequestsPersec { get; set; }
+        public UInt32 OtherRequestMethodsPersec { get; set; }
+        public UInt32 PostRequestsPersec { get; set; }
+        public UInt32 PropfindRequestsPersec { get; set; }
+        public UInt32 ProppatchRequestsPersec { get; set; }
+        public UInt32 PutRequestsPersec { get; set; }
+        public UInt32 SearchRequestsPersec { get; set; }
+        public UInt32 ServiceUptime { get; set; }
+        public UInt64 Timestamp_Object { get; set; }
+        public UInt64 Timestamp_PerfTime { get; set; }
+        public UInt64 Timestamp_Sys100NS { get; set; }
+        public UInt32 TotalAllowedAsyncIORequests { get; set; }
+        public UInt32 TotalAnonymousUsers { get; set; }
+        public UInt32 TotalBlockedAsyncIORequests { get; set; }
+        public UInt32 Totalblockedbandwidthbytes { get; set; }
+        public UInt64 TotalBytesReceived { get; set; }
+        public UInt64 TotalBytesSent { get; set; }
+        public UInt64 TotalBytesTransferred { get; set; }
+        public UInt32 TotalCGIRequests { get; set; }
+        public UInt32 TotalConnectionAttemptsallinstances { get; set; }
+        public UInt32 TotalCopyRequests { get; set; }
+        public UInt32 TotalcountoffailedCALrequestsforauthenticatedusers { get; set; }
+        public UInt32 TotalcountoffailedCALrequestsforSSLconnections { get; set; }
+        public UInt32 TotalDeleteRequests { get; set; }
+        public UInt32 TotalFilesReceived { get; set; }
+        public UInt32 TotalFilesSent { get; set; }
+        public UInt32 TotalFilesTransferred { get; set; }
+        public UInt32 TotalGetRequests { get; set; }
+        public UInt32 TotalHeadRequests { get; set; }
+        public UInt32 TotalISAPIExtensionRequests { get; set; }
+        public UInt32 TotalLockedErrors { get; set; }
+        public UInt32 TotalLockRequests { get; set; }
+        public UInt32 TotalLogonAttempts { get; set; }
+        public UInt32 TotalMethodRequests { get; set; }
+        public UInt32 TotalMethodRequestsPersec { get; set; }
+        public UInt32 TotalMkcolRequests { get; set; }
+        public UInt32 TotalMoveRequests { get; set; }
+        public UInt32 TotalNonAnonymousUsers { get; set; }
+        public UInt32 TotalNotFoundErrors { get; set; }
+        public UInt32 TotalOptionsRequests { get; set; }
+        public UInt32 TotalOtherRequestMethods { get; set; }
+        public UInt32 TotalPostRequests { get; set; }
+        public UInt32 TotalPropfindRequests { get; set; }
+        public UInt32 TotalProppatchRequests { get; set; }
+        public UInt32 TotalPutRequests { get; set; }
+        public UInt32 TotalRejectedAsyncIORequests { get; set; }
+        public UInt32 TotalSearchRequests { get; set; }
+        public UInt32 TotalTraceRequests { get; set; }
+        public UInt32 TotalUnlockRequests { get; set; }
+        public UInt32 TraceRequestsPersec { get; set; }
+        public UInt32 UnlockRequestsPersec { get; set; }
+
+
+
+    }
+}

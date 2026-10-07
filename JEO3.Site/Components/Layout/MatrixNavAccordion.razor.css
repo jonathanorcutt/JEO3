@@ -1,0 +1,103 @@
+.matrix-nav {
+    background: #000000;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 4px;
+    font-family: 'Courier New', monospace;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.matrix-nav-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    background: #050805;
+    border: 1px solid #0f3d0f;
+    color: #39ff14;
+    padding: 8px 6px;
+    cursor: pointer;
+    text-align: left;
+    text-shadow: 0 0 4px #39ff14, 0 0 8px rgba(57,255,20,0.4);
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+    .matrix-nav-header:hover {
+        background: #0a140a;
+        box-shadow: 0 0 8px rgba(57,255,20,0.3) inset;
+    }
+
+    .matrix-nav-header.expanded {
+        background: #0d1f0d;
+        box-shadow: 0 0 10px rgba(57,255,20,0.5) inset;
+    }
+
+.matrix-nav-header-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.matrix-nav-header-label {
+    flex: 1;
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.matrix-nav-chevron {
+    font-size: 0.7rem;
+    flex-shrink: 0;
+    opacity: 0.8;
+}
+
+.matrix-nav-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3px;
+    padding: 3px 0 6px 0;
+}
+
+.matrix-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: #030303;
+    border: 1px solid #0a2e0a;
+    color: #2ecc16;
+    padding: 8px 2px;
+    cursor: pointer;
+    text-shadow: 0 0 3px #39ff14;
+    transition: background 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+}
+
+    .matrix-nav-item:hover {
+        background: #081a08;
+        box-shadow: 0 0 6px rgba(57,255,20,0.35);
+        color: #6bff4a;
+    }
+
+    .matrix-nav-item.active {
+        background: #0f2f0f;
+        border-color: #39ff14;
+        box-shadow: 0 0 10px rgba(57,255,20,0.7);
+        color: #baffab;
+    }
+
+.matrix-nav-item-icon {
+    font-size: 1rem;
+}
+
+.matrix-nav-item-label {
+    font-size: 0.6rem;
+    text-align: center;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    line-height: 1.1;
+}

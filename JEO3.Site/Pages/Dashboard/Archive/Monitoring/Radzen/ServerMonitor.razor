@@ -1,0 +1,474 @@
+@using JEO3.Schema
+@using JEO3.Site.Services
+@using JEO3.Monitor
+@using Radzen.Blazor
+@namespace JEO3.Site.Dashboard
+@implements IAsyncDisposable
+
+<div class="dashboard-pane-container">
+	<div class="dashboard-pane-body-container-scroll">
+
+		@* ── Header bar ── *@
+		<div class="monitor-header">
+			<span class="monitor-title">SERVER MONITOR</span>
+			<div class="monitor-controls">
+				@if (_monitor.Status == MonitorPollingStatus.Polling)
+				{
+					<span class="monitor-status-badge monitor-status-live">● LIVE</span>
+					<button class="monitor-btn monitor-btn-stop" @onclick="StopMonitoring">STOP</button>
+				}
+				else if (_monitor.Status == MonitorPollingStatus.InsufficientPermissions)
+				{
+					<span class="monitor-status-badge monitor-status-error" title="@_monitor.LastError">⚠ NO PERMISSION</span>
+				}
+				else if (_monitor.Status == MonitorPollingStatus.Error)
+				{
+					<span class="monitor-status-badge monitor-status-error" title="@_monitor.LastError">⚠ ERROR</span>
+					<button class="monitor-btn monitor-btn-start" @onclick="StartMonitoring">RETRY</button>
+				}
+				else
+				{
+					<span class="monitor-status-badge monitor-status-stopped">○ STOPPED</span>
+					<button class="monitor-btn monitor-btn-start" @onclick="StartMonitoring">START</button>
+				}
+			</div>
+		</div>
+
+		@if (_monitor.Status == MonitorPollingStatus.InsufficientPermissions)
+		{
+			<div class="monitor-permission-note">
+				VIEW SERVER STATE permission is required. Grant it with:<br />
+				<code>GRANT VIEW SERVER STATE TO [your_login];</code>
+			</div>
+		}
+
+		@* ── Primary KPI Summary Row ── *@
+		<div class="monitor-rate-row">
+			<div class="monitor-kpi @WaitRateClass">
+				<span class="monitor-kpi-value">@WaitRateDisplay</span>
+				<span class="monitor-kpi-label">ms wait / sec</span>
+			</div>
+			<div class="monitor-kpi">
+				<span class="monitor-kpi-value">@TaskRateDisplay</span>
+				<span class="monitor-kpi-label">waits / sec</span>
+			</div>
+			@if (_monitor.Latest != null)
+			{
+				<div class="monitor-kpi monitor-kpi-small">
+					<span class="monitor-kpi-value">@_monitor.Latest.ElapsedSeconds.ToString("F1")s</span>
+					<span class="monitor-kpi-label">sample interval</span>
+				</div>
+			}
+		</div>
+
+		<div class="monitor-chart-container" style="background: #11151c; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #222c3c;">
+			<RadzenStack class="rz-p-0 rz-p-md-6 rz-p-lg-12">
+				<RadzenRow>
+					<RadzenColumn Size="12">
+						<RadzenChart style="height: 420px;">
+							<defs>
+								<linearGradient id="splineGradient" x1="0" y1="0" x2="0" y2="1">
+									<stop offset="0%" stop-color="#00cc66" stop-opacity="0.4" />
+									<stop offset="100%" stop-color="#00cc66" stop-opacity="0.0" />
+								</linearGradient>
+							</defs>
+
+							@* Directly binding to history collection *@
+							<RadzenAreaSeries Data="@_monitor.History"
+											  CategoryProperty="SampledAtUtc"
+											  ValueProperty="TotalWaitMsPerSec"
+											  Title="ms wait / sec"
+											  FillMode="FillMode.Gradient"
+											  Fill="#00cc66"
+											  Smooth="true"
+											  Stroke="#00cc66"
+											  StrokeWidth="2">
+
+								<RadzenSeriesDataLabels Formatter="@FilterLabels" />
+
+							</RadzenAreaSeries>
+
+							@* Formatting X-Axis for time labels *@
+							<RadzenCategoryAxis FormatString="{0:HH:mm:ss}" Step="@TimeSpan.FromSeconds(10)">
+								<RadzenGridLines Visible="true" Stroke="#222c3c" StrokeWidth="1" LineType="LineType.Dashed" />
+							</RadzenCategoryAxis>
+
+							<RadzenValueAxis Min="0" Step="50000" FormatString="{0}ms/sec">
+								<RadzenGridLines Visible="true" Stroke="#222c3c" StrokeWidth="1" LineType="LineType.Dashed" />
+							</RadzenValueAxis>
+							<RadzenLineSeries Data="@_monitor.History.Select(x => new { x.Timestamp, Value = 300000d })"
+											  CategoryProperty="SampledAtUtc"
+											  ValueProperty="Value"
+											  Title="🥠 game over"
+											  Stroke="#ff4444"
+											  StrokeWidth="2"
+											  LineType="LineType.Dashed">
+							</RadzenLineSeries>
+							<RadzenChartTooltipOptions Shared="true" />
+							<RadzenLegend Visible="true" />
+						</RadzenChart>
+					</RadzenColumn>
+				</RadzenRow>
+			</RadzenStack>
+		</div>
+
+		@* ── Top wait types ── *@
+		@if (_monitor.Latest?.TopWaits?.Count > 0)
+		{
+			<div class="monitor-section">
+				<div class="monitor-section-title">
+					TOP WAIT TYPES
+					<span class="monitor-section-note">(non-benign, filtered)</span>
+				</div>
+
+				<RadzenDataGrid Data="@_monitor.Latest.TopWaits.Take(15)"
+								TItem="WaitTypeRate"
+								AllowSorting="true"
+								AllowFiltering="true"
+								AllowColumnResize="true"
+								AllowColumnReorder="true"
+								Density="Density.Compact"
+								AllowAlternatingRows="true"
+								ShowPagingSummary="true"
+								PageSize="15"
+								Style="width: 100%;">
+
+					<Columns>
+						<RadzenDataGridColumn TItem="WaitTypeRate"
+											  Property="@nameof(WaitTypeRate.WaitType)"
+											  Title="Wait Type"
+											  Width="260px" />
+
+						<RadzenDataGridColumn TItem="WaitTypeRate"
+											  Property="@nameof(WaitTypeRate.WaitMsPerSec)"
+											  Title="ms/s"
+											  TextAlign="TextAlign.Right"
+											  Width="130px">
+							<Template Context="w">
+								<span class="@WaitTypeCellClass(w)">
+									@w.WaitMsPerSec.ToString("N2")
+								</span>
+							</Template>
+						</RadzenDataGridColumn>
+
+						<RadzenDataGridColumn TItem="WaitTypeRate"
+											  Property="@nameof(WaitTypeRate.WaitingTasksPerSec)"
+											  Title="Tasks/s"
+											  TextAlign="TextAlign.Right"
+											  Width="130px"
+											  FormatString="{0:N2}" />
+
+						<RadzenDataGridColumn TItem="WaitTypeRate"
+											  Property="@nameof(WaitTypeRate.ResourceWaitMsPerSec)"
+											  Title="Resource ms/s"
+											  TextAlign="TextAlign.Right"
+											  Width="150px"
+											  FormatString="{0:N2}" />
+
+						<RadzenDataGridColumn TItem="WaitTypeRate"
+											  Property="@nameof(WaitTypeRate.SignalWaitMsPerSec)"
+											  Title="Signal ms/s"
+											  TextAlign="TextAlign.Right"
+											  Width="140px"
+											  FormatString="{0:N2}" />
+					</Columns>
+
+				</RadzenDataGrid>
+			</div>
+		}
+
+		@* ── Active Requests ── *@
+
+		@if (_monitor.ActiveRequests.Count > 0)
+		{
+			<div class="monitor-section">
+				<div class="monitor-section-title">
+					ACTIVE REQUESTS
+					<span class="monitor-section-badge">
+						@_monitor.ActiveRequests.Count
+					</span>
+
+					@if (_monitor.ActiveRequests.Any(r => r.IsBlocked))
+					{
+						<span class="monitor-section-badge monitor-badge-warn">
+							@_monitor.ActiveRequests.Count(r => r.IsBlocked) BLOCKED
+						</span>
+					}
+				</div>
+
+				<RadzenDataGrid Data="@_monitor.ActiveRequests.OrderByDescending(x => x.WaitTimeSec)"
+								TItem="ActiveRequestRow"
+								AllowSorting="true"
+								AllowFiltering="true"
+								AllowColumnResize="true"
+								AllowColumnReorder="true"
+								Density="Density.Compact"
+								AllowAlternatingRows="true"
+								AllowVirtualization="true"
+								Style="width: 100%;">
+
+					<Columns>
+						<RadzenDataGridColumn TItem="ActiveRequestRow"
+											  Property="@nameof(ActiveRequestRow.SessionId)"
+											  Title="SPID"
+											  Width="80px" />
+
+						<RadzenDataGridColumn TItem="ActiveRequestRow"
+											  Property="@nameof(ActiveRequestRow.BlockingSessionId)"
+											  Title="Blocked By"
+											  Width="100px">
+							<Template Context="r">
+								@(r.BlockingSessionId > 0
+									? r.BlockingSessionId.ToString()
+									: "—")
+							</Template>
+						</RadzenDataGridColumn>
+
+						<RadzenDataGridColumn TItem="ActiveRequestRow"
+											  Property="@nameof(ActiveRequestRow.Status)"
+											  Title="Status"
+											  Width="120px" />
+
+						<RadzenDataGridColumn TItem="ActiveRequestRow"
+											  Property="@nameof(ActiveRequestRow.WaitType)"
+											  Title="Wait Type"
+											  Width="180px" />
+
+						<RadzenDataGridColumn TItem="ActiveRequestRow"
+											  Property="@nameof(ActiveRequestRow.WaitTimeSec)"
+											  Title="Wait"
+											  TextAlign="TextAlign.Right"
+											  Width="100px"
+											  FormatString="{0:N1}s" />
+
+						<RadzenDataGridColumn TItem="ActiveRequestRow"
+											  Property="@nameof(ActiveRequestRow.CpuTimeMs)"
+											  Title="CPU"
+											  TextAlign="TextAlign.Right"
+											  Width="110px"
+											  FormatString="{0:N0}" />
+
+						<RadzenDataGridColumn TItem="ActiveRequestRow"
+											  Property="@nameof(ActiveRequestRow.LogicalReads)"
+											  Title="Reads"
+											  TextAlign="TextAlign.Right"
+											  Width="120px"
+											  FormatString="{0:N0}" />
+
+						<RadzenDataGridColumn TItem="ActiveRequestRow"
+											  Property="@nameof(ActiveRequestRow.Writes)"
+											  Title="Writes"
+											  TextAlign="TextAlign.Right"
+											  Width="110px"
+											  FormatString="{0:N0}" />
+
+						<RadzenDataGridColumn TItem="ActiveRequestRow"
+											  Property="@nameof(ActiveRequestRow.OpenTxnCount)"
+											  Title="Txns"
+											  TextAlign="TextAlign.Right"
+											  Width="80px" />
+
+						<RadzenDataGridColumn TItem="ActiveRequestRow"
+											  Property="@nameof(ActiveRequestRow.DatabaseName)"
+											  Title="Database"
+											  Width="160px" />
+
+						<RadzenDataGridColumn TItem="ActiveRequestRow"
+											  Property="@nameof(ActiveRequestRow.LoginName)"
+											  Title="Login"
+											  Width="180px" />
+					</Columns>
+
+					@* 					<RowRender>
+						<Template Context="r">
+						</Template>
+					</RowRender> *@
+
+				</RadzenDataGrid>
+			</div>
+		}
+
+
+		@* ── Blocking chain ── *@
+		@if (_monitor.BlockingChain.Count > 0)
+		{
+			<RadzenDataGrid Data="@(_monitor.BlockingChain
+															.OrderByDescending(x => x.IsBlocked ? 1 : 0)
+															.ThenByDescending(x => x.WaitTimeSec))"
+							TItem="BlockingRow"
+							AllowSorting="true"
+							AllowFiltering="true"
+							AllowColumnResize="true"
+							AllowColumnReorder="true"
+							Density="Density.Compact"
+							AllowAlternatingRows="true"
+							Style="width: 100%;">
+
+				<Columns>
+					<RadzenDataGridColumn TItem="BlockingRow"
+										  Property="@nameof(BlockingRow.SessionId)"
+										  Title="SPID"
+										  Width="80px" />
+
+					<RadzenDataGridColumn TItem="BlockingRow"
+										  Property="@nameof(BlockingRow.BlockingSessionId)"
+										  Title="Blocked By"
+										  Width="100px">
+						<Template Context="b">
+							@(b.BlockingSessionId > 0
+								? b.BlockingSessionId.ToString()
+								: "—")
+						</Template>
+					</RadzenDataGridColumn>
+
+					<RadzenDataGridColumn TItem="BlockingRow"
+										  Property="@nameof(BlockingRow.Status)"
+										  Title="Status"
+										  Width="120px" />
+
+					<RadzenDataGridColumn TItem="BlockingRow"
+										  Property="@nameof(BlockingRow.WaitType)"
+										  Title="Wait Type"
+										  Width="180px" />
+
+					<RadzenDataGridColumn TItem="BlockingRow"
+										  Property="@nameof(BlockingRow.WaitTimeSec)"
+										  Title="Wait"
+										  Width="100px"
+										  TextAlign="TextAlign.Right"
+										  FormatString="{0:N1}s" />
+
+					<RadzenDataGridColumn TItem="BlockingRow"
+										  Property="@nameof(BlockingRow.OpenTranDurationSec)"
+										  Title="Txn Age"
+										  Width="110px"
+										  TextAlign="TextAlign.Right">
+						<Template Context="b">
+							@(b.OpenTranDurationSec?.ToString("N0") ?? "—")
+						</Template>
+					</RadzenDataGridColumn>
+
+					<RadzenDataGridColumn TItem="BlockingRow"
+										  Property="@nameof(BlockingRow.LoginName)"
+										  Title="Login"
+										  Width="160px" />
+
+					<RadzenDataGridColumn TItem="BlockingRow"
+										  Property="@nameof(BlockingRow.HostName)"
+										  Title="Host"
+										  Width="160px" />
+
+					<RadzenDataGridColumn TItem="BlockingRow"
+										  Property="@nameof(BlockingRow.ProgramName)"
+										  Title="Program"
+										  Width="220px" />
+				</Columns>
+			</RadzenDataGrid>
+		}
+
+		@* ── Empty state ── *@
+		@if (_monitor.Status == MonitorPollingStatus.Polling
+			 && _monitor.Latest == null)
+		{
+			<div class="monitor-empty">Waiting for first sample…</div>
+		}
+	</div>
+</div>
+@code {
+	[Inject] private IServerMonitorService MonitorService { get; set; } = default!;
+	[Inject] private WSWorkspace W { get; set; } = default!;
+
+	private record WaitThresholdPoint(DateTime SampledAtUtc, double Value);
+
+	private IReadOnlyList<WaitThresholdPoint> WaitThreshold =>
+		Enumerable.Range(0, _monitor.History.Count)
+			.Select(i => new WaitThresholdPoint(
+				_monitor.History[i].Timestamp,
+				300000d))
+			.ToList();
+
+	private MonitorState _monitor => W.Observation.Monitor;
+	private bool _isDisposed;
+
+	protected override void OnInitialized()
+	{
+		W.OnMonitorStateChanged += HandleMonitorStateChanged;
+		MonitorService.StartAsync();
+	}
+
+	private async void HandleMonitorStateChanged(MonitorState state)
+	{
+		if (_isDisposed) return;
+		W.Observation.Monitor.ActiveRequests = state.ActiveRequests;
+		W.Observation.Monitor.BlockingChain = state.BlockingChain;
+		W.Observation.Monitor.History = state.History;
+		W.Observation.Monitor.LastError = state.LastError;
+		W.Observation.Monitor.SparklinePoints = state.SparklinePoints;
+		W.Observation.Monitor.Status = state.Status;
+		await InvokeAsync(StateHasChanged);
+	}
+	private static string WaitTypeCellClass(WaitTypeRate w) => w.WaitMsPerSec switch
+	{
+		> 100 => "monitor-cell-danger",
+		> 25 => "monitor-cell-warn",
+		_ => ""
+	};
+
+	private string FilterLabels(object value)
+	{
+		// 1. Cast or parse the incoming raw object value safely
+		if (value is double numericValue)
+		{
+			// 2. Enforce your "Value exceeds X" condition
+			if (numericValue > 300000)
+			{
+				var sec = Math.Round(numericValue / 1000, 0);
+				var min = Math.Round(sec / 60, 2);
+				return min + " min/sec"; // Or format it e.g. $"{numericValue:N0}"
+			}
+		}
+
+		// 3. Return an empty string to completely suppress the label
+		return string.Empty;
+	}
+	private async Task StartMonitoring() => await MonitorService.StartAsync();
+	private async Task StopMonitoring() => await MonitorService.StopAsync();
+
+	// ── Display helpers ──────────────────────────────────────────────────────
+
+	private string WaitRateDisplay =>
+		_monitor.Latest == null ? "—" : _monitor.Latest.TotalWaitMsPerSec.ToString("F1");
+
+	private string TaskRateDisplay =>
+		_monitor.Latest == null ? "—" : _monitor.Latest.TotalWaitingTasksPerSec.ToString("F1");
+
+	private string SparkColor => _monitor.Latest switch
+	{
+		{
+			TotalWaitMsPerSec: > 200
+		} => "#ff4444",
+		{ TotalWaitMsPerSec: > 50 } => "#ffaa00",
+		_ => "#00cc66"
+	};
+
+	private string WaitRateClass => _monitor.Latest switch
+	{
+		{ TotalWaitMsPerSec: > 200 } => "monitor-kpi-danger",
+		{ TotalWaitMsPerSec: > 50 } => "monitor-kpi-warn",
+		_ => "monitor-kpi-ok"
+	};
+
+	private static string WaitTypeRowClass(WaitTypeRate w) => w.WaitMsPerSec switch
+	{
+		> 100 => "monitor-row-danger",
+		> 25 => "monitor-row-warn",
+		_ => ""
+	};
+
+	public async ValueTask DisposeAsync()
+	{
+		_isDisposed = true;
+		W.OnMonitorStateChanged -= HandleMonitorStateChanged;
+		await MonitorService.StopAsync();
+	}
+}

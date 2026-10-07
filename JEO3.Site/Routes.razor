@@ -1,0 +1,18 @@
+@using JEO3.Site
+@using Microsoft.AspNetCore.Components.Routing
+
+<Router AppAssembly="@typeof(Program).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(JEO3.Site.Layout.MainLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <LayoutView Layout="@typeof(JEO3.Site.Layout.MainLayout)">
+            <PageTitle>Not Found</PageTitle>
+            <div class="rz-p-6">
+                <h1>Not Found</h1>
+                <p>The requested page does not exist.</p>
+            </div>
+        </LayoutView>
+    </NotFound>
+</Router>

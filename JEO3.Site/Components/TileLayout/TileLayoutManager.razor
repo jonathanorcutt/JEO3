@@ -1,0 +1,98 @@
+﻿@inject IJSRuntime JSRuntime
+@using System.Text.Json
+
+@namespace JEO3.Site.Components.TileLayout
+
+@if (isLoaded)
+{
+    <RadzenTileLayout Columns="@Columns" Rows="@Rows" RowHeight="@RowHeight" Gap="@Gap"
+                      EditMode="@EditMode" ShowGrid="@ShowGrid" Change="@HandleLayoutChange"
+                      Style="height: 100%; border: var(--rz-card-border); border-radius: var(--rz-card-border-radius);">
+        @foreach (var tile in TileItems)
+        {
+            <RadzenTileLayoutItem @key="@tile.Id" Title="@tile.Title" Icon="@tile.Icon"
+                                  @bind-Col="@tile.Col" @bind-Row="@tile.Row"
+                                  @bind-ColSpan="@tile.ColSpan" @bind-RowSpan="@tile.RowSpan" Style="padding-top:0px !important">
+                <HeaderTemplate>
+                    @if (tile.HeaderTemplate != null)
+                    {
+                        @tile.HeaderTemplate
+                    }
+                    else
+                    {
+                        @tile.Title
+                    }
+                </HeaderTemplate>
+                <ChildContent>
+                    @tile.ChildContent
+                </ChildContent>
+            </RadzenTileLayoutItem>
+        }
+    </RadzenTileLayout>
+}
+else
+{
+    <p>Loading layout configuration...</p>
+}
+
+@code {
+    [Parameter] public List<GenericTileItem> DefaultTiles { get; set; } = new();
+    [Parameter] public string StorageKey { get; set; } = "dashboard_state";
+    [Parameter] public int Columns { get; set; } = 64;
+    [Parameter] public int Rows { get; set; } = 120;
+    [Parameter] public int RowHeight { get; set; } = 12;
+    [Parameter] public int Gap { get; set; } = 4;
+    [Parameter] public bool EditMode { get; set; } = true;
+    [Parameter] public bool ShowGrid { get; set; } = true;
+
+    private List<GenericTileItem> TileItems { get; set; } = new();
+    private bool isLoaded = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Fall back to defaults initially
+            TileItems = new List<GenericTileItem>(DefaultTiles);
+
+            try
+            {
+                // var json = await JSRuntime.InvokeAsync<string>("window.localStorage.getItem", StorageKey);
+                // if (!string.IsNullOrEmpty(json))
+                // {
+                //     var savedLayouts = JsonSerializer.Deserialize<List<GenericTileItem>>(json);
+                //     if (savedLayouts != null)
+                //     {
+                //         // Match saved dimensions back to the templates using the matching Id property
+                //         foreach (var tile in TileItems)
+                //         {
+                //             var match = savedLayouts.FirstOrDefault(s => s.Id == tile.Id);
+                //             if (match != null)
+                //             {
+                //                 tile.Col = match.Col;
+                //                 tile.Row = match.Row;
+                //                 tile.ColSpan = match.ColSpan;
+                //                 tile.RowSpan = match.RowSpan;
+                //             }
+                //         }
+                //     }
+                // }
+            }
+            catch
+            {
+                // Catch Blazor pre-rendering exceptions cleanly
+            }
+
+            isLoaded = true;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleLayoutChange()
+    {
+        // Because of Radzen's two-way data-binding (@bind-Col, etc.),
+        // TileItems properties are already updated when this fires.
+        var json = JsonSerializer.Serialize(TileItems);
+        await JSRuntime.InvokeVoidAsync("window.localStorage.setItem", StorageKey, json);
+    }
+}

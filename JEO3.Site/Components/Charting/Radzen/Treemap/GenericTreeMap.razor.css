@@ -1,0 +1,99 @@
+.jeo-treemap {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: calc(100% - 55px);
+    background: #0b0f10;
+    border: 1px solid #1d2b22;
+    font-family: 'JetBrains Mono', 'Consolas', ui-monospace, monospace;
+    color: #b9f6ca;
+    overflow: hidden;
+}
+
+.jeo-treemap__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 10px;
+    background: #101615;
+    border-bottom: 1px solid #1d2b22;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+}
+
+.jeo-treemap__title {
+    color: #39ff14;
+    font-weight: 700;
+}
+
+.jeo-treemap__meta {
+    color: #5c8a6a;
+}
+
+.jeo-treemap__svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    background-image:
+        repeating-linear-gradient(0deg, rgba(57, 255, 20, 0.025) 0px, rgba(57, 255, 20, 0.025) 1px, transparent 1px, transparent 24px),
+        repeating-linear-gradient(90deg, rgba(57, 255, 20, 0.025) 0px, rgba(57, 255, 20, 0.025) 1px, transparent 1px, transparent 24px);
+}
+
+.jeo-treemap__cell rect {
+    stroke: #0b0f10;
+    stroke-width: 2;
+    opacity: 0.88;
+    transition: opacity 120ms ease, filter 120ms ease;
+    cursor: pointer;
+}
+
+.jeo-treemap__cell:hover rect,
+.jeo-treemap__cell.is-hovered rect {
+    opacity: 1;
+    filter: drop-shadow(0 0 6px currentColor);
+}
+
+.jeo-treemap__label {
+    font-size: 11px;
+    fill: #0b0f10;
+    font-weight: 700;
+    pointer-events: none;
+}
+
+.jeo-treemap__sublabel {
+    font-size: 9px;
+    fill: rgba(11, 15, 16, 0.72);
+    pointer-events: none;
+}
+
+.jeo-treemap__status {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 6px 10px;
+    background: #101615;
+    border-top: 1px solid #1d2b22;
+    font-size: 11px;
+    min-height: 26px;
+}
+
+.jeo-treemap__status-label {
+    color: #39ff14;
+    font-weight: 700;
+}
+
+.jeo-treemap__status-sep {
+    color: #2f4a37;
+}
+
+.jeo-treemap__status-value {
+    color: #00d9ff;
+}
+
+.jeo-treemap__status-pct {
+    color: #ffd54f;
+}
+
+.jeo-treemap__status-hint {
+    color: #4a6b56;
+}

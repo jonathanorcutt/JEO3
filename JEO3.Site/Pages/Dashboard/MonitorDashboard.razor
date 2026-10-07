@@ -1,0 +1,232 @@
+﻿@using BlazorMonaco.Editor
+@using JEO3.Core
+@using JEO3.Generation
+@using JEO3.Generation.Models
+@using JEO3.Logging
+@using JEO3.Monitor.ECharts
+@using JEO3.Monitor.Models
+@using JEO3.Site.Dashboard
+@using JEO3.Site.Extensions
+@using JEO3.Site.Services
+@inject ConnectionService ConnectionService
+@inject WSWorkspace W
+
+@namespace JEO3.Site.Components.ECharts
+
+<div class="dashboard-pane-container">
+	<div class="dashboard-pane-body-container-scroll">
+		@* 
+		<RadzenButton class="rz-shadow-4" Variant="Variant.Filled" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@(async (args) => await GenerateTraffic())" Style="background:var(--jeo-gradient-blue)" Disabled="@W.Observation.Traffic.IsRunning"> <i class="fa-solid fa-warning fa-mr2"></i>🚨 Generate Traffic</RadzenButton>
+ *@
+		@* 		@if (W.Observation.Traffic.IsRunning)
+		{
+			<RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" Style="margin-left: 10px;">
+				<RadzenLabel Text="@W.Observation.Traffic.CurrentTable" />
+				<RadzenLabel Text="@W.Observation.Traffic.PercentCompleted" />
+			</RadzenStack>
+		}
+ *@
+		<div class="monitor">
+			<div class="monitor-header">
+				<div>
+					<span class="monitor-eyebrow">REALTIME ANALYSIS</span>
+					<span class="monitor-title">SQL MONITOR LIVE</span>
+				</div>
+				<RadzenDropDown @bind-Value="@_selectedTheme" Data="@Enum.GetValues(typeof(ChartThemeType))" Change="@OnThemeChanged" class="monitor-metric" />
+			</div>
+			<div class="monitor-grid-container">
+
+				<CascadingValue Value="@_selectedTheme">
+					<div class="monitor-grid">
+						<WaitRateChart Width="1495px" Height="300px" LabelText="OVERVIEW" />
+					</div>
+					<div class="monitor-grid">
+						<TopExpensiveQueriesGrid @ref="gridTopExpensiveQueries" Height="170px" Width="1500px" LabelText="TOP EXPENSIVE QUERIES" OnSelectionChanged="SelectedQueryChanged"></TopExpensiveQueriesGrid>
+					</div>
+					<div class="monitor-grid" style="width:1495px">
+						<RadzenAccordion Style="width:1495px">
+							<Items>
+								<RadzenAccordionItem Text="View Expensive Query.." Icon="account_balance_wallet" CollapseTitle="Hide Query"
+													 ExpandTitle="Show Selected Query" CollapseAriaLabel=""
+													 ExpandAriaLabel="Show The Selected Expensive Query" class="monitor-accordion">
+									<RadzenStack Gap="1rem">
+										<div class="dashboard-query-editor-container" style="min-height:100px; height:275px">
+
+											<div class="grid-query-editor" oncontextmenu="return false;" onpointerup="if(event.button === 2) { this.releasePointerCapture(event.pointerId); }">
+												<StandaloneCodeEditor @key=@("query-editor-instance-expensive-queries") CssClass="txtQueryEditor" ConstructionOptions="EditorOptionsTopExpensiveQueries"
+																	  @ref="queryEditorTopExpensiveQueries" OnDidInit="OnEditorInitializedTopExpensiveQueries" OnDidChangeModelContent="OnEditorContentChangedTopExpensiveQueries" />
+											</div>
+										</div>
+									</RadzenStack>
+								</RadzenAccordionItem>
+							</Items>
+						</RadzenAccordion>
+					</div>
+					<div class="monitor-grid">
+						<WaitCandleChart Width="735px" Height="200px" LabelText="WAIT ACTIVITY — LIVE" />
+						<TaskRateChart Width="735px" Height="200px" LabelText="WAITING TASKS/SEC" />
+					</div>
+
+					<div class="monitor-grid">
+						<TopWaitsChart Width="735px" Height="200px" LabelText="TOP WAIT TYPES (latest sample)" />
+						<ActiveRequestsChart Width="735px" Height="200px" LabelText="ACTIVE REQUESTS — top 10 by wait" />
+					</div>
+
+					<div class="monitor-grid">
+						<WaitDistributionChart Width="735px" Height="350px" LabelText="TOP WAITS DISTRIBUTION" />
+						<CorrelationChart Width="735px" Height="350px" LabelText="CONTENTION PROFILE (Tasks vs Wait)" />
+					</div>
+
+					<div class="monitor-grid">
+						<ActiveRequestsGrid Width="1495px" Height="120px" LabelText="ACTIVE REQUESTS" />
+					</div>
+
+					<label class="dashboard-monitor-label">Sample Charts</label>
+					<div class="monitor-grid">
+						<WaitRateStackedAreaChart Width="1495px" Height="200px" LabelText="IO/MEM/CPU/WAIT BAR" />
+					</div>
+
+					<div class="monitor-grid">
+						<BlockingChart Width="735px" Height="200px" LabelText="BLOCKING CHAIN" />
+						<DeadlockChart Width="735px" Height="200px" LabelText="DEADLOCKS" />
+					</div>
+					<div class="monitor-grid" style="margin-bottom:100px">
+						@* <RadzenWaitRateChart Width="1480px" Height="250px" LabelText="WAIT RATE RADZEN" /> *@
+					</div>
+				</CascadingValue>
+			</div>
+
+		</div>
+	</div>
+</div>
+@code
+{
+
+	#region Traffic Stress
+	private async Task GenerateTraffic()
+	{
+		if (W.Observation.Traffic.IsRunning) { return; }
+		W.Observation.Traffic.IsRunning = true;
+
+		try
+		{
+			const int upLimit = 3;
+			const int downLimit = 3;
+			int idx = 0;
+			Parallel.ForEach(W.Context.Tables, new ParallelOptions() { MaxDegreeOfParallelism = 2 }, async (tbl) =>
+			{
+				idx++;
+				int pctCompleted = (int)(((double)(idx) / (double)(W.Context.Tables.Count)) * 100);
+				W.Observation.Traffic.CurrentTable = tbl.SchemaName + "." + tbl.Name;
+				W.Observation.Traffic.PercentCompleted = pctCompleted + "%";
+				W.NotifyDashboardStateChanged();
+
+				for (var up = 1; up < upLimit; up++)
+				{
+					for (var down = 1; down < downLimit; down++)
+					{
+						var options = W.UI.ERSettings.ToGenerationOptions(new List<GraphRelationConstraint>(), GenerationMethod.PlanDrivenExecution);
+						options.Traversal.LevelsUp = up;
+						options.Traversal.LevelsDown = down;
+						options.Retrieval.RootSelectPolicy = TableSelectPolicy.AllColumns;
+						options.Retrieval.JoinSelectPolicy = TableSelectPolicy.AllColumns;
+						options.Traversal.PreventRootTypeRecursion = true;
+						pctCompleted = (int)(((double)(up * down) / (double)(upLimit * downLimit)) * 100);
+						W.Observation.Traffic.PercentCompleted = pctCompleted + "%";
+						await InvokeAsync(StateHasChanged);
+
+						Parallel.ForEach(tbl.Indexes, new ParallelOptions() { MaxDegreeOfParallelism = 2 }, (index) =>
+						{
+							string script = $"ALTER INDEX {index.Name} ON {tbl.SchemaName}.{tbl.Name} REBUILD WITH (ONLINE = ON);";
+							W.Context.Provider.ExecuteNonQuery(script);
+						});
+
+						var gen = new PlanDrivenQueryGenerator();
+						var result = gen.Generate(tbl, options);
+						var dt = await ConnectionService.Execute(result.GeneratedQuery);
+						if (dt == null)
+						{
+							await Task.Delay(1250);
+						}
+					}
+				}
+			});
+		}
+		catch (Exception ex)
+		{
+			ExceptionUtility.LogException(ex);
+		}
+		finally
+		{
+			W.Observation.Traffic.IsRunning = false;
+			await InvokeAsync(StateHasChanged);
+		}
+	}
+	#endregion
+
+	private ChartThemeType _selectedTheme = ChartThemeType.Default;
+
+	private readonly HashSet<string> _expandedSqlHandleHexs = new();
+	private TopExpensiveQueriesGrid gridTopExpensiveQueries;
+
+	private StandaloneCodeEditor queryEditorTopExpensiveQueries;
+	private StandaloneEditorConstructionOptions EditorOptionsTopExpensiveQueries(StandaloneCodeEditor editor)
+	{
+		var br = "\r\n";
+		var defaultText = br + br + br + br + br + "\t// Click on a query to get started :) ...  " + br + br + br + br + br
+			+ string.Join(br, A5C11.GetAsciiArt("JEO3.com", false).Split('\n').Select(v => " " + v.Replace("\r", "").Replace(" ", " ")));
+		return new StandaloneEditorConstructionOptions
+		{
+			AutomaticLayout = true,
+			Value = defaultText,
+			Minimap = new EditorMinimapOptions { Enabled = false },
+			FontSize = 14,
+			FontFamily = "Consolas, Cascadia Mono, Cascadia Code, Courier New, monospace",
+			Language = "sql",
+			Theme = "vs",
+			//LineNumbers = "off",
+			//RenderLineHighlight = "none",
+			Guides = new GuidesOptions() { Indentation = false },
+			MouseWheelZoom = true,
+			// Block the editor from downloading validation background workers for other languages
+			// --- flat 3.4.0 settings to suppress background workers ---
+			CodeLens = false,
+			SnippetSuggestions = "none",
+			QuickSuggestions = new QuickSuggestionsOptions { Other = "false", Comments = "false", Strings = "false" }
+		};
+	}
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		_selectedTheme = ChartThemeType.Default;
+	}
+
+	private async Task OnThemeChanged()
+	{
+		StateHasChanged();
+	}
+
+	private void OnEditorInitializedTopExpensiveQueries() { }
+
+	private void OnEditorContentChangedTopExpensiveQueries() { }
+
+	private async Task SelectedQueryChanged(TopExpensiveQueryRow qry)
+	{
+		if (queryEditorTopExpensiveQueries == null) { return; }
+		await queryEditorTopExpensiveQueries.SetValue(qry?.QueryText ?? string.Empty);
+	}
+
+	private void OnTopExpensiveQueryRowExpand(TopExpensiveQueryRow blocker)
+	{
+		_expandedSqlHandleHexs.Add(blocker.SqlHandleHex);
+	}
+
+	private void OnTopExpensiveQueryRowCollapse(TopExpensiveQueryRow blocker)
+	{
+		_expandedSqlHandleHexs.Remove(blocker.SqlHandleHex);
+	}
+
+	private async Task RestoreExpandedTopExpensiveQueryRowsAsync()
+	{
+	}
+}

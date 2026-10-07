@@ -1,0 +1,40 @@
+﻿@using BlazorMonaco.Editor
+@using JEO3.Core
+@using JEO3.Schema
+@using JEO3.Site.Components
+@using JEO3.Site.Dashboard
+@inject WSWorkspace W
+
+@namespace JEO3.Site.Dashboard
+
+
+<JEOGrid DataTable="@W.Result.Databars?.Functions" PrimaryKeyColumn="PrimaryKeyColumn"
+		 OnRowClick="@(async ((object? a, string? b) row) => {  await updateFunctionsQuery((row.a, row.b)); })"
+		 AllowVirtualization="true" />
+
+<div class="dashboard-query-editor-container" style="min-height:300px">
+
+	<div class="grid-query-editor" oncontextmenu="return false;" onpointerup="if(event.button === 2) { this.releasePointerCapture(event.pointerId); }">
+		<StandaloneCodeEditor @key=@("query-editor-instance-functions") CssClass="txtQueryEditor" ConstructionOptions="@EditorOptionsFunctions"
+							  @ref="@queryEditorFunctions" OnDidInit="@OnEditorInitializedFunctions" OnDidChangeModelContent="@OnEditorContentChangedFunctions" />
+	</div>
+
+</div>
+
+
+@code {
+	private StandaloneCodeEditor queryEditorFunctions;
+	async Task updateFunctionsQuery((object? a, object? b) x)
+	{
+		if (queryEditorFunctions == null) { return; }
+		var func = W.Context.Functions.FirstOrDefault(v => x.b.ToString().EndsWith(v.Name));
+		await queryEditorFunctions.SetValue(func?.Definition ?? string.Empty);
+	}
+	void OnEditorInitializedFunctions() { }
+	void OnEditorContentChangedFunctions() { }
+
+	private StandaloneEditorConstructionOptions EditorOptionsFunctions(StandaloneCodeEditor editor)
+		=> MonacoHelpers.EditorOptions(editor, MonacoLanguageType.SQL, "function");
+	}
+
+}

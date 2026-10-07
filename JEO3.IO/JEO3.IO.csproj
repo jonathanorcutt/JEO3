@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="ExcelDataReader" />
+		<PackageReference Include="ExcelDataReader.DataSet" />
+		<PackageReference Include="System.DirectoryServices" />
+		<PackageReference Include="System.Management" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\JEO3.Extensions\JEO3.Extensions.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Reference Include="Microsoft.WindowsAPICodePack">
+			<HintPath>Assemblies\Microsoft.WindowsAPICodePack.dll</HintPath>
+		</Reference>
+		<Reference Include="Microsoft.WindowsAPICodePack.Shell">
+			<HintPath>Assemblies\Microsoft.WindowsAPICodePack.Shell.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+</Project>

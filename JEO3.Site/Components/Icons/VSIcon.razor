@@ -1,0 +1,37 @@
+﻿@namespace JEO3.Site.Components.Icons
+
+@if (Click.HasDelegate == false)
+{
+    <span class="vs-icon-container @(Class)" style="display: inline-block; width: @(Width)px; height: @(Height)px;">
+        <img src="@FilePath" width="@Width" height="@Height"
+            style="@(Style);object-fit: contain; pointer-events: none;"
+            alt="@Name icon" />
+    </span>
+}
+else
+{
+    <span class="vs-icon-container @(Class)" style="display: inline-block; width: @(Width)px; height: @(Height)px;">
+        <img src="@FilePath" width="@Width" height="@Height"
+             style="@(Style);object-fit: contain; cursor: pointer;"
+             alt="@Name icon" />
+    </span>
+}
+
+@code {
+
+    [Parameter] public int Width { get; set; } = 26;
+    [Parameter] public int Height { get; set; } = 26;
+    [Parameter] public string Style { get; set; } = string.Empty;
+    [Parameter] public string Class { get; set; } = string.Empty;
+    /// <summary>
+    /// The exact filename of the icon without the .svg extension (e.g., "AddDatabase", "ActionLog").
+    /// </summary>
+    [Parameter, EditorRequired] public string Name { get; set; } = string.Empty;
+    [Parameter] public ImageType Extension { get; set; } = ImageType.svg;
+    [Parameter] public EventCallback Click { get; set; }
+    [Parameter] public VSIconType Type { get; set; } = VSIconType.VSCode;
+
+    // FIXED: Converted to the standard absolute routing container path for Razor Class Libraries
+    private string Directory => "../img/" + (Type == VSIconType.VSCode ? "vs_code" : (Type == VSIconType.VSIcons ? "vs_icons" : "vs_code_github")) + "/";
+    private string FilePath => Directory + Name + "." + Extension;
+}

@@ -1,0 +1,42 @@
+@using JEO3.Monitor
+@using JEO3.Site.Services
+@using PanoramicData.ECharts
+@inherits MonitorChartBase
+
+@namespace JEO3.Site.Components.ECharts
+
+<div class="monitor-panel">
+	<div class="monitor-panel-title">🚨 WAITING TASKS/SEC</div>
+	<PanoramicData.ECharts.EChart @ref="Chart" Options="@Options" Width="@Width" Height="@Height" />
+</div>
+
+@code {
+	protected override ChartOptions Options { get; set; } = ChartOptionsLibrary.TaskRateChart_Options;
+
+	protected override async Task RenderInitialAsync(MonitorSnapshot initial)
+	{
+		await UpdateChartData();
+		await InvokeAsync(StateHasChanged);
+	}
+
+	protected override async Task AppendDeltasAsync(MonitorDeltaResponse delta)
+	{
+		if (delta.History != null && delta.History.Count > 0)
+		{
+			await UpdateChartData();
+			await InvokeAsync(StateHasChanged);
+		}
+	}
+
+	private async Task UpdateChartData()
+	{
+		if (Options.Series?.FirstOrDefault() is LineSeries line)
+		{
+			// Pull directly from the shared WaitHistory list managed by MonitorBase
+			line.Data = WaitHistory
+				.Select(h => (object)new object[] { h.Timestamp.ToString("yyyy-MM-dd HH:mm:ss"), h.TotalWaitingTasksPerSec })
+				.ToList();
+			if (Chart != null) await Chart.UpdateAsync();
+		}
+	}
+}

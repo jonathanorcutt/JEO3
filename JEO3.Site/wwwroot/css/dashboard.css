@@ -1,0 +1,606 @@
+﻿
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    dashboard.css    ------------------------------------
+--------------------------------------------------------------------------------------------
+    Everything Needed For Dashboard Page
+--------------------------------------------------------------------------------------------
+*/
+.dashboard {
+
+    .dashboard-config-label {
+        font-variant: small-caps;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        font-size: 9pt;
+        word-spacing: 1.7px;
+    }
+
+    .dashboard-config-section-right {
+        margin-left: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        font-size: 8pt;
+        justify-content: center;
+        text-align: right;
+        padding-right: 5px;
+    }
+
+    .dashboard-config-section-left {
+        margin-left: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        font-size: 8pt;
+        justify-content: center;
+        text-align: right;
+        padding-left: 4px;
+    }
+
+    .dashboard-config-section-right,
+    .dashboard-config-section-right-start {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        font-size: 8pt;
+        justify-content: center;
+        text-align: right;
+    }
+
+    .dashboard-config-section-right {
+        margin-left: 20px;
+    }
+
+    .dashboard-config-section-right-start {
+        margin-left: auto !important;
+    }
+
+    .dashboard-config-container {
+        padding-top: 0px;
+        padding-bottom: 0px;
+        padding-left: 12px;
+        padding-right: 12px;
+        margin-bottom: 5px;
+        margin-top: 0px !important;
+        /* Cap the top bar height so MudTabs cannot expand it to content height */
+        max-height: 120px;
+        overflow: hidden;
+    }
+
+    .dashboard-button-select-top-1000 {
+        width: 100%;
+        position: relative;
+        bottom: 0px;
+        /*border-radius: 0px;*/
+        background-color: var(--jeo-gradient-rz-light);
+        color: var(--rz-white);
+    }
+
+    .dashboard-pane-titlebar-right-expand-button {
+        box-shadow: none;
+        padding: 0px 0px 0px 0px;
+        margin-top: 0px;
+        margin-bottom: 0px;
+        border: none;
+        height: 25px !important;
+        min-height: 25px;
+        min-width: 25px;
+        width: 25px !important;
+    }
+
+    .dashboard-pane-body-container-scroll .rz-data-grid, #queryEditor {
+        height: 100%;
+        max-height: 100%;
+        overflow: hidden;
+    }
+    /* ---------------- Monaco ------------------ */
+    /* Monaco Text Editor*/
+    .txtQueryEditor {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+    }
+    /* future monaco host */
+    .monaco-host {
+        width: 100%;
+        height: 100%;
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .txtQueryEditor {
+        border-bottom: 1px solid #647c64;
+    }
+    /* --------  SPLITTERS - BE CAREFUL -----------*/
+    .dashboard-pane-container {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        flex-direction: column;
+        border: 1px solid var(--jeo-gradient-rz);
+        box-shadow: 5px 0 10px var(--jeo-gradienr-rz-light);
+    }
+
+    .dashboard-pane-titlebar-container p {
+        margin-bottom: 0px;
+        text-shadow: 5px 5px 5px var(--jeo-gradient-rz-light) !important;
+    }
+
+    .dashboard-pane-container {
+    }
+
+    .query-results-pane .dashboard-pane-titlebar-container, .diagramresults-pane .dashboard-pane-titlebar-container {
+        border-bottom: 1px solid black inset !important;
+    }
+
+    .dashboard-pane-container .dashboard-pane-titlebar-container {
+        padding-top: 0px;
+        padding-left: 6px !important;
+        border-top: none;
+        border-left: none;
+        border-right: none;
+        background: var(--jeo-gradient-rz-light) !important;
+    }
+
+        .dashboard-pane-container .dashboard-pane-titlebar-container div:nth-child(1) {
+            color: var(--rz-white) !important;
+            font-weight: bold;
+            font-family: Roboto, sans-serif;
+            font-size: 11pt;
+            padding-left: 0px;
+        }
+
+    .dashboard-pane-titlebar {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        gap: 12px;
+    }
+
+        .dashboard-pane-titlebar > div:nth-child(1) > span:nth-child(1) {
+            font-variant: small-caps;
+            font-size: 10pt;
+            /*margin-bottom: -1.5px;*/
+        }
+
+    .dashboard-pane-titlebar-right-container {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 6px;
+        padding-right: 5px;
+        padding-top: 0px;
+    }
+
+    .dashboard-pane-titlebar-right-container2 {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 8px;
+        font-size: 9.5pt;
+        font-family: monospace;
+        color: var(--rz-warning);
+    }
+
+    .dashboard-pane-container .dashboard-pane-body-container-scroll {
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        min-width: 0;
+        min-height: 0;
+    }
+
+    .dashboard-pane-generation-sidebar-header {
+        padding-top: 3px;
+        padding-bottom: 3px;
+    }
+    /* Default state */
+    .dashboard-pane-query-results-container {
+        background-color: transparent;
+        border: 1px solid #ccc;
+        transition: all 0.3s ease;
+    }
+        /* Fullscreen state */
+        .dashboard-pane-query-results-container:fullscreen {
+            width: 100vw;
+            height: 100vh;
+            background-color: white;
+            overflow-y: auto;
+            border: none;
+        }
+
+    .dashboard-pane-container .rz-chkbox-box.rz-state-active {
+        background-color: var(--rz-primary);
+    }
+
+    .dashboard-pane-container .dashboard-pane-titlebar-container .rz-chkbox-box.rz-state-active {
+        /*background-color: rgba(100, 124, 100, 0.7);*/
+        border: 0.1px solid var(--rz-base-400);
+    }
+
+    .dashboard-pane-generation-settings-container {
+        margin-bottom: 12px;
+        display: flex;
+        flex-direction: column;
+        padding: 4px 4px 4px 4px;
+    }
+
+        .dashboard-pane-generation-settings-container label {
+            font-size: 8pt;
+            font-weight: bold;
+            color: var(--rz-black);
+            /*margin-bottom: 4px;*/
+            /*text-transform: uppercase;*/
+            /*letter-spacing: 0.5px;*/
+            /*height: 22px;*/
+            /*margin-bottom: 0px;*/
+        }
+
+    .dashboard-pane-generation-settings-label {
+        margin-top: 3px;
+        margin-left: 0px;
+        margin-bottom: -3px;
+        padding: 0px 4px 0px 4px;
+        font-size: 12px !important;
+        font-weight: bold;
+        font-variant: small-caps;
+    }
+
+    .dashboard-pane-generation-settings-section-header {
+        margin-top: 3px;
+        margin-left: 0px;
+        padding: 0px 0px 0px 3px;
+        font-size: 12px !important;
+        font-weight: bold;
+        font-variant: small-caps;
+        background-color: rgba(30, 30, 30, 0.7);
+        width: 100%;
+        border: 0.2px solid rgba(5, 5, 5, 0.7);
+        color: var(--rz-white);
+        display: inline-block;
+        background: var(--jeo-gradient-black);
+    }
+
+    .dashboard-pane-generation-settings-container .rz-dropdown {
+        min-height: 15px;
+        height: 30px !important;
+        padding-left: 2px;
+        padding-right: 5px;
+        padding-top: 5px;
+        padding-bottom: 0px;
+        width: 100%;
+        font-size: 9pt;
+    }
+
+    .dashboard-pane-generation-settings-container .rz-checkbox-list .rz-chkbox-label {
+        padding-left: 0px !important;
+        padding-top: 2px;
+        margin-left: 5px !important;
+        height: 20px;
+    }
+
+    .monaco-full-stretch, .monaco-full-stretch > div {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    .dashboard-diagram-bottom-controls-panel,
+    .dashboard-query-editor-bottom-controls-panel {
+        background: var(--jeo-gradient-silver);
+        /*border-top: 1px solid rgba(0, 0, 0, 0.08);*/
+        padding: 3px 5px;
+    }
+    /* Compact Forms Label System */
+    .dashboard-pane-generation-settings-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+        .dashboard-pane-generation-settings-container label {
+            font-size: 8pt;
+            font-weight: bold;
+            color: var(--rz-text-secondary-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    /* ==========================================================================
+   RADZEN TAB & SCROLL OVERRIDES
+   ========================================================================== */
+    /* Force the wrapper to take up the full available track height */
+    .dashboard-pane-container .rz-tabview {
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100% !important;
+    }
+    /* Force the inner tab strip content track to isolate overflowing */
+    .dashboard-pane-container .rz-tabview-panels {
+        flex-grow: 1 !important;
+        height: 100% !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        /* Prevents the outer container from double-scrolling */
+        background-color: #14161a !important;
+    }
+    /* Let individual grid items command their own inner independent scrolling tracks */
+    .dashboard-pane-container .rz-tabview-panel {
+        height: 100% !important;
+        width: 100% !important;
+        overflow: hidden !important;
+    }
+
+    .dashboard-pane-titlebar-right-expand-button:hover {
+        -webkit-animation: neon2 1.3s ease-in-out infinite alternate;
+        -moz-animation: neon2 1.3s ease-in-out infinite alternate;
+        animation: neon2 1s ease-in-out infinite alternate;
+    }
+    /*  ------------- RAZDEN OVERRIDES  -------------  */
+    /*.rz-splitter {
+        width: 100%;
+        height: 100%;
+    }
+
+    .rz-splitter-pane {
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+    }*/
+
+    .dashboard-pane-container,
+    .rz-splitter-pane {
+        box-shadow: 3px 0 10px var(--jeo-primary);
+    }
+    /* DataGrid Scroll */
+    .rz-data-grid.grid-query-results .rz-data-grid-data {
+        overflow-y: hidden;
+        overflow-x: scroll;
+    }
+    /*    .dashboard-diagram-container {
+        width: 100% !important;
+        height: 100% !important;
+        overflow: hidden !important;
+    }*/
+
+    .rz-tabview-nav, .rz-tabview-nav li[role="presentation"] {
+        color: var(--rz-white);
+        background: var(--jeo-gradient-black) !important;
+    }
+
+        .rz-tabview-nav li[role="presentation"] > span {
+            /*letter-spacing:0px;*/
+        }
+        /* ----------  Query Result Tabs   ---------- */
+        .rz-tabview-nav button[role="tab"] {
+            padding: 2px 5px 0px 5px;
+            font-size: 8pt;
+            font-weight: 500;
+            border: 1px solid white;
+            color: var(--rz-white);
+            background: var(--jeo-gradient-black) !important;
+            border: 0px;
+        }
+
+    .dashboard-config-container .rz-tabview-nav .rz-tabview-selected button[role="tab"] {
+        background: var(--jeo-gradient-rz) !important;
+    }
+    /* Query Result Tabs Hover */
+    /*.rz-tabview-nav button[role="tab"]:hover {
+            background-color: var(--rz-primary);
+            color: white;
+        }*/
+    .rz-tabview-nav button[role="tab"] p {
+        margin-bottom: 0px;
+    }
+    /* DIAGRAMS */
+    .diagram-node {
+        font-family: Roboto, Consolas, Monaco, Roboto;
+        font-weight: 600 !important;
+        font-size: 5.25pt !important;
+        letter-spacing: -.3px;
+    }
+
+    .node-content-core {
+        /*border: .1px solid rgba(150,150,150,.2);*/
+        border-radius: 12px;
+        /*color: var(--rz-white);*/
+        padding-top: 0px !important;
+        padding-bottom: 0px !important;
+        padding-left: 5px;
+        padding-right: 5px;
+        /*-webkit-text-fill-color: white;*/
+        -webkit-text-stroke: .005px black;
+    }
+
+    .dashboard-diagram-bottom-controls-panel {
+        background: var(--jeo-gradient-silver);
+        /*border-top: 1px solid rgba(0, 0, 0, 0.08);*/
+        padding: 0px 10px;
+        position: relative;
+        bottom: 0px;
+        height: 60px;
+    }
+
+    .lm_tab {
+        /*background: var(--jeo-gradient-green) !important;*/
+        color: white !important;
+        font-weight: bold;
+        width: 100px;
+    }
+
+    .lm_title {
+        /*    height: 25px !important;*/
+        font-family: Consolas, Monaco, monospace;
+        padding: 0px;
+        /*display: none !important;*/
+    }
+
+    .lm_close_tab {
+        display: none;
+    }
+
+    .lm_controls {
+        display: block;
+    }
+    /* Container for the split view */
+    .dashboard-query-editor-container {
+        width: 100%;
+        height: 100%;
+        background-color: white;
+        overflow: hidden;
+        display: flex;
+        flex-direction: row;
+        position: relative;
+    }
+    /* The Editor takes up all remaining space */
+    .grid-query-editor {
+        flex-grow: 1;
+        height: 100%;
+        position: relative;
+        background-color: white;
+        min-width: 0; /* Prevents flex blowout with Monaco */
+    }
+    /* Base sidebar styling */
+    .query-editor-config-sidebar {
+        height: 100%;
+        background-color: var(--rz-panel-background-color, #f5f5f5);
+        transition: width 0.2s ease-in-out, min-width 0.2s ease-in-out;
+        display: flex;
+        flex-direction: column;
+        overflow-x: hidden;
+        overflow-y: auto;
+        position: relative;
+        z-index: 10;
+    }
+    /* Modifier classes bound to boolean */
+    .query-editor-config-sidebar-open {
+        width: 225px;
+        min-width: 225px;
+        border-left: 1px solid var(--rz-border-color, #ccc); /* Border on left now */
+    }
+
+    .query-editor-config-sidebar-closed {
+        width: 0px;
+        min-width: 0px;
+        border-left: none;
+    }
+
+    .sidebar-toggle-button-left {
+        margin-left: -13px;
+        margin-top: 0px;
+    }
+
+    .sidebar-toggle-button-left-export {
+        position: absolute;
+        margin-left: 0px;
+        margin-top: 120px;
+    }
+
+
+    .vertical-text-standard {
+        writing-mode: vertical-rl;
+    }
+
+    .vertical-text-up {
+        writing-mode: vertical-lr;
+        transform: rotate(180deg);
+    }
+
+    .vertical-text-up {
+        writing-mode: vertical-lr;
+        transform: rotate(180deg);
+    }
+
+    .vertical-text-up-icon {
+        writing-mode: vertical-lr;
+        transform: rotate(270deg);
+    }
+
+
+    .sidebar-toggle-button-left-export,
+    .sidebar-toggle-button-right, .sidebar-toggle-button-left {
+        color: var(--rz-white);
+        background: var(--jeo-gradient-rz) !important;
+        border-radius: 4px;
+        border: 1px solid var(--rz-border-color, #ccc);
+        cursor: pointer;
+        display: flex;
+        z-index: 20;
+        justify-content: center;
+        align-items: center;
+        font-weight: bolder;
+        font-size: 13pt;
+        font-family: Roboto, sans-serif;
+        letter-spacing: 1.4px;
+        /*animation: neon-rz-3 5s ease-in infinite alternate !important;*/
+    }
+
+        .sidebar-toggle-button-right.expanded,
+        .sidebar-toggle-button-left.collapsed {
+            width: 24px;
+            height: 24px;
+        }
+
+        .sidebar-toggle-button-left-export,
+        .sidebar-toggle-button-left.expanded,
+        .sidebar-toggle-button-right.collapsed {
+            position: absolute;
+            width: 24px;
+            height: 110px !important;
+        }
+
+        .sidebar-toggle-button-left.expanded {
+            top: 0px;
+            left: 13px;
+        }
+
+        .sidebar-toggle-button-right.collapsed {
+            top: 0px;
+            right: 1px;
+        }
+
+    .sidebar-toggle-button-right-output-1,
+    .sidebar-toggle-button-right-output-2,
+    .sidebar-toggle-button-right-output-3 {
+        position: absolute;
+        margin-right: 0px;
+        right: 1px;
+    }
+
+    .sidebar-toggle-button-right-output-1 {
+        margin-top: 115px;
+    }
+
+    .sidebar-toggle-button-right-output-2 {
+        margin-top: 150px;
+    }
+
+    .sidebar-toggle-button-right-output-3 {
+        margin-top: 185px;
+    }
+    /* Cleanup for interior blocks */
+    .sidebar-config-block {
+        padding: 10px 2px 10px 5px;
+        border-bottom: 1px solid var(--rz-border-color, #eee);
+    }
+
+    .rz-sortable-column-icon {
+        display: none !important;
+    }
+
+    .blocker-monaco {
+        min-height: 195px;
+        width: 100%;
+    }
+
+    .wait-grid {
+        background-color: transparent !important;
+    }
+
+    .wait-times-div {
+        max-height: 100px !important;
+    }
+}

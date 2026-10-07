@@ -1,0 +1,30 @@
+﻿@namespace JEO3.Site.Dashboard
+@using JEO3.Site.Components
+@using JEO3.Site.Components.ECharts
+
+<div class="dashboard-pane-container">
+
+	<div class="matrix-bg">
+
+		<div class="matrix-container">
+			<h1 class="matrix-text matrix-text-label" data-text="@Text">@Text</h1>
+			<div class="rain"></div>
+			<LoadingCube />
+		</div>
+	</div>
+
+	@if (ShowDatabase)
+	{
+@* 		<div style="position:absolute;right:0px;">
+		<figure>
+			@for (var i = 0; i < 5; i++)
+			{
+				<h1 class="@(i == 0 ? "matrix-text" : "")">@DatabaseName</h1>
+			}
+		</figure>
+		</div> *@
+	}
+</div>
+
+<TechStack />
+<SystemInfo />

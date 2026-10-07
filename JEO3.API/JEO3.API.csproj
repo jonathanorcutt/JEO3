@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+		<PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+		<PackageReference Include="Microsoft.Data.SqlClient" />
+		<PackageReference Include="Microsoft.Data.Sqlite.Core" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Hybrid" />
+		<PackageReference Include="Scalar.AspNetCore" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\JEO3.Engine\JEO3.Engine.csproj" />
+		<ProjectReference Include="..\JEO3.IO\JEO3.IO.csproj" />
+		<ProjectReference Include="..\JEO3.Logging\JEO3.Logging.csproj" />
+		<ProjectReference Include="..\JEO3.Monitor\JEO3.Monitor.csproj" />
+		<ProjectReference Include="..\JEO3.Providers\JEO3.Providers.csproj" />
+		<ProjectReference Include="..\JEO3.Schema\JEO3.Schema.csproj" />
+	</ItemGroup>
+
+</Project>

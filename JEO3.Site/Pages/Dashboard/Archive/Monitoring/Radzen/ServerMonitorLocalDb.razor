@@ -1,0 +1,565 @@
+@using JEO3.Logging
+@using JEO3.Monitor
+@using JEO3.Schema
+@using JEO3.Site.Services
+@using Microsoft.Data.Sqlite
+@using Radzen.Blazor
+
+@namespace JEO3.Site.Dashboard
+
+@implements IAsyncDisposable
+@inject IJSRuntime JS;
+
+<div class="dashboard-pane-container">
+	<div class="dashboard-pane-body-container-scroll">
+
+		@* ── Header bar ── *@
+		<div class="monitor-header">
+			<span class="monitor-title">SERVER MONITOR</span>
+			<div class="monitor-controls">
+				@if (_monitor.Status == MonitorPollingStatus.Polling)
+				{
+					<span class="monitor-status-badge monitor-status-live">● LIVE</span>
+					@* <button class="monitor-btn monitor-btn-stop" @onclick="StopMonitoring">STOP</button> *@
+				}
+				@* 	else if (_monitor.Status == MonitorPollingStatus.InsufficientPermissions)
+				{
+					<span class="monitor-status-badge monitor-status-error" title="@_monitor.LastError">⚠ NO PERMISSION</span>
+				}
+				else if (_monitor.Status == MonitorPollingStatus.Error)
+				{
+					<span class="monitor-status-badge monitor-status-error" title="@_monitor.LastError">⚠ ERROR</span>
+					<button class="monitor-btn monitor-btn-start" @onclick="StartMonitoring">RETRY</button>
+				}
+				else
+				{
+					<span class="monitor-status-badge monitor-status-stopped">○ STOPPED</span>
+					<button class="monitor-btn monitor-btn-start" @onclick="StartMonitoring">START</button>
+				} *@
+			</div>
+		</div>
+
+		@if (_monitor.Status == MonitorPollingStatus.InsufficientPermissions)
+		{
+			<div class="monitor-permission-note">
+				VIEW SERVER STATE permission is required. Grant it with:<br />
+				<code>GRANT VIEW SERVER STATE TO [your_login];</code>
+			</div>
+		}
+
+		@* ── Primary KPI Summary Row ── *@
+		<div class="monitor-rate-row">
+			<div class="monitor-kpi @WaitRateClass">
+				<span class="monitor-kpi-value">@WaitRateDisplay</span>
+				<span class="monitor-kpi-label">ms wait / sec</span>
+			</div>
+			<div class="monitor-kpi">
+				<span class="monitor-kpi-value">@TaskRateDisplay</span>
+				<span class="monitor-kpi-label">waits / sec</span>
+			</div>
+			@if (_monitor.Latest != null)
+			{
+				<div class="monitor-kpi monitor-kpi-small">
+					<span class="monitor-kpi-value">@_monitor.Latest.ElapsedSeconds.ToString("F1")s</span>
+					<span class="monitor-kpi-label">sample interval</span>
+				</div>
+			}
+		</div>
+		<div id="waitChart" style="width:100%;height:420px;"></div>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
+		<script>
+					const chart = echarts.init(document.getElementById('waitChart'), 'dark');
+					chart.setOption({
+						xAxis: { type: 'time' },
+						yAxis: { type: 'value', name: 'ms/sec' },
+						series: [{ type: 'line', showSymbol: false, data: [], areaStyle: {}, color: '#00cc66' }]
+					});
+
+					async function poll() {
+						const res = await fetch('/api/monitor/snapshot');
+						const snap = await res.json();
+						chart.setOption({
+							series: [{ data: snap.history.map(h => [h.t, h.v]) }]
+						});
+					}
+
+					poll();
+					setInterval(poll, 2000);
+		</script>
+		<div class="monitor-chart-container" style="background: #11151c; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #222c3c;">
+			<RadzenStack class="rz-p-0 rz-p-md-6 rz-p-lg-12">
+				<RadzenRow>
+					<RadzenColumn Size="12">
+						<RadzenChart style="height: 420px;">
+							<defs>
+								<linearGradient id="splineGradient" x1="0" y1="0" x2="0" y2="1">
+									<stop offset="0%" stop-color="#00cc66" stop-opacity="0.4" />
+									<stop offset="100%" stop-color="#00cc66" stop-opacity="0.0" />
+								</linearGradient>
+							</defs>
+
+							@* Directly binding to history collection *@
+							<RadzenAreaSeries Data="@_monitor.History"
+											  CategoryProperty="SampledAtUtc"
+											  ValueProperty="TotalWaitMsPerSec"
+											  Title="ms wait / sec"
+											  FillMode="FillMode.Gradient"
+											  Fill="#00cc66"
+											  Smooth="true"
+											  Stroke="#00cc66"
+											  StrokeWidth="2">
+
+								<RadzenSeriesDataLabels Formatter="@FilterLabels" />
+
+							</RadzenAreaSeries>
+
+							@* Formatting X-Axis for time labels *@
+							<RadzenCategoryAxis FormatString="{0:HH:mm:ss}" Step="@TimeSpan.FromSeconds(10)">
+								<RadzenGridLines Visible="true" Stroke="#222c3c" StrokeWidth="1" LineType="LineType.Dashed" />
+							</RadzenCategoryAxis>
+
+							<RadzenValueAxis Min="0" Step="50000" FormatString="{0}ms/sec">
+								<RadzenGridLines Visible="true" Stroke="#222c3c" StrokeWidth="1" LineType="LineType.Dashed" />
+							</RadzenValueAxis>
+							<RadzenLineSeries Data="@_monitor.History.Select(x => new { x.Timestamp, Value = 300000d })"
+											  CategoryProperty="SampledAtUtc"
+											  ValueProperty="Value"
+											  Title="🥠 game over"
+											  Stroke="#ff4444"
+											  StrokeWidth="2"
+											  LineType="LineType.Dashed">
+							</RadzenLineSeries>
+							<RadzenChartTooltipOptions Shared="true" />
+							<RadzenLegend Visible="true" />
+						</RadzenChart>
+					</RadzenColumn>
+				</RadzenRow>
+			</RadzenStack>
+		</div>
+
+		@* ── Top wait types ── *@
+		@if (_monitor.Latest?.TopWaits?.Count > 0)
+		{
+			<div class="monitor-section">
+				<div class="monitor-section-title">
+					TOP WAIT TYPES
+					<span class="monitor-section-note">(non-benign, filtered)</span>
+				</div>
+
+				<RadzenDataGrid Data="@_monitor.Latest.TopWaits.Take(15)"
+								TItem="WaitTypeRate"
+								AllowSorting="true"
+								AllowFiltering="true"
+								AllowColumnResize="true"
+								AllowColumnReorder="true"
+								Density="Density.Compact"
+								AllowAlternatingRows="true"
+								ShowPagingSummary="true"
+								PageSize="15"
+								Style="width: 100%;">
+
+					<Columns>
+						<RadzenDataGridColumn TItem="WaitTypeRate"
+											  Property="@nameof(WaitTypeRate.WaitType)"
+											  Title="Wait Type"
+											  Width="260px" />
+
+						<RadzenDataGridColumn TItem="WaitTypeRate"
+											  Property="@nameof(WaitTypeRate.WaitMsPerSec)"
+											  Title="ms/s"
+											  TextAlign="TextAlign.Right"
+											  Width="130px">
+							<Template Context="w">
+								<span class="@WaitTypeCellClass(w)">
+									@w.WaitMsPerSec.ToString("N2")
+								</span>
+							</Template>
+						</RadzenDataGridColumn>
+
+						<RadzenDataGridColumn TItem="WaitTypeRate"
+											  Property="@nameof(WaitTypeRate.WaitingTasksPerSec)"
+											  Title="Tasks/s"
+											  TextAlign="TextAlign.Right"
+											  Width="130px"
+											  FormatString="{0:N2}" />
+
+						<RadzenDataGridColumn TItem="WaitTypeRate"
+											  Property="@nameof(WaitTypeRate.ResourceWaitMsPerSec)"
+											  Title="Resource ms/s"
+											  TextAlign="TextAlign.Right"
+											  Width="150px"
+											  FormatString="{0:N2}" />
+
+						<RadzenDataGridColumn TItem="WaitTypeRate"
+											  Property="@nameof(WaitTypeRate.SignalWaitMsPerSec)"
+											  Title="Signal ms/s"
+											  TextAlign="TextAlign.Right"
+											  Width="140px"
+											  FormatString="{0:N2}" />
+					</Columns>
+
+				</RadzenDataGrid>
+			</div>
+		}
+
+		@* ── Active Requests ── *@
+
+		@if (_monitor.ActiveRequests.Count > 0)
+		{
+			<div class="monitor-section">
+				<div class="monitor-section-title">
+					ACTIVE REQUESTS
+					<span class="monitor-section-badge">
+						@_monitor.ActiveRequests.Count
+					</span>
+
+					@if (_monitor.ActiveRequests.Any(r => r.IsBlocked))
+					{
+						<span class="monitor-section-badge monitor-badge-warn">
+							@_monitor.ActiveRequests.Count(r => r.IsBlocked) BLOCKED
+						</span>
+					}
+				</div>
+
+				<RadzenDataGrid Data="@_monitor.ActiveRequests.OrderByDescending(x => x.WaitTimeSec)"
+								TItem="ActiveRequestRow"
+								AllowSorting="true"
+								AllowFiltering="true"
+								AllowColumnResize="true"
+								AllowColumnReorder="true"
+								Density="Density.Compact"
+								AllowAlternatingRows="true"
+								AllowVirtualization="true"
+								Style="width: 100%;">
+
+					<Columns>
+						<RadzenDataGridColumn TItem="ActiveRequestRow"
+											  Property="@nameof(ActiveRequestRow.SessionId)"
+											  Title="SPID"
+											  Width="80px" />
+
+						<RadzenDataGridColumn TItem="ActiveRequestRow"
+											  Property="@nameof(ActiveRequestRow.BlockingSessionId)"
+											  Title="Blocked By"
+											  Width="100px">
+							<Template Context="r">
+								@(r.BlockingSessionId > 0
+									? r.BlockingSessionId.ToString()
+									: "—")
+							</Template>
+						</RadzenDataGridColumn>
+
+						<RadzenDataGridColumn TItem="ActiveRequestRow"
+											  Property="@nameof(ActiveRequestRow.Status)"
+											  Title="Status"
+											  Width="120px" />
+
+						<RadzenDataGridColumn TItem="ActiveRequestRow"
+											  Property="@nameof(ActiveRequestRow.WaitType)"
+											  Title="Wait Type"
+											  Width="180px" />
+
+						<RadzenDataGridColumn TItem="ActiveRequestRow"
+											  Property="@nameof(ActiveRequestRow.WaitTimeSec)"
+											  Title="Wait"
+											  TextAlign="TextAlign.Right"
+											  Width="100px"
+											  FormatString="{0:N1}s" />
+
+						<RadzenDataGridColumn TItem="ActiveRequestRow"
+											  Property="@nameof(ActiveRequestRow.CpuTimeMs)"
+											  Title="CPU"
+											  TextAlign="TextAlign.Right"
+											  Width="110px"
+											  FormatString="{0:N0}" />
+
+						<RadzenDataGridColumn TItem="ActiveRequestRow"
+											  Property="@nameof(ActiveRequestRow.LogicalReads)"
+											  Title="Reads"
+											  TextAlign="TextAlign.Right"
+											  Width="120px"
+											  FormatString="{0:N0}" />
+
+						<RadzenDataGridColumn TItem="ActiveRequestRow"
+											  Property="@nameof(ActiveRequestRow.Writes)"
+											  Title="Writes"
+											  TextAlign="TextAlign.Right"
+											  Width="110px"
+											  FormatString="{0:N0}" />
+
+						<RadzenDataGridColumn TItem="ActiveRequestRow"
+											  Property="@nameof(ActiveRequestRow.OpenTxnCount)"
+											  Title="Txns"
+											  TextAlign="TextAlign.Right"
+											  Width="80px" />
+
+						<RadzenDataGridColumn TItem="ActiveRequestRow"
+											  Property="@nameof(ActiveRequestRow.DatabaseName)"
+											  Title="Database"
+											  Width="160px" />
+
+						<RadzenDataGridColumn TItem="ActiveRequestRow"
+											  Property="@nameof(ActiveRequestRow.LoginName)"
+											  Title="Login"
+											  Width="180px" />
+					</Columns>
+
+					@* 					<RowRender>
+						<Template Context="r">
+						</Template>
+					</RowRender> *@
+
+				</RadzenDataGrid>
+			</div>
+		}
+
+		@* ── Empty state ── *@
+		@if (_monitor.Status == MonitorPollingStatus.Polling
+			 && _monitor.Latest == null)
+		{
+			<div class="monitor-empty">Waiting for first sample…</div>
+		}
+	</div>
+</div>
+@code {
+	[Parameter] public string DatabasePath { get; set; } = @"D:\monitoring\monitordb.sqlite3";
+	[Parameter] public int LookbackDays { get; set; } = 7;
+	[Parameter] public int RefreshIntervalSeconds { get; set; } = 5;
+
+	public sealed class HistoricalSnapshotView
+	{
+		public List<WaitRateSample> History { get; set; } = [];
+		public List<ActiveRequestRow> ActiveRequests { get; set; } = [];
+		public List<BlockingRow> BlockingChain { get; set; } = [];
+		public List<DeadlockEvent> RecentDeadlocks { get; set; } = [];
+		public WaitRateSample? Latest => History.Count > 0 ? History[^1] : null;
+		public MonitorPollingStatus Status { get; set; } = MonitorPollingStatus.Polling;
+	}
+
+	private HistoricalSnapshotView _monitor = new();
+	private bool _isDisposed;
+
+	private CancellationTokenSource? _pollCts;
+	private Task? _pollLoopTask;
+
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadHistoricalDataAsync().ConfigureAwait(false);
+
+		_pollCts = new CancellationTokenSource();
+		_pollLoopTask = RunPollLoopAsync(_pollCts.Token);
+	}
+
+	private async Task RunPollLoopAsync(CancellationToken ct)
+	{
+		using var timer = new PeriodicTimer(TimeSpan.FromSeconds(RefreshIntervalSeconds));
+
+		while (!ct.IsCancellationRequested && await timer.WaitForNextTickAsync(ct).ConfigureAwait(false))
+		{
+			try
+			{
+				await LoadHistoricalDataAsync().ConfigureAwait(false);
+			}
+			catch (Exception ex)
+			{
+				ExceptionUtility.LogException(ex);
+			}
+		}
+	}
+
+	private async Task LoadHistoricalDataAsync()
+	{
+		if (_isDisposed || !File.Exists(DatabasePath)) return;
+
+		var tempView = new HistoricalSnapshotView();
+		var cutoffDateStr = DateTime.UtcNow.AddDays(-LookbackDays).ToString("o");
+
+		try
+		{
+			using var conn = new SqliteConnection($"Data Source={DatabasePath};");
+			await conn.OpenAsync().ConfigureAwait(false);
+
+			// 1. Hydrate History (WaitRateSample)
+			using (var cmd = conn.CreateCommand())
+			{
+				cmd.CommandText = "SELECT SampledAtUtc, TotalWaitMsPerSec, TotalWaitingTasksPerSec, ElapsedSeconds FROM WaitRateSample WHERE SampledAtUtc >= @Cutoff ORDER BY SampledAtUtc ASC;";
+				cmd.Parameters.AddWithValue("@Cutoff", cutoffDateStr);
+				using var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false);
+				while (await reader.ReadAsync().ConfigureAwait(false))
+				{
+					tempView.History.Add(new WaitRateSample
+					{
+						Timestamp = DateTime.Parse(reader.GetString(0)),
+						TotalWaitMsPerSec = reader.GetDouble(1),
+						TotalWaitingTasksPerSec = reader.GetDouble(2),
+						ElapsedSeconds = reader.GetDouble(3),
+						TopWaits = []
+					});
+				}
+			}
+
+			// 2. Hydrate TopWaits for the Latest Sample
+			if (tempView.History.Count > 0)
+			{
+				var latestSampleStr = tempView.History[^1].Timestamp.ToString("o");
+				var topWaitsList = new List<WaitTypeRate>();
+
+				using var cmdWaits = conn.CreateCommand();
+				cmdWaits.CommandText = "SELECT WaitType, WaitMsPerSec, WaitingTasksPerSec, SignalWaitMsPerSec FROM WaitTypeRate WHERE SampledAtUtc = @SampleTime ORDER BY WaitMsPerSec DESC;";
+				cmdWaits.Parameters.AddWithValue("@SampleTime", latestSampleStr);
+				using var readerWaits = await cmdWaits.ExecuteReaderAsync().ConfigureAwait(false);
+				while (await readerWaits.ReadAsync().ConfigureAwait(false))
+				{
+					topWaitsList.Add(new WaitTypeRate
+					{
+						WaitType = readerWaits.GetString(0),
+						WaitMsPerSec = readerWaits.GetDouble(1),
+						WaitingTasksPerSec = readerWaits.GetDouble(2),
+						SignalWaitMsPerSec = readerWaits.GetDouble(3)
+					});
+				}
+
+				var lastSample = tempView.History[^1];
+				tempView.History[^1] = new WaitRateSample
+				{
+					Timestamp = lastSample.Timestamp,
+					TotalWaitMsPerSec = lastSample.TotalWaitMsPerSec,
+					TotalWaitingTasksPerSec = lastSample.TotalWaitingTasksPerSec,
+					ElapsedSeconds = lastSample.ElapsedSeconds,
+					TopWaits = topWaitsList
+				};
+			}
+
+			// 3. Hydrate Active Requests
+			using (var cmd = conn.CreateCommand())
+			{
+				cmd.CommandText = "SELECT SessionId, BlockingSessionId, WaitType, WaitTimeSec, Status, Command, DatabaseName, LoginName, HostName, ProgramName, CpuTimeMs, LogicalReads, PhysicalReads, Writes, OpenTxnCount, PercentComplete, StatementText FROM ActiveRequestRow WHERE SampledAtUtc >= @Cutoff ORDER BY SampledAtUtc DESC;";
+				cmd.Parameters.AddWithValue("@Cutoff", cutoffDateStr);
+				using var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false);
+				while (await reader.ReadAsync().ConfigureAwait(false))
+				{
+					tempView.ActiveRequests.Add(new ActiveRequestRow
+					{
+						SessionId = reader.GetInt32(0),
+						BlockingSessionId = reader.GetInt32(1),
+						WaitType = reader.GetString(2),
+						WaitTimeSec = reader.GetDouble(3),
+						Status = reader.GetString(4),
+						Command = reader.GetString(5),
+						DatabaseName = reader.GetString(6),
+						LoginName = reader.GetString(7),
+						HostName = reader.GetString(8),
+						ProgramName = reader.GetString(9),
+						CpuTimeMs = reader.GetInt64(10),
+						LogicalReads = reader.GetInt64(11),
+						PhysicalReads = reader.GetInt64(12),
+						Writes = reader.GetInt64(13),
+						OpenTxnCount = reader.GetInt32(14),
+						PercentComplete = reader.GetDouble(15),
+						StatementText = reader.GetString(16)
+					});
+				}
+			}
+
+			// 4. Hydrate Blocking Chains
+			using (var cmd = conn.CreateCommand())
+			{
+				cmd.CommandText = "SELECT SessionId, BlockingSessionId, IsBlocked, Status, LoginName, HostName, ProgramName, Command, WaitType, WaitTimeSec, RequestStartTime, TransactionBeginTime, OpenTranDurationSec, QueryText, IsVictim FROM BlockingRow WHERE SampledAtUtc >= @Cutoff ORDER BY WaitTimeSec DESC;";
+				cmd.Parameters.AddWithValue("@Cutoff", cutoffDateStr);
+				using var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false);
+				while (await reader.ReadAsync().ConfigureAwait(false))
+				{
+					tempView.BlockingChain.Add(new BlockingRow
+					{
+						SessionId = reader.GetInt32(0),
+						BlockingSessionId = reader.GetInt32(1),
+						IsBlocked = reader.GetInt32(2) == 1,
+						Status = reader.GetString(3),
+						LoginName = reader.GetString(4),
+						HostName = reader.GetString(5),
+						ProgramName = reader.GetString(6),
+						Command = reader.GetString(7),
+						WaitType = reader.GetString(8),
+						WaitTimeSec = reader.GetDouble(9),
+						RequestStartTime = reader.IsDBNull(10) ? null : DateTime.Parse(reader.GetString(10)),
+						TransactionBeginTime = reader.IsDBNull(11) ? null : DateTime.Parse(reader.GetString(11)),
+						OpenTranDurationSec = reader.IsDBNull(12) ? null : reader.GetDouble(12),
+						QueryText = reader.GetString(13),
+						IsVictim = reader.GetInt32(14) == 1
+					});
+				}
+			}
+
+			// 5. Hydrate Deadlock Events & Participants
+			using (var cmd = conn.CreateCommand())
+			{
+				cmd.CommandText = "SELECT TimestampUtc, VictimSessionId, RawXml FROM DeadlockEvent WHERE TimestampUtc >= @Cutoff ORDER BY TimestampUtc DESC;";
+				cmd.Parameters.AddWithValue("@Cutoff", cutoffDateStr);
+				using var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false);
+				while (await reader.ReadAsync().ConfigureAwait(false))
+				{
+					var timeStr = reader.GetString(0);
+					var vicId = reader.GetString(1);
+					var partsList = new List<DeadlockParticipant>();
+
+					using var cmdParts = conn.CreateCommand();
+					cmdParts.CommandText = "SELECT SessionId, LoginName, HostName, ProgramName, LastStatement, IsVictim FROM DeadlockParticipant WHERE TimestampUtc = @Time AND VictimSessionId = @Victim;";
+					cmdParts.Parameters.AddWithValue("@Time", timeStr);
+					cmdParts.Parameters.AddWithValue("@Victim", vicId);
+					using var rPart = await cmdParts.ExecuteReaderAsync().ConfigureAwait(false);
+					while (await rPart.ReadAsync().ConfigureAwait(false))
+					{
+						partsList.Add(new DeadlockParticipant
+						{
+							SessionId = rPart.GetString(0),
+							LoginName = rPart.GetString(1),
+							HostName = rPart.GetString(2),
+							ProgramName = rPart.GetString(3),
+							LastStatement = rPart.GetString(4),
+							IsVictim = rPart.GetInt32(5) == 1
+						});
+					}
+
+					tempView.RecentDeadlocks.Add(new DeadlockEvent
+					{
+						Timestamp = DateTime.Parse(timeStr),
+						VictimSessionId = vicId,
+						RawXml = reader.GetString(2),
+						Participants = partsList
+					});
+				}
+			}
+
+			_monitor = tempView;
+			await InvokeAsync(StateHasChanged);
+		}
+		catch (Exception ex)
+		{
+			ExceptionUtility.LogException(ex);
+			System.Diagnostics.Debug.WriteLine($"SQLite Render Read Failure: {ex.Message}");
+		}
+	}
+	private async Task RefreshReport() => await LoadHistoricalDataAsync().ConfigureAwait(false);
+	private async Task CopyToClipboard(string text) => await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
+	private record WaitThresholdPoint(DateTime SampledAtUtc, double Value);
+	private IReadOnlyList<WaitThresholdPoint> WaitThreshold => Enumerable.Range(0, _monitor.History.Count).Select(i => new WaitThresholdPoint(_monitor.History[i].Timestamp, 300000d)).ToList();
+	private string FilterLabels(object value)
+	{
+		if (value is double numericValue && numericValue > 300000)
+		{
+			var sec = Math.Round(numericValue / 1000, 0);
+			var min = Math.Round(sec / 60, 2); return min + " min/sec";
+		}
+		return string.Empty;
+	}
+	private static string WaitTypeCellClass(WaitTypeRate w) => w.WaitMsPerSec switch { > 100 => "monitor-cell-danger", > 25 => "monitor-cell-warn", _ => "" };
+	private string WaitRateDisplay => _monitor.Latest == null ? "—" : _monitor.Latest.TotalWaitMsPerSec.ToString("F1");
+	private string TaskRateDisplay => _monitor.Latest == null ? "—" : _monitor.Latest.TotalWaitingTasksPerSec.ToString("F1");
+	private string WaitRateClass => _monitor.Latest switch
+	{
+		{
+			TotalWaitMsPerSec: > 200
+		} => "monitor-kpi-danger", { TotalWaitMsPerSec: > 50 } => "monitor-kpi-warn",
+		_ => "monitor-kpi-ok"
+	}; public ValueTask DisposeAsync() { _isDisposed = true; return ValueTask.CompletedTask; }
+}

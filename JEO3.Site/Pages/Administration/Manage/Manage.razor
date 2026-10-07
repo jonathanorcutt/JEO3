@@ -1,0 +1,113 @@
+﻿@* @page "/manage"
+
+@using JEO3.Site.Services
+@inject ConnectionService ConnService
+@inject Radzen.NotificationService NotificationService
+
+<RadzenText TextStyle="TextStyle.H4" Class="rz-my-4">Manage SQL Connection Strings</RadzenText>
+
+<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Class="rz-mb-4">
+    <RadzenButton Icon="add_circle_outline" Text="Add New Connection" Click="@InsertRow" ButtonStyle="ButtonStyle.Primary" Disabled="@(itemToInsert != null)" />
+</RadzenStack>
+
+<RadzenDataGrid @ref="grid" AllowFiltering="true" AllowPaging="true" PageSize="5" AllowSorting="true"
+                Data="@ConnService.DisplayConnectionSettings" TItem="ConnectionStringItem" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow">
+    <Columns>
+
+        <RadzenDataGridColumn TItem="ConnectionStringItem" Property="Name" Title="Connection Name">
+            <EditTemplate Context="conn">
+                <RadzenTextBox @bind-Value="conn.Name" Style="width: 100%; display: block" Name="Name" />
+                <RadzenRequiredValidator Text="Name is required" Component="Name" Popup="true" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn TItem="ConnectionStringItem" Property="DisplayValue" Title="Connection String Value">
+            <EditTemplate Context="conn">
+                <RadzenTextBox @bind-Value="conn.Value" Style="width: 100%; display: block;" Name="Value" />
+                <RadzenRequiredValidator Text="Connection string is required" Component="Value" Popup="true" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn TItem="ConnectionStringItem" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
+            <Template Context="conn">
+                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(conn))" @onclick:stopPropagation="true" />
+                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Size="ButtonSize.Medium" Class="rz-my-1 rz-ms-1" Click="@(args => DeleteRow(conn))" @onclick:stopPropagation="true" />
+            </Template>
+            <EditTemplate Context="conn">
+                <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(conn))" />
+                <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Class="rz-my-1 rz-ms-1" Click="@((args) => CancelEdit(conn))" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    RadzenDataGrid<ConnectionStringItem> grid;
+    ConnectionStringItem itemToInsert;
+    ConnectionStringItem itemToUpdate;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        ConnService.LoadFromSettings();
+    }
+
+    async Task EditRow(ConnectionStringItem item)
+    {
+        itemToUpdate = item;
+        await grid.EditRow(item);
+    }
+
+    void OnUpdateRow(ConnectionStringItem item)
+    {
+        itemToUpdate = null;
+        NotificationService.Notify(NotificationSeverity.Success, "Updated", "Connection string updated in memory.");
+    }
+
+    async Task SaveRow(ConnectionStringItem item)
+    {
+        await grid.UpdateRow(item);
+    }
+
+    void CancelEdit(ConnectionStringItem item)
+    {
+        grid.CancelEditRow(item);
+        if (item == itemToInsert)
+        {
+            itemToInsert = null;
+        }
+    }
+
+    async Task InsertRow()
+    {
+        itemToInsert = new ConnectionStringItem();
+        await grid.InsertRow(itemToInsert);
+    }
+
+    void OnCreateRow(ConnectionStringItem item)
+    {
+        ConnService.DisplayConnectionSettings.Add(item);
+        itemToInsert = null;
+        NotificationService.Notify(NotificationSeverity.Success, "Added", "New connection added to memory.");
+    }
+
+    async Task DeleteRow(ConnectionStringItem item)
+    {
+        if (item == itemToInsert)
+        {
+            itemToInsert = null;
+        }
+
+        if (ConnService.DisplayConnectionSettings.Contains(item))
+        {
+            ConnService.DisplayConnectionSettings.Remove(item);
+            await grid.Reload();
+            NotificationService.Notify(NotificationSeverity.Warning, "Deleted", "Connection removed from memory.");
+        }
+        else
+        {
+            grid.CancelEditRow(item);
+            await grid.Reload();
+        }
+    }
+} *@

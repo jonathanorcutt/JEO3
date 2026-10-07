@@ -1,0 +1,115 @@
+﻿@using Radzen
+@using Radzen.Blazor
+@namespace JEO3.Site.Dashboard
+
+<RadzenRow Class="rz-p-4" Style="padding-bottom:0px !important">
+
+	<RadzenColumn Size="12" SizeMD="3">
+		<RadzenText TextStyle="TextStyle.Caption" class="rz-color-primary rz-font-weight-bold" Style="letter-spacing: 1px;">WHAT YOU WONT FIND</RadzenText>
+		<RadzenText TextStyle="TextStyle.H4" class="rz-mb-1 rz-font-weight-bold">Doesnt Have</RadzenText>
+	</RadzenColumn>
+
+	<RadzenColumn Size="12" SizeMD="9">
+		<RadzenRow Gap="1.5rem">
+
+			@foreach (var tech in DoesntUseStack)
+			{
+
+				<RadzenColumn Size="12" SizeSM="3" SizeLG="3">
+					<RadzenCard Variant="Variant.Outlined" Class="rz-p-4 rz-h-100">
+						<div class="rz-display-flex rz-align-items-center">
+							<div class="tech-icon-wrapper rz-mr-4 rz-display-flex rz-align-items-center rz-justify-content-center" style="background-color: @tech.BgColor;">
+								<RadzenIcon Icon="@tech.Icon" Style="color: #fff; font-size: 1.75rem;" />
+							</div>
+
+							<!-- Text Metadata -->
+							<div>
+								<RadzenText TextStyle="TextStyle.Subtitle1" TagName="TagName.H3" Class="rz-mb-0 rz-font-weight-bold">
+									@tech.Name
+								</RadzenText>
+								<RadzenText TextStyle="TextStyle.Caption" Class="rz-text-secondary-color rz-mb-0">
+									@tech.Category
+								</RadzenText>
+							</div>
+							@if (!string.IsNullOrEmpty(tech.Version))
+							{
+								<RadzenBadge BadgeStyle="BadgeStyle.Light" Text="@tech.Version" IsPill="true" class="rz-px-3 rz-py-2 tech-version-badge" Style="margin-left: auto;background:var(--jeo-gradient-rz);color:var(--rz-white);font-size:8pt;" />
+							}
+						</div>
+					</RadzenCard>
+				</RadzenColumn>
+			}
+
+		</RadzenRow>
+	</RadzenColumn>
+</RadzenRow>
+
+<RadzenRow class="rz-p-4" Style="padding-bottom:8px !important">
+
+	<RadzenColumn Size="12" SizeMD="3">
+		<RadzenText TextStyle="TextStyle.Caption" class="rz-color-primary rz-font-weight-bold" Style="letter-spacing: 1px;">TECH STACK</RadzenText>
+		<RadzenText TextStyle="TextStyle.H4" class="rz-mb-1 rz-font-weight-bold">Built With</RadzenText>
+	</RadzenColumn>
+
+	<RadzenColumn Size="12" SizeMD="9">
+		<RadzenRow Gap="1.5rem">
+
+			@foreach (var tech in MyStack)
+			{
+
+				<RadzenColumn Size="12" SizeSM="3" SizeLG="3">
+					<RadzenCard Variant="Variant.Outlined" Class="rz-p-4 rz-h-100">
+						<div class="rz-display-flex rz-align-items-center">
+							<div class="tech-icon-wrapper rz-mr-4 rz-display-flex rz-align-items-center rz-justify-content-center" style="background-color: @tech.BgColor;">
+								<RadzenIcon Icon="@tech.Icon" Style="color: #fff; font-size: 1.75rem;" />
+							</div>
+
+							<!-- Text Metadata -->
+							<div>
+								<RadzenText TextStyle="TextStyle.Subtitle1" TagName="TagName.H3" Class="rz-mb-0 rz-font-weight-bold">
+									@tech.Name
+								</RadzenText>
+								<RadzenText TextStyle="TextStyle.Caption" Class="rz-text-secondary-color rz-mb-0">
+									@tech.Category
+								</RadzenText>
+							</div>
+							@if (!string.IsNullOrEmpty(tech.Version))
+							{
+								<RadzenBadge BadgeStyle="BadgeStyle.Light" Text="@tech.Version" IsPill="true" class="rz-px-3 rz-py-2 tech-version-badge" Style="margin-left: auto;background:var(--jeo-gradient-rz);color:var(--rz-white);font-size:8pt;" />
+							}
+						</div>
+					</RadzenCard>
+				</RadzenColumn>
+			}
+
+		</RadzenRow>
+	</RadzenColumn>
+</RadzenRow>
+
+@code {
+	private List<TechItem> MyStack = new()
+	{
+		new TechItem { Name = ".NET 10", Category = "Framework / Runtime", Version = "10.0", Icon = "developer_board", BgColor = "#512bd4" },
+		new TechItem { Name = "Blazor Web", Category = "Frontend UI Framework", Version = "Active", Icon = "language", BgColor = "#512bd4" },
+		new TechItem { Name = "Radzen Blazor", Category = "UI Component Library", Version = "11.2.8+", Icon = "dashboard", BgColor = "#ff6f00" },
+		new TechItem { Name = "C#", Category = "Programming Language", Version = "14", Icon = "code", BgColor = "#178600" }
+	};
+
+
+	private List<TechItem> DoesntUseStack = new()
+	{
+		new TechItem { Name = "NO ORM", Category = "What It DOESN'T Use", Icon = "block", BgColor = "#D32F2F" },
+		new TechItem { Name = "NO Entity Framework", Category = "Not Included", Icon = "block", BgColor = "#C62828" },
+		new TechItem { Name = "NO Dapper", Category = "Not Included", Icon = "block", BgColor = "#B71C1C" },
+		new TechItem { Name = "NO Bootstrap", Category = "Not Included", Icon = "block", BgColor = "#6A0000" }
+	};
+
+	public class TechItem
+	{
+		public string Name { get; set; } = string.Empty;
+		public string Category { get; set; } = string.Empty;
+		public string Version { get; set; } = string.Empty;
+		public string Icon { get; set; } = string.Empty;
+		public string BgColor { get; set; } = "#333";
+	}
+}

@@ -1,0 +1,50 @@
+@using JEO3.Monitor
+@using PanoramicData.ECharts
+@inherits MonitorChartBase
+
+@namespace JEO3.Site.Components.ECharts
+
+<div class="monitor-panel">
+    <div class="monitor-panel-title">🚨 DEADLOCKS (rolling count)</div>
+    <PanoramicData.ECharts.EChart @ref="Chart" Options="@Options" Width="@Width" Height="@Height" />
+</div>
+
+@code {
+    [Parameter] public int RollingMinutes { get; set; } = 30;
+
+    protected override ChartOptions Options { get; set; } = ChartOptionsLibrary.DeadlockChart_Options;
+
+    protected override async Task RenderInitialAsync(MonitorSnapshot initial)
+    {
+        UpdateChartData();
+        await InvokeAsync(StateHasChanged);
+        if (Chart != null) await Chart.UpdateAsync();
+    }
+
+    protected override async Task AppendDeltasAsync(MonitorDeltaResponse delta)
+    {
+        if (delta.RecentDeadlocks != null && delta.RecentDeadlocks.Count > 0)
+        {
+            UpdateChartData();
+            await InvokeAsync(StateHasChanged);
+            if (Chart != null) await Chart.UpdateAsync();
+        }
+    }
+
+    private void UpdateChartData()
+    {
+        var deadlocksByMinute = RecentDeadlocks
+            .GroupBy(d => new DateTime(d.Timestamp.Year, d.Timestamp.Month, d.Timestamp.Day,
+                                        d.Timestamp.Hour, d.Timestamp.Minute, 0))
+            .OrderBy(g => g.Key)
+            .TakeLast(RollingMinutes)
+            .ToList();
+
+        Options.XAxis!.Data = deadlocksByMinute.Select(g => (object)g.Key.ToString("HH:mm")).ToList();
+
+        if (Options.Series?.FirstOrDefault() is BarSeries bar)
+        {
+            bar.Data = deadlocksByMinute.Select(g => (object)g.Count()).ToList();
+        }
+    }
+}

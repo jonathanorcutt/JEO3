@@ -1,0 +1,48 @@
+@using JEO3.Site.Components
+@using JEO3.Site.Components.FormControls
+@using JEO3.Site.Components.Icons
+@using JEO3.Site.Dashboard
+@inherits LayoutComponentBase
+@implements IDisposable
+
+@namespace JEO3.Site.Layout
+
+<div class="navbar-container" style="width:100% !important;height:50px  !important;background-image:url('../img/theme/matrix.apng');background-repeat:no-repeat;background-size:cover;">
+	<RadzenRow AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Start" Gap="0px" class="navbar-container">
+		<RadzenColumn Size="8" class="navbar-container-left">
+			<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+				<RadzenSidebarToggle Click="@(async () => { await OnSidebarToggleClicked.InvokeAsync(!W.UI.Appearance.IsSidebarExpandedLeft); })" />
+				<ImageIcon Width="36" Height="36" Category="ImageIcon.CategoryType.icons" FileName="jeo3-white.png" Class="fa-ml10 fa-mr10" />
+				<span class="navbar-header-label jeo3-xolonium-regular fa-mr10">Visual Database Intelligence</span>
+			</RadzenStack>
+		</RadzenColumn>
+		<RadzenColumn Size="4">
+			<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" class="navbar-container-right">
+				<div>
+					<DemoLinks></DemoLinks>
+				</div>
+				<div>
+					<ProjectCountdown Label="Project Age" StartTime="@(new DateTime(2026, 5, 26, 15, 48, 0))" />
+				</div>
+				<RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Center">
+					<RadzenLabel Text="" Style="font-variant:small-caps; color: #a0a0a0; font-size: 11px;"></RadzenLabel>
+					<ToggleSwitch @bind-Value="@W.UI.Appearance.ShowMonitorGauge" Label="Gauge" Change="@(async (val) => { await OnGaugeToggleClicked.InvokeAsync(val); })" />
+				</RadzenStack>
+				<a href="https://github.com/jorcutt1337/jeo3" target="_blank" rel="noopener noreferrer" class="github-admin-badge">
+					<i class="rz-icon-element rzi">
+						<IconGithub />
+					</i>
+				</a>
+				<RadzenColorPicker Value="@W.UI.Appearance.ActivePrimaryColor"
+								   ShowButton="false"
+								   Change="@(async (hex) => { await OnGlobalThemeColorChanged(hex); DialogService.Close(); })"
+								   class="navbar-right-colorpicker" />
+				<div class="fa-mr15">
+					<RadzenSidebarToggle Icon="fullscreen" Click="FullScreenClicked" />
+				</div>
+				<Costello @ref="@_costello" />
+				@* <RadzenSidebarToggle Icon="settings" Click="@OnGlobalWorkspaceUpdated" class="rz-sidebar-toggle-right" /> *@
+			</RadzenStack>
+		</RadzenColumn>
+	</RadzenRow>
+</div>

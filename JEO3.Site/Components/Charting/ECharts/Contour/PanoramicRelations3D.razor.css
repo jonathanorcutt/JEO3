@@ -1,0 +1,12 @@
+/* CSS for PanoramicRelations3D component */
+
+.schema-relations-3d,
+.schema-relations-3d div
+.schema-relations-3d div canvas {
+    cursor: grab !important;
+    pointer-events: all !important;
+    user-select:all;
+}
+div[b-] {
+    pointer-events: auto !important;
+}

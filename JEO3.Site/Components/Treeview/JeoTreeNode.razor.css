@@ -1,0 +1,74 @@
+.jeo-tree {
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 13px;
+    user-select: none;
+}
+
+.jeo-tree-node {
+    margin: 0;
+    padding: 0;
+}
+
+.jeo-tree-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 22px;
+    padding: 1px 4px;
+    box-sizing: border-box;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+    .jeo-tree-item:hover {
+        background: rgba(255, 255, 255, 0.16) !important;
+    }
+
+    .jeo-tree-item.selected {
+        background: #264f78 !important;
+    }
+
+.jeo-tree-expand {
+    flex: 0 0 18px;
+    width: 18px;
+    height: 20px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 9px;
+}
+
+.jeo-tree-spacer {
+    flex: 0 0 18px;
+    width: 18px;
+}
+
+.jeo-tree-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.jeo-tree-children {
+    margin-left: 18px;
+}
+.jeo-tree-item.selected {
+    /*background: red !important;*/
+    color: white;
+}
+
+    .jeo-tree-item.selected:hover {
+        background: #2d5f91 !important;
+    }
+.jeo-tree-item.selected {
+    /*background: rgba(51, 153, 255, 0.28) !important;*/
+    outline: 1px solid rgba(51, 153, 255, 0.45);
+    outline-offset: -1px;
+}
+
+    .jeo-tree-item.selected .jeo-tree-label {
+        color: #ffffff;
+    }

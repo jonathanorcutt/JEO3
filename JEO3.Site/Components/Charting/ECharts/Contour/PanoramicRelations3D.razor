@@ -1,0 +1,183 @@
+﻿@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+@namespace JEO3.Site.Components.Charting
+
+
+
+<div id="@_containerId" class="schema-relations-3d" style="width: @(Width); height: @(Height); position:absolute; background-color: #000">
+</div>
+
+@code {
+    [Parameter] public string Width { get; set; } = "100%";
+    [Parameter] public string Height { get; set; } = "100%";
+    [Parameter] public string Title { get; set; } = "Schema Relation Flight Deck";
+
+    [Parameter] public IEnumerable<JEO3.Schema.ITable> Tables { get; set; } = [];
+
+    private readonly string _containerId = $"chart-relations-3d-{Guid.NewGuid():N}";
+
+    private IJSObjectReference? _module;
+    private bool _isDisposed;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _isDisposed)
+            return;
+
+        try
+        {
+            _module = await JSRuntime.InvokeAsync<IJSObjectReference>(
+                "import",
+                "./js/echarts/charts3d.js");
+
+            await BuildRelationFlightsAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine(
+                $"Panoramic3DRelations initialization failed: {ex}");
+        }
+    }
+
+    private async Task BuildRelationFlightsAsync()
+    {
+        if (_isDisposed || _module == null || Tables == null)
+            return;
+
+        var tablesList = Tables
+            .Where(t => t != null)
+            .ToList();
+
+        if (tablesList.Count == 0)
+            return;
+
+        /*
+         * Give every table a stable position.
+         *
+         * Using the table path as the seed means the same table
+         * gets the same location every time.
+         */
+        var nodesPayload = tablesList
+            .Select(table =>
+            {
+                var random = new Random(
+                    StableHash(table.TablePath));
+
+                return new
+                {
+                    id = table.TablePath,
+                    name = table.TablePath,
+
+                    x = random.Next(-100, 101),
+                    y = random.Next(-100, 101),
+                    z = 0
+                };
+            })
+            .ToList();
+
+        /*
+         * Build the FK relationships.
+         *
+         * Keep the traffic flag in the payload. JavaScript will
+         * separate normal and high-traffic flights into different
+         * lines3D series because lines3D data itself must be arrays.
+         */
+        var linksPayload = new List<object>();
+
+        foreach (var sourceTable in tablesList)
+        {
+            if (sourceTable.ForeignKeys == null)
+                continue;
+
+            foreach (var fk in sourceTable.ForeignKeys)
+            {
+                var targetTable = fk.ParentTable;
+
+                if (targetTable == null)
+                    continue;
+
+                if (string.IsNullOrWhiteSpace(sourceTable.TablePath))
+                    continue;
+
+                if (string.IsNullOrWhiteSpace(targetTable.TablePath))
+                    continue;
+
+                linksPayload.Add(new
+                {
+                    source = sourceTable.TablePath,
+                    target = targetTable.TablePath,
+
+                    isHighTraffic =
+                        sourceTable.Triggers != null &&
+                        sourceTable.Triggers.Count > 0
+                });
+            }
+        }
+
+        try
+        {
+            await _module.InvokeVoidAsync(
+                "renderRelations3DFlights",
+                _containerId,
+                Title,
+                nodesPayload,
+                linksPayload);
+        }
+        catch (JSException ex)
+        {
+            Console.Error.WriteLine(
+                $"Panoramic3DRelations JS error: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine(
+                $"Panoramic3DRelations render failed: {ex}");
+        }
+    }
+
+    private static int StableHash(string? value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return 0;
+
+        unchecked
+        {
+            var hash = 17;
+
+            foreach (var character in value)
+                hash = hash * 31 + character;
+
+            return hash;
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _isDisposed = true;
+
+        if (_module == null)
+            return;
+
+        try
+        {
+            await _module.InvokeVoidAsync(
+                "disposeRelations3D",
+                _containerId);
+        }
+        catch
+        {
+            // JS runtime can already be gone during circuit shutdown.
+        }
+
+        try
+        {
+            await _module.DisposeAsync();
+        }
+        catch
+        {
+            // Ignore module disposal during shutdown.
+        }
+
+        _module = null;
+    }
+}

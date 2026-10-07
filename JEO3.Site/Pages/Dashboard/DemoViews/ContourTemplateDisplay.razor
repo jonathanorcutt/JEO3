@@ -1,0 +1,58 @@
+﻿@using JEO3.Schema
+@using JEO3.Site.Components.Charting
+@using JEO3.Site.Components.Icons
+
+@namespace JEO3.Site.Dashboard
+@inject WSWorkspace W
+
+<RadzenTabs RenderMode="TabRenderMode.Client" SelectedIndexChanged="UpdateEntitiesNavTabChanged" class="main-nav-tabs" Style="background: var(--jeo-primary-rz) !important; color: var(--rz-white) !important;">
+	<Tabs>
+		<RadzenTabsItem>
+			<Template>
+				<VSIcon Width="22" Height="22" Name="Function_Apps" Type="VSIconType.VSCodeGithub" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> Schema Panoramic 3D
+			</Template>
+			<ChildContent>
+				<PanoramicContour3D Width="1530px" Height="900px" TRow="ITable" Rows="@W.Context?.Tables" Columns="@MetricNames" RowLabelSelector="@(t => t.TablePath)"
+									CellSelector="@((t, m) => GetContourNormalizedMetric(t, m))" Title="Schema Heat Map" IntensityLabel="Complexity" />
+
+			</ChildContent>
+		</RadzenTabsItem>
+@* 		<RadzenTabsItem>
+			<Template>
+				<VSIcon Width="22" Height="22" Name="Function_Apps" Type="VSIconType.VSCodeGithub" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> Relations Simulation 3D
+			</Template>
+			<ChildContent>
+				<PanoramicRelations3D Width="1530px" Height="900px" Title="Database Transaction Flight Paths" Tables="@W.Context?.Tables" />
+			</ChildContent>
+		</RadzenTabsItem> *@
+		<RadzenTabsItem>
+			<Template>
+				<VSIcon Width="22" Height="22" Name="Function_Apps" Type="VSIconType.VSCodeGithub" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> Schema Breakdown
+			</Template>
+			<ChildContent>
+				<Contour TRow="ITable" Rows="@W.Context?.Tables" Columns="@MetricNames" RowLabelSelector="@(t => t.TablePath)"
+						 CellSelector="@((t, m) => GetContourNormalizedMetric(t, m))" Title="Schema Heat Map" IntensityLabel="Complexity" />
+			</ChildContent>
+		</RadzenTabsItem>
+		<RadzenTabsItem>
+			<Template>
+				<VSIcon Width="22" Height="22" Name="Consortium" Type="VSIconType.VSCodeGithub" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon>Field Level
+			</Template>
+			<ChildContent>
+				<Contour TRow="IColumn" Rows="@W.Context?.Columns?.Where(c => c.IsPrimaryKey || c.IsForeignKey)" Columns="@ColumnMetrics"
+						 RowLabelSelector="@(c => c.Path)" CellSelector="@((c, m) => GetColumnMetric(c, m))" Title="Field Physical Blueprint Density"
+						 XAxisTitle="Structural Keys" YAxisTitle="Columns" />
+			</ChildContent>
+		</RadzenTabsItem>
+		<RadzenTabsItem>
+			<Template>
+				<VSIcon Width="22" Height="22" Name="Azure_Chaos_Studio" Type="VSIconType.VSCodeGithub" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon>Missing Indexes
+			</Template>
+			<ChildContent>
+				<Contour TRow="IMissingIndex" Rows="@W.Context?.Tables?.SelectMany(t => t.MissingIndexes)" Columns="@MissingIndexMetrics"
+						 RowLabelSelector="@(idx => $"{idx.SchemaName}.{idx.TableName} [Idx:{idx.IndexHandle}]")" CellSelector="@((idx, m) => GetMissingIndexMetric(idx, m))"
+						 Title="Missing Index Operational Footprint" XAxisTitle="DMV Impact Metric" YAxisTitle="Suggested Index Targets" />
+			</ChildContent>
+		</RadzenTabsItem>
+	</Tabs>
+</RadzenTabs>

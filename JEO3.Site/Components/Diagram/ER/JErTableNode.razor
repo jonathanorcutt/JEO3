@@ -1,0 +1,98 @@
+@* @inherits TableNodeBase<ITable> *@
+@using JEO3.Schema
+
+@namespace JEO3.Site.Components.Database
+
+<div class="jeo3-er-node">
+	@* @onclick="HandleSelection" *@
+	<div class="jeo3-er-header">
+		<span class="jeo3-er-title">@NodeData?.SchemaName.@NodeData?.Name</span>
+
+		<span class="jeo3-badge jeo3-badge-info" title="@NodeData.Rows rows(s)">
+			@NodeData.Rows
+		</span>
+
+		@if (HasAnyDiagnosticFlags)
+		{
+			<span class="jeo3-er-badges">
+				@if (MissingIndexCount > 0)
+				{
+					<span class="jeo3-badge jeo3-badge-warn" title="@MissingIndexCount missing index(es)">
+						⚠ @MissingIndexCount
+					</span>
+				}
+				@if (TriggerCount > 0)
+				{
+					<span class="jeo3-badge jeo3-badge-info" title="@TriggerCount trigger(s)">
+						⚡ @TriggerCount
+					</span>
+				}
+			</span>
+		}
+	</div>
+
+	<ul class="jeo3-er-columns @(OrderedColumns.Count > MaxVisibleColumns ? "jeo3-er-scroll" : "")">
+		@foreach (var column in OrderedColumns)
+		{
+			<li class="jeo3-er-row">
+				@if (column.IsPrimaryKey)
+				{
+					<span class="jeo3-er-key jeo3-er-key-primary" title="Primary Key">🔑</span>
+				}
+				else if (column.IsForeignKey)
+				{
+					<span class="jeo3-er-key jeo3-er-key-foreign" title="Foreign Key">🔗</span>
+				}
+				else
+				{
+					<span class="jeo3-er-key jeo3-er-key-none"></span>
+				}
+
+				<span class="jeo3-er-colname">@column.Name</span>
+				<span class="jeo3-er-coltype">@column.DataType</span>
+
+				@if (!column.IsNullable)
+				{
+					<span class="jeo3-er-notnull" title="Not Null">•</span>
+				}
+			</li>
+		}
+	</ul>
+
+@* 	@if (FkCount > 0)
+	{
+		<div class="jeo3-er-footer">
+			🔑@FkCount foreign key@(FkCount == 1 ? "" : "s")
+		</div>
+	}
+	@if (RefFkCount > 0)
+	{
+		<div class="jeo3-er-footer">
+			🗝️@RefFkCount ref by foreign key@(RefFkCount == 1 ? "" : "s")
+		</div>
+	}
+	@if (CheckConstraintCount > 0)
+	{
+		<div class="jeo3-er-footer">
+			✅@CheckConstraintCount check constraint@(CheckConstraintCount == 1 ? "" : "s")
+		</div>
+	}
+	@if (ExtendedPropertiesCount > 0)
+	{
+		<div class="jeo3-er-footer">
+			ℹ️@ExtendedPropertiesCount extended propert@(ExtendedPropertiesCount == 1 ? "y" : "ies")
+		</div>
+	}
+	@if (StatisticsCount > 0)
+	{
+		<div class="jeo3-er-footer">
+			📊@StatisticsCount statistic@(StatisticsCount == 1 ? "" : "s")
+		</div>
+	} *@
+	@if (IndexCount > 0)
+	{
+		<div class="jeo3-er-footer">
+			📊@IndexCount index@(IndexCount == 1 ? "" : "es")
+		</div>
+	}
+</div>

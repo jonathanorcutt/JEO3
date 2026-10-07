@@ -1,0 +1,1 @@
+﻿keep these away from the main generation project. too easy to get tangled with objects they don't need to know about.

@@ -1,0 +1,35 @@
+﻿@namespace JEO3.Site.Components.Icons
+
+@if (Click.HasDelegate == false)
+{
+	<img src="@FilePath" width="@Width" height="@Height" class="@Class" style="@(Style);cursor: pointer" />
+}
+else
+{
+	<img src="@FilePath" width="@Width" height="@Height" class="@Class" style="@(Style);cursor: pointer" onclick="@Click" />
+}
+
+@code {
+
+	[Parameter] public int Width { get; set; } = 24;
+	[Parameter] public int Height { get; set; } = 24;
+	[Parameter] public string Style { get; set; } = string.Empty;
+	[Parameter] public string Class { get; set; } = string.Empty;
+	[Parameter] public string FileName { get; set; } = string.Empty;
+	[Parameter] public CategoryType Category { get; set; } = CategoryType.branding;
+	[Parameter] public EventCallback Click { get; set; }
+	private const string Directory = "../img/";
+	private string FilePath => Directory + Category.ToString() + "/" + FileName;
+
+	// TODO: Migrate Assets From JEO3.Site
+	public enum CategoryType
+	{
+		azure_icons,
+		branding,
+		gallery,
+		icons,
+		pacman,
+		theme,
+		vs_icons
+	}
+}

@@ -1,0 +1,162 @@
+.cyber-checkbox-wrapper {
+    --neon-glow: #00ff66;
+    --neon-dim: rgba(0, 255, 102, 0.25);
+    --bg-dark: rgba(2, 14, 8, 0.7);
+    --border-base: rgba(0, 255, 102, 0.25);
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    vertical-align: middle;
+}
+
+/* Hide native box entirely but preserve layout footprint for focus outlines */
+.cyber-hidden-input {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    opacity: 0;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+    zIndex: 2;
+}
+
+/* The structural framework element */
+.cyber-visual-box {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    background: var(--bg-dark);
+    border: 1px solid var(--border-base);
+    box-shadow: inset 0 0 8px rgba(0, 255, 102, 0.05);
+    box-sizing: border-box;
+    transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    background-color: #1a1f2c;
+    color: #ffffff !important;
+    font-family: "Consolas", "Monaco", monospace;
+    font-size: 8px;
+    font-weight: 500;
+    text-decoration: none !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    -webkit-animation: neon2 1.3s ease-in-out infinite alternate;
+    -moz-animation: neon2 1.3s ease-in-out infinite alternate;
+    animation: neon2 5s ease-in-out infinite alternate, horizontal-shake 2.5s ease-in-out;
+}
+
+/* Hardened architectural details on corners */
+.cyber-visual-box .bracket-edge {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    border: 1px solid var(--neon-glow);
+    opacity: 0.4;
+    transition: opacity 0.4s ease;
+}
+
+    .cyber-visual-box .tl {
+        top: 2px;
+        left: 2px;
+        border-right: none;
+        border-bottom: none;
+    }
+
+    .cyber-visual-box .tr {
+        top: 2px;
+        right: 2px;
+        border-left: none;
+        border-bottom: none;
+    }
+
+    .cyber-visual-box .bl {
+        bottom: 2px;
+        left: 2px;
+        border-right: none;
+        border-top: none;
+    }
+
+    .cyber-visual-box .br {
+        bottom: 2px;
+        right: 2px;
+        border-left: none;
+        border-top: none;
+    }
+
+/* Glowing indicator node core */
+.cyber-indicator-node {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    right: 5px;
+    bottom: 5px;
+    background: var(--neon-glow);
+    opacity: 0;
+    transform: scale(0.5);
+    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.15s linear;
+    box-shadow: 0 0 10px var(--neon-glow), 0 0 20px var(--neon-dim);
+    clip-path: polygon(25% 0%, 75% 0%, 100% 25%, 100% 75%, 75% 100%, 25% 100%, 0% 75%, 0% 25%);
+    will-change: transform, opacity;
+    font-size: 26pt;
+    /*animation: neon1 1.5s ease-in-out infinite alternate, horizontal-shake 0.5s ease-in-out;*/
+}
+
+/* Keyboard accessibility: Explicit focus ring tracking native tab index */
+.cyber-hidden-input:focus-visible + .cyber-visual-box {
+    outline: 2px solid var(--neon-glow);
+    outline-offset: 3px;
+    border-color: var(--neon-glow);
+}
+
+/* Interaction States */
+.cyber-checkbox-wrapper:hover .cyber-visual-box {
+    border-color: var(--neon-glow);
+    box-shadow: inset 0 0 10px rgba(0, 255, 102, 0.15);
+}
+
+.cyber-checkbox-wrapper:hover .bracket-edge {
+    opacity: 0.8;
+}
+
+/* Checked UI State mutations */
+.cyber-checkbox-wrapper.is-checked .cyber-visual-box {
+    border-color: var(--neon-glow);
+    box-shadow: 0 0 12px var(--neon-dim), inset 0 0 6px rgba(0, 255, 102, 0.1);
+}
+.cyber-indicator-node:not(.is-checked) {
+    animation: horizontal-shake 0.5s ease, neon1 0.5s ease-in-out infinite alternate;
+}
+.cyber-checkbox-wrapper.is-checked .cyber-indicator-node {
+    opacity: 1;
+    transform: scale(1.5);
+    animation: horizontal-shake 0.5s ease, neon1 0.5s ease-in-out infinite alternate,  glow 2s infinite ease-in-out;
+}
+
+.cyber-checkbox-wrapper.is-checked .bracket-edge {
+    opacity: 1;
+}
+
+/* Text Element Configuration */
+.cyber-label-content {
+    color: var(--neon-glow);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-shadow: 0 0 4px rgba(0, 255, 102, 0.3);
+    cursor: pointer;
+}
+
+/* Disabled Enforcement rules */
+.cyber-checkbox-wrapper.is-disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+    .cyber-checkbox-wrapper.is-disabled * {
+        cursor: not-allowed;
+    }

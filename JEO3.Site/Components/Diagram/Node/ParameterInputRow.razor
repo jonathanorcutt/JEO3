@@ -1,0 +1,70 @@
+﻿@using System.Reflection
+@using JEO3.Diagrams
+@using Radzen
+@using Radzen.Blazor
+
+@namespace JEO3.Site.Components.Diagram
+
+<div class="vertical-parameter-item" style="display: flex; flex-direction: column; gap: 4px; width: 100%;">
+
+    @if (Prop.PropertyType != typeof(bool))
+    {
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <label style="font-size: 12px; color: var(--rz-text-color); font-weight: 500; text-transform: uppercase;">
+                @Attr.Label
+            </label>
+            @if (Prop.PropertyType == typeof(double) || Prop.PropertyType == typeof(int))
+            {
+                <span style="font-size: 10px; color: var(--rz-text-disabled-color,  #ffffff);">
+                    (@Attr.Min - @Attr.Max)
+                </span>
+            }
+        </div>
+    }
+
+    @if (Prop.PropertyType == typeof(double) || Prop.PropertyType == typeof(int) || Prop.PropertyType == typeof(float))
+    {
+        <input type="number"
+               min="@Attr.Min"
+               max="@Attr.Max"
+               step="@(Prop.PropertyType == typeof(int) ? "1" : Attr.Step.ToString())"
+               value="@InputValue"
+               @oninput="HandleInput"
+               @onblur="HandleBlur"
+               style="width: 100%; height: 28px; padding: 4px 8px; color:var(--rz-black); font-size: 11px;border: 1px solid var(--rz-input-border-color, #ccc); border-radius: 4px;" />
+    }
+    else if (Prop.PropertyType == typeof(bool))
+    {
+        <div style="display: flex; align-items: center; gap: 8px; padding-top: 4px;">
+            <RadzenCheckBox TValue="bool"
+                            Value="@((bool)Prop.GetValue(TargetParameters)!)"
+                            Change="@(val => OnBoolChanged.InvokeAsync(val))" />
+            <label style="font-size: 12px; color: var(--rz-text-color); font-weight: 500; cursor: pointer; text-transform: uppercase;">
+                @Attr.Label
+            </label>
+        </div>
+    }
+    else if (Prop.PropertyType.IsEnum)
+    {
+        <RadzenDropDown TValue="string"
+                        Value="@InputValue"
+                        Data="@(Enum.GetNames(Prop.PropertyType))"
+                        Change="@(val => OnEnumChanged.InvokeAsync(val))"
+                        Style="width: 100%; height: 28px; font-size: 11px;" />
+    }
+</div>
+
+@code {
+    [Parameter] public PropertyInfo Prop { get; set; } = null!;
+    [Parameter] public DiagramParameterAttribute Attr { get; set; } = null!;
+    [Parameter] public BaseLayoutParameters TargetParameters { get; set; } = null!;
+    [Parameter] public string InputValue { get; set; } = "";
+
+    [Parameter] public EventCallback<string> OnLiveInput { get; set; }
+    [Parameter] public EventCallback OnBlur { get; set; }
+    [Parameter] public EventCallback<object?> OnBoolChanged { get; set; }
+    [Parameter] public EventCallback<object?> OnEnumChanged { get; set; } // Added
+
+    private Task HandleInput(ChangeEventArgs e) => OnLiveInput.InvokeAsync(e.Value?.ToString() ?? "");
+    private Task HandleBlur() => OnBlur.InvokeAsync();
+}

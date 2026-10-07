@@ -1,0 +1,56 @@
+@* @page "/treeview-demo"
+@using AwesomeTreeView
+
+<h3>Schema Navigator</h3>
+
+<TreeView TItem="SchemaNode"
+          Items="_rootTables"
+          TextSelector="n => n.Name"
+          IconSelector="n => n.Icon"
+          HasChildrenSelector="n => n.HasChildren"
+          LoadChildrenAsync="LoadChildrenAsync"
+          ShowCheckboxes="true"
+          AllowDragDrop="true"
+          OnNodeSelected="OnSelectedAsync"
+          OnNodeMoved="OnMovedAsync">
+    <NodeTemplate Context="node">
+        <span class="demo-node">
+            <strong>@node.Text</strong>
+            @if (node.Data.RowCount is not null)
+            {
+                <span class="demo-rowcount">(@node.Data.RowCount:N0 rows)</span>
+            }
+        </span>
+    </NodeTemplate>
+</TreeView>
+
+@code {
+    private List<SchemaNode> _rootTables = new();
+
+    protected override void OnInitialized()
+    {
+        // stand-in for JEO3's ITable/IColumn metadata — swap in the real traversal service here
+        _rootTables = new()
+        {
+            new SchemaNode("dbo", true, null, "📁"),
+            new SchemaNode("Sales", true, null, "📁"),
+        };
+    }
+
+    private async Task<IEnumerable<SchemaNode>> LoadChildrenAsync(SchemaNode parent)
+    {
+        await Task.Delay(150); // simulate a metadata query
+        return parent.Name switch
+        {
+            "dbo" => new[] { new SchemaNode("Customer", false, 128_400, "🗂") },
+            "Sales" => new[] { new SchemaNode("Orders", false, 2_310_009, "🗂"), new SchemaNode("OrderLines", false, 9_812_331, "🗂") },
+            _ => Array.Empty<SchemaNode>()
+        };
+    }
+
+    private Task OnSelectedAsync(TreeNode<SchemaNode> node) { Console.WriteLine($"Selected {node.Text}"); return Task.CompletedTask; }
+    private Task OnMovedAsync(TreeNodeMoveArgs<SchemaNode> args) { Console.WriteLine($"Moved {args.Moved.Text} -> {args.NewParent?.Text ?? "(root)"}"); return Task.CompletedTask; }
+
+    public record SchemaNode(string Name, bool HasChildren, long? RowCount, string Icon);
+}
+ *@

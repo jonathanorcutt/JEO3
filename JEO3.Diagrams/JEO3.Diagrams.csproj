@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Remove="Export\JEO3VisioTemplate.vsdx" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="Export\JEO3VisioTemplate.vsdx" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="GraphShape" />
+		<PackageReference Include="QuikGraph" />
+		<PackageReference Include="Z.Blazor.Diagrams" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\JEO3.Generation\JEO3.Generation.csproj" />
+	</ItemGroup>
+
+</Project>

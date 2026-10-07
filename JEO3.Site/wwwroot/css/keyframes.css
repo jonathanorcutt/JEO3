@@ -1,0 +1,272 @@
+﻿
+@keyframes insane-spin {
+    to {
+        transform: translateX(-50%) rotate(360deg);
+    }
+}
+
+@keyframes insane-border {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes insane-float {
+    0%, 100% {
+        transform: translateY(0) scale(1);
+    }
+
+    50% {
+        transform: translateY(-9px) scale(1.025);
+    }
+}
+
+@keyframes insane-glow {
+    from {
+        filter: drop-shadow(0 0 10px rgba(160,80,255,.5)) drop-shadow(0 0 20px rgba(0,220,255,.2));
+    }
+
+    to {
+        filter: drop-shadow(0 0 20px rgba(160,80,255,1)) drop-shadow(0 0 45px rgba(0,220,255,.65));
+    }
+}
+
+@keyframes insane-text {
+    to {
+        background-position: 300% center;
+    }
+}
+
+@keyframes insane-progress {
+    0% {
+        transform: translateX(-120%);
+        width: 25%;
+    }
+
+    50% {
+        width: 55%;
+    }
+
+    100% {
+        transform: translateX(300%);
+        width: 25%;
+    }
+}
+
+@keyframes horizontal-shake {
+    0% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-5px);
+    }
+
+    50% {
+        transform: translateX(5px);
+    }
+
+    75% {
+        transform: translateX(-5px);
+    }
+
+    100% {
+        transform: translateX(0);
+    }
+}
+
+@keyframes horizontal-shake-short {
+    0% {
+        transform: translateX(0);
+    }
+
+    10% {
+        transform: translateX(-1px);
+    }
+
+    20% {
+        transform: translateX(-2px);
+    }
+
+    30% {
+        transform: translateX(-3px);
+    }
+
+    40% {
+        transform: translateX(-4px);
+    }
+
+    50% {
+        transform: translateX(-5px);
+    }
+
+    60% {
+        transform: translateX(-4px);
+    }
+
+    70% {
+        transform: translateX(-3px);
+    }
+
+    80% {
+        transform: translateX(-2px);
+    }
+
+    90% {
+        transform: translateX(-1px);
+    }
+
+    100% {
+        transform: translateX(0px);
+    }
+}
+
+@keyframes neon-rz {
+    from {
+        box-shadow: inset 0px 0px 1px 1px rgba(100, 154, 100, 0.3);
+    }
+
+    to {
+        box-shadow: inset 0px 0px 5px 16px rgb(70, 220, 70, 1);
+    }
+}
+
+@keyframes neon-rz-2 {
+    from {
+        box-shadow: inset 0px 0px 11px 11px var(--jeo-primary);
+    }
+
+    to {
+        box-shadow: inset 0px 0px 1px 1px var(--rz-white);
+    }
+}
+
+@keyframes neon-rz-3 {
+    from {
+        box-shadow: inset 0px 0px 15px 15px var(--jeo-rz-dark-55);
+    }
+
+    to {
+        box-shadow: inset 0px 0px 15px 15px var(--jeo-rz-15);
+    }
+}
+
+@keyframes neon1 {
+    from {
+        box-shadow: inset 0px 0px 1px 1px rgba(100, 154, 100, 0.2), inset 0px 0px 0px 1px rgba(100, 164, 100, 0.2), inset 0px 0px 15px 3px rgba(100, 164, 100, 0.2), inset 0px 0px 15px 3px rgba(100, 164, 100, 0.2);
+    }
+
+    to {
+        box-shadow: inset 0px 0px 5px 16px rgb(0, 110, 250, 0.3);
+    }
+}
+
+@keyframes neon2 {
+    from {
+        box-shadow: inset 0px 0px 1px 1px rgba(100, 154, 100, 0.3), 0px 0px 2px 2px rgba(0, 139, 0, 0.3), 0px 0px 4px 4px rgba(0, 175, 0, 0.3);
+    }
+
+    to {
+        box-shadow: inset 0px 0px 5px 16px rgb(250, 0, 70, 1);
+    }
+}
+
+@keyframes neon3 {
+    from {
+        box-shadow: 0px 0px 2px 2px rgba(100, 0, 0, 0.2), 0px 0px 4px 4px rgba(200, 0, 0, 0.2);
+    }
+
+    to {
+        box-shadow: 0px 0px 2px 2px rgb(235, 50, 50, .2), 0px 0px 4px 4px rgb(235, 50, 50, .1);
+    }
+}
+
+@keyframes neon4 {
+    from {
+        box-shadow: inset 0px 0px 1px 1px rgba(100, 154, 100, 0.2), inset 0px 0px 0px 1px rgba(100, 164, 100, 0.2), inset 0px 0px 15px 3px rgba(100, 164, 100, 0.2), inset 0px 0px 15px 3px rgba(100, 164, 100, 0.2);
+    }
+
+    to {
+        box-shadow: inset 0px 0px 5px 16px rgb(0, 180, 50, 0.3);
+    }
+}
+
+@keyframes neon5 {
+    from {
+        box-shadow: inset 0px 0px 1px 1px rgba(100, 154, 100, 0.3), 0px 0px 2px 2px rgba(0, 139, 0, 0.3), 0px 0px 4px 4px rgba(0, 175, 0, 0.3);
+    }
+
+    to {
+        box-shadow: inset 0px 0px 5px 16px rgb(0, 255, 70, 1);
+    }
+}
+
+@keyframes pulseGlow {
+    from {
+        /* Subtle initial glow: X-offset, Y-offset, Blur-radius, Color */
+        filter: drop-shadow(0 0 3px rgba(90, 255, 90, 0.3));
+    }
+
+    to {
+        /* Intense expanded glow */
+        filter: drop-shadow(0 0 12px rgba(50, 255, 50, .6));
+    }
+}
+
+/* Animation for the rain effect */
+@keyframes rain {
+    0% {
+        transform: translateY(-100%);
+    }
+
+    100% {
+        transform: translateY(100%);
+    }
+}
+
+/* Glitch effect for the text */
+@keyframes glitch {
+    0%, 100% {
+        clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
+        transform: translate(0);
+    }
+
+    33% {
+        clip-path: polygon(0 0, 100% 0, 100% 15%, 0 15%);
+        transform: translate(-5px, -5px);
+    }
+
+    66% {
+        clip-path: polygon(0 85%, 100% 85%, 100% 100%, 0 100%);
+        transform: translate(5px, 5px);
+    }
+}
+
+
+@keyframes wobble {
+    0%,100% {
+        transform: rotate3d(1,1,0,9deg);
+    }
+
+    25% {
+        transform: rotate3d(-1,1,0,9deg);
+    }
+
+    50% {
+        transform: rotate3d(-1,-1,0,9deg);
+    }
+
+    75% {
+        transform: rotate3d(1,-1,0,9deg);
+    }
+}
+
+@keyframes glow {
+    0%,100% {
+        text-shadow: 0 0 170px rgba(0,0,0,.6);
+    }
+
+    50% {
+        text-shadow: 0 0 170px rgba(0,0,0,.7);
+    }
+}

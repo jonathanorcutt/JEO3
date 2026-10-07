@@ -1,0 +1,112 @@
+﻿@using System.Data
+@using JEO3.Extensions
+@using JEO3.Monitor.Wmi'
+
+@namespace JEO3.Monitor.Charts.WMI
+@inherits WmiMonitorComponentBase
+
+@if (WmiType == WmiDataType.Databases)
+{
+	<RadzenDataGrid Data="@(ConvertToDataTable(Data).ToList<WmiDatabaseRow>())"
+					TItem="WmiDatabaseRow"
+					AllowFiltering="false"
+					AllowSorting="false">
+		<Columns>
+			<RadzenDataGridColumn Property="@nameof(WmiDatabaseRow.ActiveTransactions)" Title="@nameof(WmiDatabaseRow.ActiveTransactions)"></RadzenDataGridColumn>
+			<RadzenDataGridColumn Property="@nameof(WmiDatabaseRow.DataFilesSizeKB)" Title="@nameof(WmiDatabaseRow.DataFilesSizeKB)"></RadzenDataGridColumn>
+			<RadzenDataGridColumn Property="@nameof(WmiDatabaseRow.LogCacheReadsPersec)" Title="@nameof(WmiDatabaseRow.LogCacheReadsPersec)"></RadzenDataGridColumn>
+			<RadzenDataGridColumn Property="@nameof(WmiDatabaseRow.LogFilesSizeKB)" Title="@nameof(WmiDatabaseRow.LogFilesSizeKB)"></RadzenDataGridColumn>
+			<RadzenDataGridColumn Property="@nameof(WmiDatabaseRow.LogFilesUsedSizeKB)" Title="@nameof(WmiDatabaseRow.LogFilesUsedSizeKB)"></RadzenDataGridColumn>
+			<RadzenDataGridColumn Property="@nameof(WmiDatabaseRow.Name)" Title="@nameof(WmiDatabaseRow.Name)"></RadzenDataGridColumn>
+			<RadzenDataGridColumn Property="@nameof(WmiDatabaseRow.PercentLogUsed)" Title="@nameof(WmiDatabaseRow.PercentLogUsed)"></RadzenDataGridColumn>
+			<RadzenDataGridColumn Property="@nameof(WmiDatabaseRow.Timestamp_PerfTime)" Title="@nameof(WmiDatabaseRow.Timestamp_PerfTime)"></RadzenDataGridColumn>
+			<RadzenDataGridColumn Property="@nameof(WmiDatabaseRow.WriteTransactionsPersec)" Title="@nameof(WmiDatabaseRow.WriteTransactionsPersec)"></RadzenDataGridColumn>
+		</Columns>
+	</RadzenDataGrid>
+}
+else if (WmiType == WmiDataType.Exceptions)
+{
+
+}
+else if (WmiType == WmiDataType.Locks)
+{
+
+}
+else if (WmiType == WmiDataType.Memory)
+{
+
+}
+else if (WmiType == WmiDataType.QueryStore)
+{
+
+}
+else if (WmiType == WmiDataType.WebService)
+{
+
+}
+
+
+@code
+{
+	[Parameter] public WmiDataType WmiType { get; set; }
+	private Dictionary<string, List<object>> Data
+	{
+		get
+		{
+			switch (WmiType)
+			{
+				case WmiDataType.Databases:
+					return Wmi.Databases;
+				case WmiDataType.Exceptions:
+					return Wmi.Exceptions;
+				case WmiDataType.Locks:
+					return Wmi.Locks;
+				case WmiDataType.Memory:
+					return Wmi.Memory;
+				case WmiDataType.QueryStore:
+					return Wmi.QueryStore;
+				case WmiDataType.WebService:
+					return Wmi.WebService;
+			}
+			return null;
+		}
+	}
+
+	public static DataTable ConvertToDataTable(Dictionary<string, List<object>> dict)
+	{
+		DataTable dt = new DataTable();
+
+		if (dict == null || dict.Count == 0)
+			return dt;
+
+		// 1. Create columns using the dictionary keys
+		foreach (string key in dict.Keys)
+		{
+			dt.Columns.Add(key, typeof(object));
+		}
+
+		// 2. Find the maximum row count among all lists
+		int maxRows = dict.Values.Max(list => list?.Count ?? 0);
+
+		// 3. Populate rows dynamically
+		for (int i = 0; i < maxRows; i++)
+		{
+			DataRow row = dt.NewRow();
+			foreach (string key in dict.Keys)
+			{
+				// If the current list has an item at index i, add it; otherwise, insert DBNull
+				if (dict[key] != null && i < dict[key].Count)
+				{
+					row[key] = dict[key][i] ?? DBNull.Value;
+				}
+				else
+				{
+					row[key] = DBNull.Value;
+				}
+			}
+			dt.Rows.Add(row);
+		}
+
+		return dt;
+	}
+}

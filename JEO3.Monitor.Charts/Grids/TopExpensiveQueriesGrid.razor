@@ -1,0 +1,122 @@
+﻿@using JEO3.Monitor
+@using JEO3.Monitor.Models
+@inherits MonitorBase
+@namespace JEO3.Monitor.ECharts
+
+<div class="monitor-panel">
+	@if (LabelText != string.Empty)
+	{
+		<div class="monitor-panel-title">
+			<label class="dashboard-monitor-label">
+				<img src="../img/vs_icons/StoredProcedurefromCLRWarning_16x.png" width="18" height="18" class="fa-mr-7" />
+				@LabelText
+			</label>
+
+			<span class="monitor-section-badge">
+				@Queries.Count
+			</span>
+		</div>
+	}
+
+	<div class="dashboard-pane-container" style="height:@(Height); width:@(Width)">
+		<div class="dashboard-pane-body-container-scroll">
+			<RadzenDataGrid Data="@Queries"
+							TItem="TopExpensiveQueryRow"
+							AllowSorting="true"
+							AllowFiltering="true"
+							AllowColumnResize="true"
+							AllowColumnReorder="true"
+							Density="Density.Compact"
+							AllowAlternatingRows="true"
+							AllowVirtualization="true"
+							RowSelect="@(async (t) => { await OnSelectionChanged.InvokeAsync(t); })"
+							Style="width: 100%;">
+
+				<Columns>
+					<RadzenDataGridColumn TItem="TopExpensiveQueryRow"
+										  Property="@nameof(TopExpensiveQueryRow.QueryImpact)"
+										  Title="Impact"
+										  TextAlign="TextAlign.Right"
+										  Width="100px"
+										  FormatString="{0:N0}" />
+
+					<RadzenDataGridColumn TItem="TopExpensiveQueryRow"
+										  Property="@nameof(TopExpensiveQueryRow.AvgCpuMs)"
+										  Title="Avg CPU (ms)"
+										  TextAlign="TextAlign.Right"
+										  Width="100px"
+										  FormatString="{0:N2}" />
+
+					<RadzenDataGridColumn TItem="TopExpensiveQueryRow"
+										  Property="@nameof(TopExpensiveQueryRow.MaxCpuMs)"
+										  Title="Max CPU (ms)"
+										  TextAlign="TextAlign.Right"
+										  Width="100px"
+										  FormatString="{0:N2}" />
+
+					<RadzenDataGridColumn TItem="TopExpensiveQueryRow"
+										  Property="@nameof(TopExpensiveQueryRow.AvgElapsedMs)"
+										  Title="Avg Elapsed (ms)"
+										  TextAlign="TextAlign.Right"
+										  Width="100px"
+										  FormatString="{0:N2}" />
+
+					<RadzenDataGridColumn TItem="TopExpensiveQueryRow"
+										  Property="@nameof(TopExpensiveQueryRow.AvgIo)"
+										  Title="Avg I/O"
+										  TextAlign="TextAlign.Right"
+										  Width="80px"
+										  FormatString="{0:N0}" />
+
+					<RadzenDataGridColumn TItem="TopExpensiveQueryRow"
+										  Property="@nameof(TopExpensiveQueryRow.ExecutionCount)"
+										  Title="Executions"
+										  TextAlign="TextAlign.Right"
+										  Width="80px"
+										  FormatString="{0:N0}" />
+
+					<RadzenDataGridColumn TItem="TopExpensiveQueryRow"
+										  Property="@nameof(TopExpensiveQueryRow.DatabaseName)"
+										  Title="Database"
+										  Width="100px" />
+
+					<RadzenDataGridColumn TItem="TopExpensiveQueryRow"
+										  Property="@nameof(TopExpensiveQueryRow.LastExecutionTime)"
+										  Title="Last Executed"
+										  Width="100px"
+										  FormatString="{0:MM/dd HH:mm:ss}" />
+
+					<RadzenDataGridColumn TItem="TopExpensiveQueryRow"
+										  Property="QueryText"
+										  Title="Query Text"
+										  Width="600px" />
+				</Columns>
+			</RadzenDataGrid>
+		</div>
+	</div>
+</div>
+
+@code {
+	[Parameter]
+	public IReadOnlyList<TopExpensiveQueryRow> Queries { get; set; } = Array.Empty<TopExpensiveQueryRow>();
+	[Parameter] public EventCallback<TopExpensiveQueryRow> OnSelectionChanged { get; set; }
+
+	protected override async Task RenderInitialAsync(MonitorSnapshot initial)
+	{
+		if (initial.TopExpensiveQueries != null)
+		{
+			Queries = initial.TopExpensiveQueries.OrderByDescending(r => r.AvgElapsedMs).ToList();
+			await InvokeAsync(StateHasChanged);
+		}
+	}
+
+	protected override async Task AppendDeltasAsync(MonitorDeltaResponse delta)
+	{
+		// The API only returns this cache when it updates, so don't wipe it out if it's null
+		if (delta.TopExpensiveQueries != null && delta.TopExpensiveQueries.Count > 0)
+		{
+			Queries = delta.TopExpensiveQueries.OrderByDescending(r => r.AvgElapsedMs).ToList();
+			await InvokeAsync(StateHasChanged);
+		}
+	}
+}

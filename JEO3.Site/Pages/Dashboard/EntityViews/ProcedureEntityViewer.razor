@@ -1,0 +1,37 @@
+﻿@using BlazorMonaco.Editor
+@using JEO3.Core
+@using JEO3.Schema
+@using JEO3.Site.Components
+@using JEO3.Site.Dashboard
+@inject WSWorkspace W
+
+@namespace JEO3.Site.Dashboard
+
+<JEOGrid DataTable="@W.Result.Databars?.Procedures" PrimaryKeyColumn="PrimaryKeyColumn"
+		 OnRowClick="@(async ((object? a, string? b) row) => { await updateProcsQuery((row.a, row.b)); })"
+		 AllowVirtualization="true" />
+		 
+<div class="dashboard-query-editor-container" style="min-height:300px">
+
+	<div class="grid-query-editor" oncontextmenu="return false;" onpointerup="if(event.button === 2) { this.releasePointerCapture(event.pointerId); }">
+		<StandaloneCodeEditor @key=@("query-editor-instance-procedures") CssClass="txtQueryEditor" ConstructionOptions="@EditorOptionsProcs"
+							  @ref="@queryEditorProcedures" OnDidInit="@OnEditorInitializedProcs" OnDidChangeModelContent="@OnEditorContentChangedProcs" />
+	</div>
+
+</div>
+
+@code {
+	private StandaloneCodeEditor queryEditorProcedures;
+	async Task updateProcsQuery((object? a, object? b) x)
+	{
+		if (queryEditorProcedures == null) { return; }
+		var proc = W.Context.Procedures.FirstOrDefault(v => x.b.ToString().EndsWith(v.Name));
+		await queryEditorProcedures.SetValue(proc?.Definition ?? string.Empty);
+	}
+	void OnEditorInitializedProcs() { }
+	void OnEditorContentChangedProcs() { }
+
+	private StandaloneEditorConstructionOptions EditorOptionsProcs(StandaloneCodeEditor editor)
+		=> MonacoHelpers.EditorOptions(editor, MonacoLanguageType.SQL, "procedure");
+
+}

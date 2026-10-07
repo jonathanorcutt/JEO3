@@ -1,0 +1,1939 @@
+﻿
+/* 
+--------------------------------------------------------------------------------------------
+--------------------------------------    JEO3  ----------------------------------------
+--------------------------------------------------------------------------------------------
+*/
+
+:root {
+    /* JEO Preferred Styles */
+    --jeo-primary: rgba(100, 124, 100, 1);
+    --jeo-dark: color-mix(in srgb, var(--jeo-primary) 99%, white);
+    --jeo-bright: oklch(from var(--jeo-primary) calc(l + 0.25) c h);
+    --jeo-rz-5: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 5%, white) 10%, transparent);
+    --jeo-rz-15: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, white) 20%, transparent);
+    --jeo-rz-25: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, white) 50%, transparent);
+    --jeo-rz-35: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, white) 40%, transparent);
+    --jeo-rz-45: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, white) 50%, transparent);
+    --jeo-rz-55: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, white) 60%, transparent);
+    --jeo-rz-65: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, white) 70%, transparent);
+    --jeo-rz-75: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, white) 80%, transparent);
+    --jeo-rz-85: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, white) 90%, transparent);
+    --jeo-rz-95: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, white) 100%, transparent);
+    --jeo-rz-dark-5: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 5%, black) 10%, transparent);
+    --jeo-rz-dark-15: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, black) 20%, transparent);
+    --jeo-rz-dark-25: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, black) 50%, transparent);
+    --jeo-rz-dark-35: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, black) 40%, transparent);
+    --jeo-rz-dark-45: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, black) 50%, transparent);
+    --jeo-rz-dark-55: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, black) 60%, transparent);
+    --jeo-rz-dark-65: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, black) 70%, transparent);
+    --jeo-rz-dark-75: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, black) 80%, transparent);
+    --jeo-rz-dark-85: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, black) 90%, transparent);
+    --jeo-rz-dark-95: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, black) 100%, transparent);
+    /* -- */
+    --jeo-gradient-primary-stop-1: rgba(90, 90, 90, 1);
+    --jeo-gradient-primary-stop-2: rgba(90, 100, 90, 1);
+    --jeo-gradient-primary-stop-3: rgba(90, 105, 90, 1);
+    --jeo-gradient-primary-stop-4: rgba(90, 115, 90, 1);
+    --jeo-gradient-primary-stop-5: rgba(90, 125, 90, 1);
+    --jeo-gradient-primary-stop-6: rgba(100, 140, 100, 1);
+    /* -- */
+    --jeo-gradient-green-stop-1: rgba(0, 50, 00, 1);
+    --jeo-gradient-green-stop-2: rgba(30, 75, 30, 1);
+    --jeo-gradient-green-stop-3: rgba(4, 90, 40, 1);
+    --jeo-gradient-green-stop-4: rgba(50, 105, 50, 1);
+    --jeo-gradient-green-stop-5: rgba(60, 125, 60, 1);
+    --jeo-gradient-green-stop-6: rgba(70, 140, 70, 1);
+    /* -- */
+    --jeo-gradient-blue-stop-1: rgba(0, 20, 101, 0.8);
+    --jeo-gradient-blue-stop-2: rgba(0, 30, 150, 1);
+    --jeo-gradient-blue-stop-3: rgba(0, 40, 202, 1);
+    --jeo-gradient-blue-stop-4: rgba(10, 50, 240, 1);
+    --jeo-gradient-blue-stop-5: rgba(20, 60, 255, 1);
+    /* -- */
+    --jeo-gradient-red-stop-1: rgba(100, 0, 0, 0.8);
+    --jeo-gradient-red-stop-2: rgba(150, 0, 0, 1);
+    --jeo-gradient-red-stop-3: rgba(220, 0, 0, 1);
+    --jeo-gradient-red-stop-4: rgba(235, 0, 0, 1);
+    --jeo-gradient-red-stop-5: rgba(250, 0, 0, 1);
+    /* -- */
+    --jeo-gradient-orange-stop-1: rgba(142, 74, 0, 0.8);
+    --jeo-gradient-orange-stop-2: rgb(163, 85, 0, 0.8);
+    --jeo-gradient-orange-stop-3: rgb(169, 88, 0, 0.8);
+    --jeo-gradient-orange-stop-4: rgb(213, 111, 0, 0.8);
+    --jeo-gradient-orange-stop-5: rgb(255, 133, 0, 0.9);
+    --jeo-gradient-orange-stop-6: rgb(255, 133, 0, 1);
+    /* -- */
+    --jeo-gradient-silver-stop-1: rgba(255, 255, 255, 1);
+    --jeo-gradient-silver-stop-2: rgba(235, 235, 235, 1);
+    --jeo-gradient-silver-stop-3: rgba(215, 215, 215, 1);
+    --jeo-gradient-silver-stop-4: rgba(205, 205, 205, 1);
+    --jeo-gradient-silver-stop-5: rgba(184, 184, 184, 0.95);
+    --jeo-gradient-silver-stop-6: rgba(174, 174, 174, 0.85);
+    /* -- */
+    --jeo-gradient-violet-stop-1: rgba(50, 0, 50, 0.8);
+    --jeo-gradient-violet-stop-2: rgba(80, 0, 80, 0.8);
+    --jeo-gradient-violet-stop-3: rgba(120, 0, 120, 0.8);
+    --jeo-gradient-violet-stop-4: rgba(155, 0, 155, 0.8);
+    --jeo-gradient-violet-stop-5: rgba(205, 0, 205, 0.9);
+    --jeo-gradient-violet-stop-6: rgba(255, 0, 255, 1);
+    /* -- */
+    --jeo-gradient-black-stop-1: rgba(0, 0, 0, 0.8);
+    --jeo-gradient-black-stop-2: rgba(25, 25, 25, 0.7);
+    --jeo-gradient-black-stop-3: rgba(40, 40, 40, 0.7);
+    --jeo-gradient-black-stop-4: rgba(55, 55, 55, 0.7);
+    --jeo-gradient-black-stop-5: rgba(70, 70, 70, 0.7);
+    --jeo-gradient-black-stop-6: rgba(85, 85, 85, 0.7);
+    /* -- */
+    --jeo-gradient-cornflowerblue-stop-1: rgba(0, 72, 207, .7);
+    --jeo-gradient-cornflowerblue-stop-2: rgba(0, 72, 207, 1);
+    --jeo-gradient-cornflowerblue-stop-3: rgba(9, 108, 222, 1);
+    --jeo-gradient-cornflowerblue-stop-4: rgba(17, 143, 240, 1);
+    --jeo-gradient-cornflowerblue-stop-5: rgba(27, 159, 247, 1);
+    --jeo-gradient-cornflowerblue-stop-6: rgba(0, 187, 255, 1);
+    /* -- */
+    --jeo-gradient-pink-stop-1: rgba(186, 0, 158, 1);
+    --jeo-gradient-pink-stop-2: rgba(219, 0, 216, 1);
+    --jeo-gradient-pink-stop-3: rgba(224, 25, 255, 1);
+    --jeo-gradient-pink-stop-4: rgba(255, 36, 251, 1);
+    --jeo-gradient-pink-stop-5: rgba(255, 105, 245, 1);
+    --jeo-gradient-pink-stop-6: rgba(255, 133, 233, 1);
+    /* -- */
+    --jeo-gradient-rz-stop-6: color-mix(in srgb, var(--rz-primary) 72%, black);
+    --jeo-gradient-rz-stop-5: color-mix(in srgb, var(--rz-primary) 75%, black);
+    --jeo-gradient-rz-stop-4: color-mix(in srgb, var(--rz-primary) 80%, black);
+    --jeo-gradient-rz-stop-3: color-mix(in srgb, var(--rz-primary) 85%, black);
+    --jeo-gradient-rz-stop-2: color-mix(in srgb, var(--rz-primary) 89%, black);
+    --jeo-gradient-rz-stop-1: color-mix(in srgb, var(--rz-primary) 93%, black);
+    --jeo-gradient-rz-light-stop-6: color-mix(in srgb, var(--rz-primary) 47%, darkslategray);
+    --jeo-gradient-rz-light-stop-5: color-mix(in srgb, var(--rz-primary) 56%, darkslategray);
+    --jeo-gradient-rz-light-stop-4: color-mix(in srgb, var(--rz-primary) 65%, darkslategray);
+    --jeo-gradient-rz-light-stop-3: color-mix(in srgb, var(--rz-primary) 76%, darkslategray);
+    --jeo-gradient-rz-light-stop-2: color-mix(in srgb, var(--rz-primary) 87%, darkslategray);
+    --jeo-gradient-rz-light-stop-1: color-mix(in srgb, var(--rz-primary) 95%, darkslategray);
+    /* -- */
+    --jeo-gradient-rz-2-stop-6: color-mix(in srgb, var(--rz-primary) 90%, white);
+    --jeo-gradient-rz-2-stop-5: color-mix(in srgb, var(--rz-primary) 92%, white);
+    --jeo-gradient-rz-2-stop-4: color-mix(in srgb, var(--rz-primary) 92%, white);
+    --jeo-gradient-rz-2-stop-3: color-mix(in srgb, var(--rz-primary) 94%, white);
+    --jeo-gradient-rz-2-stop-2: color-mix(in srgb, var(--rz-primary) 96%, white);
+    --jeo-gradient-rz-2-stop-1: color-mix(in srgb, var(--rz-primary) 99%, white);
+    /* -- */
+    --jeo-gradient-primary: linear-gradient(0deg, var(--jeo-gradient-primary-stop-1) 0%, var(--jeo-gradient-primary-stop-2) 25%, var(--jeo-gradient-primary-stop-3) 45%, var(--jeo-gradient-primary-stop-4) 65%, var(--jeo-gradient-primary-stop-5) 85%, var(--jeo-gradient-primary-stop-6) 100%);
+    --jeo-gradient-green: linear-gradient(0deg, var(--jeo-gradient-green-stop-1) 0%, var(--jeo-gradient-green-stop-2) 25%, var(--jeo-gradient-green-stop-3) 45%, var(--jeo-gradient-green-stop-4) 65%, var(--jeo-gradient-green-stop-5) 85%, var(--jeo-gradient-green-stop-6) 100%);
+    --jeo-gradient-blue: linear-gradient(0deg, var(--jeo-gradient-blue-stop-1) 0%, var(--jeo-gradient-blue-stop-2) 25%, var(--jeo-gradient-blue-stop-3) 50%, var(--jeo-gradient-blue-stop-4) 75%, var(--jeo-gradient-blue-stop-5) 100%);
+    --jeo-gradient-red: linear-gradient(0deg, var(--jeo-gradient-red-stop-1) 0%, var(--jeo-gradient-red-stop-2) 25%, var(--jeo-gradient-red-stop-3) 50%, var(--jeo-gradient-red-stop-4) 75%, var(--jeo-gradient-red-stop-5) 100%);
+    --jeo-gradient-orange: linear-gradient(0deg, var(--jeo-gradient-orange-stop-1) 0%, var(--jeo-gradient-orange-stop-2) 25%, var(--jeo-gradient-orange-stop-3) 45%, var(--jeo-gradient-orange-stop-4) 65%, var(--jeo-gradient-orange-stop-5) 85%, var(--jeo-gradient-orange-stop-6) 100%);
+    --jeo-gradient-silver: linear-gradient(0deg, var(--jeo-gradient-silver-stop-1) 0%, var(--jeo-gradient-silver-stop-2) 20%, var(--jeo-gradient-silver-stop-3) 40%, var(--jeo-gradient-silver-stop-4) 60%, var(--jeo-gradient-silver-stop-5) 80%, var(--jeo-gradient-silver-stop-6) 100%);
+    --jeo-gradient-violet: linear-gradient(0deg, var(--jeo-gradient-violet-stop-1) 0%, var(--jeo-gradient-violet-stop-2) 25%, var(--jeo-gradient-violet-stop-3) 45%, var(--jeo-gradient-violet-stop-4) 65%, var(--jeo-gradient-violet-stop-5) 85%, var(--jeo-gradient-violet-stop-6) 100%);
+    --jeo-gradient-black: linear-gradient(0deg, var(--jeo-gradient-black-stop-1) 0%, var(--jeo-gradient-black-stop-2) 25%, var(--jeo-gradient-black-stop-3) 45%, var(--jeo-gradient-black-stop-4) 65%, var(--jeo-gradient-black-stop-5) 85%, var(--jeo-gradient-black-stop-6) 100%);
+    --jeo-gradient-cornflowerblue: linear-gradient(0deg, var(--jeo-gradient-cornflowerblue-stop-1) 0%, var(--jeo-gradient-cornflowerblue-stop-2) 25%, var(--jeo-gradient-cornflowerblue-stop-3) 45%, var(--jeo-gradient-cornflowerblue-stop-4) 65%, var(--jeo-gradient-cornflowerblue-stop-5) 85%, var(--jeo-gradient-cornflowerblue-stop-6) 100%);
+    --jeo-gradient-pink: linear-gradient(0deg, var(--jeo-gradient-pink-stop-1) 0%, var(--jeo-gradient-pink-stop-2) 25%, var(--jeo-gradient-pink-stop-3) 45%, var(--jeo-gradient-pink-stop-4) 65%, var(--jeo-gradient-pink-stop-5) 85%, var(--jeo-gradient-pink-stop-6) 100%);
+    --jeo-gradient-rz: linear-gradient(0deg, var(--jeo-gradient-rz-stop-1) 0%, var(--jeo-gradient-rz-stop-2) 25%, var(--jeo-gradient-rz-stop-3) 45%, var(--jeo-gradient-rz-stop-4) 65%, var(--jeo-gradient-rz-stop-5) 85%, var(--jeo-gradient-rz-stop-6) 100%);
+    --jeo-gradient-rz-light: linear-gradient(0deg, var(--jeo-gradient-rz-light-stop-1) 10%, var(--jeo-gradient-rz-light-stop-2) 25%, var(--jeo-gradient-rz-light-stop-3) 45%, var(--jeo-gradient-rz-light-stop-4) 65%, var(--jeo-gradient-rz-light-stop-5) 85%, var(--jeo-gradient-rz-light-stop-6) 90%);
+    --jeo-gradient-rz-2: linear-gradient(0deg, var(--jeo-gradient-rz-2-stop-1) 0%, var(--jeo-gradient-rz-2-stop-2) 25%, var(--jeo-gradient-rz-2-stop-3) 45%, var(--jeo-gradient-rz-2-stop-4) 65%, var(--jeo-gradient-rz-2-stop-5) 85%, var(--jeo-gradient-rz-2-stop-6) 100%);
+    /* ------- */
+}
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    GLOBAL    ------------------------------------
+--------------------------------------------------------------------------------------------
+    Rather than dragging Bootstrap back in for two rules, cheapest fix is dropping a tiny reset 
+    into landing-layout.css (or better, somewhere global like jeo3.css so the dashboard doesn't 
+    quietly have the same latent issue):
+*/
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    BRANDING    ------------------------------------
+--------------------------------------------------------------------------------------------
+*/
+/* JEO3 Logo */
+.jeo-logo {
+    width: 115px;
+    height: 28px;
+    margin-left: -20px;
+}
+
+.github-badge {
+    margin: 0px 0px 0px 0px;
+    font-size: 5pt;
+    height: 15px;
+    width: 25px;
+    padding: 0px 0px 0px 0px;
+}
+
+.github-admin-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 25px !important;
+    padding: 3px 8px;
+    margin-top: 0px;
+    margin-right: 22px;
+    border-radius: 6px;
+    background-color: #1a1f2c;
+    color: #ffffff !important;
+    font-family: "Consolas", "Monaco", monospace;
+    font-size: 8px;
+    font-weight: 500;
+    text-decoration: none !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    -webkit-animation: neon2 1.3s ease-in-out infinite alternate;
+    -moz-animation: neon2 1.3s ease-in-out infinite alternate;
+    animation: neon2 5s ease-in-out infinite alternate, horizontal-shake 0.5s ease-in-out;
+}
+
+    .github-admin-badge:hover {
+        background-color: #24292e;
+        /* Classic GitHub Dark */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        border-color: rgba(255, 255, 255, 0.25);
+        animation: horizontal-shake 0.5s ease, neon1 0.5s ease-in-out infinite alternate;
+    }
+
+    .github-admin-badge svg {
+        transition: transform 0.1s ease;
+    }
+
+    .github-admin-badge:hover svg {
+        transform: scale(1.15);
+    }
+
+.github-admin-badge-text {
+    font-size: 9pt;
+}
+
+.jeo-smartadmin-link {
+    font-family: "Consolas", "Monaco", monospace;
+    /* Monospace matches the matrix theme background! */
+    font-size: 14px;
+    text-decoration: none !important;
+    padding: 4px 10px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    background: var(--jeo-gradient-silver2);
+    color: red;
+    height: 30px !important;
+    margin-top: 1px;
+}
+    /* Subtle gray for the utility domain */
+    .jeo-smartadmin-link .domain {
+        color: #718096;
+        font-weight: 400;
+    }
+    /* Bold accent for actual repository */
+    .jeo-smartadmin-link .repo {
+        color: #e53e3e;
+        /* Keeps a variant of red theme, but structured */
+        font-weight: 600;
+    }
+    /* Interactive Hover Effect */
+    .jeo-smartadmin-link:hover {
+        background: rgba(229, 62, 62, 0.08);
+        /* Light tint of red theme */
+        box-shadow: inset 0 0 0 1px rgba(229, 62, 62, 0.2);
+    }
+
+        .jeo-smartadmin-link:hover .domain {
+            color: #2d3748;
+        }
+
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    BOB    ------------------------------------
+--------------------------------------------------------------------------------------------
+*/
+
+/* Bob's Parent Container */
+.bob-parent-container-class {
+    position: relative; /* REQUIRED: Acts as the coordinate anchor for Bob's offsets */
+    overflow: visible !important; /* REQUIRED: Allows Bob to sneak outside the bounds to hide/peer */
+}
+
+/* Bob Himself */
+.bob-element-class {
+    position: absolute; /* REQUIRED: Takes him out of document flow so top/left/transforms work */
+    top: 0;
+    left: 0;
+    will-change: transform; /* Performance optimization for buttery smooth Web Animations */
+    /* Crucial for rotations: pivots Bob from his feet rather than his center stomach */
+    transform-origin: bottom center;
+}
+
+/* The Target Widget */
+svg.navigator {
+    margin-bottom: 50px;
+    position: relative; /* Ensures it respects z-index styling layers properly */
+    z-index: 1; /* Baseline layer so Bob's z-index: -1 can slip cleanly underneath */
+}
+
+.bob {
+    position: fixed;
+    width: 30px;
+    height: 30px;
+    right: 20px;
+    bottom: 20px;
+    z-index: 999999;
+    pointer-events: all;
+    user-select: none;
+    will-change: transform;
+}
+
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    MATRIX ANIMATION    ------------------------------------
+--------------------------------------------------------------------------------------------
+*/
+/* matrix theme */
+.matrix-bg {
+    overflow: hidden;
+    margin: 0;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.matrix-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    overflow: hidden;
+    z-index: 2;
+    margin-bottom: 10px;
+}
+
+.matrix-text {
+    color: #0f0;
+    font-family: monospace;
+    position: absolute;
+    top:15%;
+    text-shadow: 0 0 10px #0f0, 0 0 20px #0f0, 0 0 30px #0f0;
+    z-index: 2; /* Ensure it stays above the rain effect */
+}
+
+.matrix-text-label {
+    font-size: 70px !important;
+}
+
+.matrix-text::before {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    animation: glitch 2s infinite;
+    clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
+    transform: translate(-8px, -2px) !important;
+    color: #0f0;
+    text-shadow: 0 0 5px #0f0, 0 0 15px #0f0;
+}
+
+.rain {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient( 0deg, rgba(0, 255, 0, 0.1) 0, rgba(0, 255, 0, 0.2) 2px, transparent 4px );
+    animation: rain 12s linear infinite;
+    z-index: 1; /* Place it behind the text */
+}
+
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    FONTS    ------------------------------------
+--------------------------------------------------------------------------------------------
+*/
+
+
+@font-face {
+    font-family: 'NaziTypewriterRegular';
+    src: url('/fonts/NaziTypewriterRegular.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'XoloniumRegular';
+    src: url('/fonts/Xolonium-Regular.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'UbuntuMonoBold';
+    src: url('/fonts/UbuntuMono-Bold.ttf') format('truetype');
+}
+.jeo3-typewriter {
+    font-family: 'NaziTypewriterRegular' !important;
+    font-weight: normal;
+    font-style: normal;
+}
+
+.jeo3-ubuntu {
+    font-family: 'UbuntuMonoBold' !important;
+    font-weight: normal;
+    font-style: normal;
+}
+
+.jeo3-xolonium-regular {
+    font-family: 'XoloniumRegular' !important;
+    font-weight: normal;
+    font-style: normal;
+}
+
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    mainlayout.css    ------------------------------------
+--------------------------------------------------------------------------------------------
+Structure: Left Sidebar (NavMenu), Right Sidebar, TopNavTopBar, Sidebar Toggle btns
+Appearance: Color Picker (--rz-primary), Fullscreen btn, Dark Mode btn, Preferred Colors
+--------------------------------------------------------------------------------------------
+*/
+
+/* Top Nav Bar Silver Horizontal Gradient */
+.titlebar-container {
+    background: var(--jeo-gradient-silver);
+}
+
+.titlebar-right-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+}
+
+.navbar-header-label {
+    /*font-variant: small-caps;*/
+    /*font-weight: 500;*/
+    letter-spacing: 1.5px;
+    font-size: 22pt;
+}
+
+.navbar-header-label-database {
+    font-family: "Anonymous+Pro";
+    font-variant: normal;
+    padding-left: 10px;
+    color: lime !important;
+    font-family: "Consolas", "Monaco", monospace;
+    font-weight: bolder;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.database-title-container {
+    height: 50px !important;
+    padding-right: 12px;
+}
+/* Nav Bar Green Horizontal Gradient */
+.navbar-container {
+    /*background: var(--jeo-gradient-rz);*/
+    height: 50px;
+    padding: 0px 0px 0px 0px;
+    margin: 0px 0px 0px 0px;
+}
+
+.navbar-right-colorpicker {
+    width: 42px;
+    height: 30px;
+    padding: 0px 3px 0px 3px;
+    border: 0.1px solid rgba(0, 134, 0, 1);
+    background: url("../img/theme/colorwheel.png") no-repeat !important;
+    background-size: contain !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: 40px 30px !important;
+    margin-right: 10px;
+}
+
+/* Sidebar Nav Collapse / Expand */
+.sidebar-left-container {
+    width: 57px;
+    display: flex;
+    flex-direction: column;
+    /*transition: width 0.3s ease;*/
+    font-size: 10pt;
+
+    .collapsed {
+        width: 0;
+        overflow: hidden;
+        transform: translateX(-100%);
+    }
+}
+
+.sidebar-left-panel-menu-item {
+    font-size: 8pt;
+    font-weight: 700;
+}
+
+.sidebar-horizontal-divider {
+    height: 1px;
+    background: #22262e;
+    margin: 4px 0;
+    width: 100%;
+}
+
+.sidebar-right-container {
+    width: 217px;
+    height: 100%;
+}
+
+.sidebar-right-titlebar {
+    background-color: #17191d;
+    color: #ffffff;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 8.5pt;
+    font-weight: bold;
+    padding-top: 5px !important;
+    padding-left: 5px !important;
+    padding-bottom: 5px !important;
+    padding-right: 5px !important;
+    /*border-bottom: 1px solid var(--jeo-border-color);*/
+    border-bottom: 1px solid black;
+    border-left: 1px solid black;
+    border-right: 1px solid black;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+}
+
+.sidebar-right-section-titlebar {
+    background-color: var(--rz-header-background-color);
+    color: var(--rz-white);
+    height: 24px;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 10pt;
+    font-weight: bold;
+    padding-left: 5px;
+    margin-top: 5px;
+    display: flex;
+    /*border: .5px solid var(--rz-black);*/
+}
+
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    COSTELLO    ------------------------------------
+--------------------------------------------------------------------------------------------
+*/
+
+.costello-swarm-container {
+    position: absolute;
+    width: 100%;
+    height: 0px;
+    bottom: 75px;
+    overflow: hidden;
+    pointer-events: all;
+}
+.costello-trigger-container{
+    margin-right:15px;
+}
+.costello-trigger-container button {
+    outline: none;
+    border: none;
+    font-size:14pt;
+    cursor:pointer;
+}
+/*.costello-trigger-container {
+    position: absolute;
+    bottom: 30px;
+    left: 3px;
+    z-index: 10000;
+    height: 20px;
+    background:var(--jeo-primary);
+}*/
+.costello-trigger-btn {
+    font-size: 9pt;
+    font-family: "JetBrains Mono", monospace, Consolas;
+    letter-spacing: 0px;
+    border-radius: 4px 4px;
+    background: var(--rz-gradient-rz);
+    outline: none;
+    border: .5px solid white;
+    color: var(--rz-white);
+    /*color: var(--rz-white);*/
+    /*width:50px;*/
+}
+
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    ERROR BOUNDARY    ------------------------------------
+--------------------------------------------------------------------------------------------
+*/
+
+.error-boundary-container {
+    padding: 30px;
+    margin: 20px;
+    background-color: #2d1e1e;
+    border: 2px solid #ff4444;
+    color: #ff9999;
+    font-family: monospace;
+    border-radius: 6px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+.error-boundary-title {
+    color: #ff4444;
+    margin-top: 0;
+}
+
+.error-boundary-hr {
+    border-color: #553333;
+}
+
+.error-boundary-stack-title {
+    color: #ffaa66;
+}
+
+.error-boundary-stack {
+    white-space: pre-wrap;
+    background: #1a1111;
+    padding: 15px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #dddddd;
+}
+
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    DASHBOARD    ------------------------------------
+--------------------------------------------------------------------------------------------
+*/
+
+.dashboard-command-tabs {
+    height: 100% !important;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.dashboard-full-absolute {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-layout-flex {
+    flex: 1 1 0%;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+    padding: 0px !important;
+    margin: 0px !important;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-pane-wrapper {
+    height: 100%;
+    overflow-y: auto;
+}
+
+.main-content-pane-wrapper {
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.main-content-pane-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    padding: 0px !important;
+    display: flex;
+    flex-direction: column;
+}
+/**/
+.diagram-pane-wrapper {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+.tab-pane-wrapper {
+    height: calc(100% - 50px);
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+.dialog-content-wrapper {
+    padding: 20px;
+}
+
+.dialog-body-content {
+    color: #333;
+    line-height: 1.6;
+}
+
+.dialog-title {
+    color: #2c3e50;
+    border-bottom: 2px solid #2c3e50;
+    padding-bottom: 5px;
+}
+
+.dialog-footer-wrapper {
+    margin-top: 20px;
+    text-align: right;
+}
+
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    DASHBOARD TOP BAR    ------------------------------------
+--------------------------------------------------------------------------------------------
+*/
+
+.dashboard-config-section-flex {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dashboard-config-section-right-start-flex {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.metric-value-wrapper {
+    font-size: 9.5pt;
+    font-weight: bold;
+    color: var(--rz-primary);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.metric-reach-label {
+    text-align: right;
+}
+
+.metric-reach-value {
+    font-size: 8pt;
+}
+
+.info-icon-btn {
+    width: 16px;
+    height: 16px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--rz-info);
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.info-icon-svg {
+    width: 12px;
+    height: 12px;
+    fill: currentColor;
+}
+
+.metric-value-bold {
+    font-size: 9.5pt;
+    font-weight: bold;
+    color: var(--rz-primary);
+}
+
+.dashboard-config-section-right-flex-2 {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.metric-value-wrapper-2 {
+    font-size: 9.5pt;
+    font-weight: bold;
+    color: var(--rz-primary);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.metric-reach-label {
+}
+
+.warning-icon-btn {
+    width: 16px;
+    height: 16px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--rz-warning);
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.warning-icon-svg {
+    width: 12px;
+    height: 12px;
+    fill: currentColor;
+}
+
+.score-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.score-info-wrapper {
+    color: var(--rz-info);
+    display: inline-flex;
+    align-items: center;
+    margin-right: 2px;
+}
+
+.dialog-section-title {
+    font-weight: bold;
+    display: block;
+}
+
+.dialog-section-title-bolder {
+    font-weight: bolder;
+    display: block;
+}
+
+.dialog-stack-wrapper {
+    min-width: 400px;
+    max-width: 600px;
+    max-height: 450px;
+}
+
+.dialog-description-text {
+    font-size: 9.5pt;
+    color: var(--rz-text-secondary-color);
+    margin: 0;
+}
+
+.dialog-scroll-container {
+    background-color: rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 4px;
+    padding: 12px;
+    overflow-y: auto;
+    max-height: 280px;
+    box-sizing: border-box;
+}
+
+.duplicate-bullet {
+    font-weight: bold;
+    color: var(--rz-warning);
+    user-select: none;
+}
+
+.duplicate-item-text {
+    word-break: break-all;
+    font-weight: 600;
+}
+
+.dialog-empty-text {
+    color: var(--rz-text-disabled-color);
+    font-size: 9.5pt;
+    font-style: italic;
+}
+
+.dialog-footer-margin {
+    margin-top: 5px;
+}
+
+.dialog-stack-wrapper-large {
+    min-width: 400px;
+    max-width: 600px;
+    max-height: 650px;
+}
+
+.dialog-label-bold {
+    font-weight: bold;
+}
+
+.penalty-value {
+    font-weight: bold;
+    color: var(--rz-warning);
+    user-select: none;
+}
+
+.penalty-message {
+    word-break: break-all;
+    font-weight: 600;
+}
+
+.dialog-stack-wrapper-extra-large {
+    min-width: 400px;
+    max-width: 600px;
+    max-height: 750px;
+}
+
+.dialog-starting-table {
+    font-size: 11.5pt;
+    color: var(--rz-text-secondary-color);
+    margin: 0;
+}
+
+.dialog-section-header {
+    font-weight: bold;
+    font-size: 10.5pt;
+    color: var(--rz-text-secondary-color);
+    margin: 0;
+}
+
+.dialog-scroll-container-small {
+    background-color: rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 4px;
+    padding: 12px;
+    overflow-y: auto;
+    max-height: 180px;
+    box-sizing: border-box;
+}
+
+.info-bullet {
+    font-weight: bold;
+    color: var(--rz-info);
+    user-select: none;
+}
+
+.table-item-text {
+    word-break: break-all;
+    font-weight: 600;
+}
+
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    TABLE NAV    ------------------------------------
+--------------------------------------------------------------------------------------------
+*/
+
+.titlebar-left-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.titlebar-text-bold {
+    font-weight: bold;
+}
+
+.titlebar-right-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.titlebar-count-text {
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.fullscreen-btn {
+    height: 19px;
+    width: 20px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--rz-white);
+    background-color: var(--jeo-gradient-rz);
+}
+
+.filter-input-full-width {
+    width: 100%;
+}
+
+.checkbox-no-pointer {
+    pointer-events: none;
+}
+
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    DIAGRAM VIEWER DATABASE    ------------------------------------
+--------------------------------------------------------------------------------------------
+*/
+
+.diagram-titlebar {
+    border-bottom: 1px solid black;
+}
+
+.titlebar-right-wrapper-gap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.select-top-1000-btn {
+    height: 22px;
+    width: 28px !important;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--rz-white);
+    background-color: var(--rz-text-selection-color);
+    font-size: 8pt;
+    color: var(--rz-white);
+    padding: 0;
+}
+
+.emoji-large {
+    font-size: 16pt;
+}
+
+.toggle-fullscreen-btn {
+    height: 22px;
+    width: 22px;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--rz-white);
+    background-color: var(--jeo-gradient-rz);
+    padding: 0;
+}
+
+.icon-small {
+    width: 12px;
+    height: 12px;
+    fill: currentColor;
+}
+
+.diagram-body-scroll {
+    background-color: var(--rz-primary);
+}
+
+.diagram-tabs {
+    height: calc(100% - 5px);
+    overflow: hidden;
+    background: var(--jeo-gradient-rz-light);
+}
+
+.tab-header-black {
+    background-color: black;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.data-grid-full-width {
+    height: 100%;
+}
+
+.tab-header-icon-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.icon-medium {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+}
+
+.diagram-container-full {
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    position: relative;
+}
+
+.diagram-config-sidebar {
+    height: 100%;
+    background-color: var(--rz-panel-background-color, #f5f5f5);
+    transition: width 0.2s ease-in-out, min-width 0.2s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    z-index: 10;
+}
+
+.sidebar-inner-wrapper {
+    width: 240px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+.sidebar-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px 4px 16px;
+}
+
+.sidebar-title-text {
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: var(--rz-text-color);
+}
+
+.sidebar-content-wrapper {
+    padding: 12px 16px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.sidebar-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sidebar-label,
+.sidebar-label-bottom {
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: var(--rz-text-selection-color);
+}
+
+.sidebar-label {
+}
+
+.sidebar-label-bottom {
+    margin-bottom: 4px;
+}
+
+.dropdown-full-width {
+    width: 100%;
+    height: 32px;
+}
+
+.sidebar-divider {
+    border: none;
+    border-top: 1px solid var(--rz-border-color, #e0e0e0);
+    margin: 4px 0;
+}
+
+
+.dashboard-config-container {
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+}
+
+.canvas-container {
+    flex: 1;
+    /*height: calc(100% - 0px);*/
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    /*    flex-grow: 1;
+    height: 100%;
+    position: relative;
+    background-color: white;*/
+    /*    background-color: var(--jeo-primary);
+    color: white;
+    width: 90px;
+    height: 30px;
+    margin-top: -3px .sidebar-toggle-expanded {
+    z-index: 20;*/
+}
+
+.canvas-inner {
+    flex: 1;
+    height: 100%;
+    position: relative;
+}
+
+.theme-dropdown {
+    background-color: var(--jeo-primary);
+    color: white;
+    width: 90px;
+    height: 30px;
+    margin-top: -3px;
+}
+
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    SPLITTER UTILITIES    ------------------------------------
+--------------------------------------------------------------------------------------------
+*/
+
+.splitter-full-hw-no-border {
+    height: 100%;
+    width: 100%;
+    border: none;
+}
+
+.splitter-full-hw-minheight {
+    height: 100%;
+    min-height: 100px;
+    width: 100%;
+}
+
+.splitter-full-hw {
+    height: 100%;
+    width: 100%;
+}
+
+.splitter-full-hw-border {
+    height: 100%;
+    width: 100%;
+    border: 1px solid rgba(0, 0, 0, .08);
+}
+
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    CONFIG SECTION    ------------------------------------
+--------------------------------------------------------------------------------------------
+*/
+
+.config-section-margin-left-40 {
+    margin-left: 40px !important;
+}
+
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    QUERY EDITOR    ------------------------------------
+--------------------------------------------------------------------------------------------
+*/
+
+.query-pane-toggle-btn {
+    height: 22px;
+    width: 22px;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--rz-white);
+    background-color: var(--jeo-gradient-rz);
+    padding: 0;
+}
+
+.sidebar-header-row-inner {
+    display: flex;
+    align-items: center;
+    padding: 6px 6px 4px 10px;
+}
+
+.sidebar-generation-options-label {
+    font-size: 11px;
+    font-weight: bold;
+    padding-left: 5px;
+    text-transform: uppercase;
+    color: var(--rz-text-color);
+}
+
+.grid-two-col-gap-1 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+}
+
+.grid-two-col-gap-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3px;
+}
+
+.select-policy-dropdown {
+    height: 26px;
+    padding-bottom: 0px;
+    padding-left: 0px;
+    width: 102px;
+    font-size: 7.5pt !important;
+}
+
+.levels-numeric-input {
+    height: 26px;
+    padding-bottom: 0px;
+    padding-top: 2px;
+    padding-right: 0px;
+    padding-left: 2px;
+    width: 100px;
+    font-size: 9pt;
+}
+
+.sidebar-config-checkbox-label {
+    font-size: 8.5pt;
+    margin-left: 5px;
+    font-weight: bold;
+}
+
+.display-none {
+    display: none;
+}
+
+.annotation-checklist {
+    width: 200px;
+}
+
+.dialog-footer-action-row {
+    margin-top: 5px;
+}
+
+.bottom-controls-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.controls-group-flex {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.omit-select-btn {
+    height: 28px;
+    background: var(--jeo-gradient-orange);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.icon-13 {
+    width: 13px;
+    height: 13px;
+    fill: currentColor;
+}
+
+.textarea-full-flex {
+    width: 100%;
+    height: 100%;
+    flex: 1;
+}
+
+.btn-width-80 {
+    width: 80px;
+}
+
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    SCHEMA TOOLBOX    ------------------------------------
+--------------------------------------------------------------------------------------------
+*/
+
+.titlebar-flex-row {
+    display: flex;
+    align-items: center;
+}
+
+.titlebar-label-bold {
+    font-weight: bold;
+}
+
+.titlebar-right-gap {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.pointer-events-none {
+    pointer-events: none;
+}
+
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    JEO GRID    ------------------------------------
+--------------------------------------------------------------------------------------------
+*/
+
+.full-height-width {
+    height: 100%;
+    width: 100%;
+}
+
+.link-bold-pointer {
+    font-weight: bolder;
+    cursor: pointer;
+    color: lime !important;
+    min-width: 250px !important;
+    width: 250px !important;
+}
+
+/* Highlights the full cell when hovering over the link inside it */
+tr.rz-data-row td[role="gridcell"]:first-child:has(.link-bold-pointer:hover) {
+    background-color: rgba(0, 100, 255, 0.8) !important;
+}
+
+.cell-bar-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.cell-bar-track {
+    width: 100%;
+    background-color: var(--rz-base-300);
+    height: 10px;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-right: 8px;
+}
+
+.cell-text-numeric {
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+}
+
+.cell-text-standard {
+    font-size: 13px;
+}
+
+.navigator-widget-overlay {
+    position: absolute !important;
+    bottom: 10px !important;
+    right: 10px !important;
+    border: 1px solid var(--jeo-gradient-rz) !important;
+    background: grey !important;
+}
+
+.sidebar-config-label-sm {
+    font-size: 8.5pt;
+    margin-left: 5px;
+}
+
+.sidebar-config-block-no-border {
+    border-bottom: none;
+}
+
+.dialog-flex-column-minheight {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 220px;
+}
+
+.padding-left-0 {
+    padding-left: 0px !important;
+}
+
+/*
+--------------------------------------------------------------------------------------------
+
+
+
+    
+/* LOADING MODAL */
+
+.insane-loading-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at center, rgba(80, 40, 140, .30), rgba(0, 0, 0, .92) 65%);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+.insane-loading-card {
+    position: relative;
+    width: min(505px, calc(100vw - 40px));
+    height: 100vh !important;
+    width: 100vw !important;
+    padding: 2px 2px 2px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,.16);
+    border-radius: 24px;
+    /*background: linear-gradient( 145deg, rgba(255,255,255,.10), rgba(255,255,255,.025) );*/
+    box-shadow: 0 0 40px rgba(140, 70, 255, .25), 0 30px 100px rgba(0,0,0,.65);
+    overflow: hidden;
+    /*background-image: url('../img/theme/matrix.apng');*/
+    background-image: url('../img/theme/StarfieldSimulation.gif');
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+    .insane-loading-card::before {
+        content: "";
+        position: absolute;
+        inset: -2px;
+        background: conic-gradient( from 0deg, transparent, #9b5cff, #00e5ff, transparent, #ff3cac, transparent );
+        animation: insane-border 3s linear infinite;
+        opacity: .7;
+        z-index: -2;
+    }
+
+    .insane-loading-card::after {
+        content: "";
+        position: absolute;
+        inset: 1px;
+        border-radius: 23px;
+        background: #111;
+        z-index: -1;
+    }
+
+.insane-loading-image {
+    display: block;
+    width: 580px;
+    height: 580px;
+    object-fit: contain;
+    margin: 0 auto 24px;
+    filter: drop-shadow(0 0 12px rgba(160,80,255,.7)) drop-shadow(0 0 185px rgba(0,220,0,.35));
+    animation: insane-float 2s ease-in-out infinite, insane-glow 1.8s ease-in-out infinite alternate;
+}
+
+.insane-loading-title {
+    font-family: system-ui, sans-serif;
+    font-size: 36px;
+    font-weight: bolder;
+    margin-top: -230px;
+    letter-spacing: .14em;
+    font-family: Consolas;
+    background: linear-gradient( 90deg, #fff, #b98cff, #65edff, #fff );
+    background-size: 300% auto;
+    background-clip: text;
+    font-variant: small-caps;
+    -webkit-background-clip: text;
+    color: transparent;
+    animation: insane-text 2s linear infinite;
+}
+
+.insane-loading-subtitle {
+    margin-top: 15px;
+    color: rgba(255,255,255,.55);
+    font: 26px system-ui, sans-serif;
+    font-family: Consolas;
+}
+
+.insane-spinner {
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    margin-left: 0px;
+    width: 800px;
+    height: 800px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    border: 2.5px solid transparent;
+    border-top-color: #9b5cff;
+    border-right-color: #00e5ff;
+    animation: insane-spin 2s linear infinite;
+    opacity: .35;
+    pointer-events: none;
+}
+
+.insane-progress {
+    position: absolute;
+    height: 3px;
+    bottom: 0px;
+    left: 0px;
+    width: 100vw;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(255,255,255,.08);
+}
+
+.insane-progress-bar {
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient( 90deg, #7b2cff, #00e5ff, #ff3cac );
+    box-shadow: 0 0 12px #9b5cff, 0 0 25px rgba(0,229,255,.5);
+    animation: insane-progress 2s ease-in-out infinite;
+}
+
+.insane-loading-overlay,
+.insane-loading-card,
+.hero-visual {
+    width: 100vw !important;
+    height: 100% !important;
+}
+
+.hero-visual {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+/* Lazercube 10W Visual */
+.lazercube-container {
+    position: relative;
+    width: 480px;
+    height: 480px;
+    perspective: 1000px;
+}
+
+.lazercube-10w {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    animation: cube-rotate 4s linear infinite;
+}
+
+.cube-face {
+    position: absolute;
+    width: 280px;
+    height: 280px;
+    left: 70px;
+    top: 40px;
+    background: rgba(22, 31, 45, 0.9);
+    border: 2px solid var(--accent-fk);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 38px rgba(0, 255, 00, 0.28);
+    backface-visibility: visible;
+}
+
+.cube-front {
+    transform: translateZ(140px);
+}
+
+.cube-back {
+    transform: rotateY(180deg) translateZ(140px);
+}
+
+.cube-right {
+    transform: rotateY(90deg) translateZ(140px);
+}
+
+.cube-left {
+    transform: rotateY(-90deg) translateZ(140px);
+}
+
+.cube-top {
+    transform: rotateX(90deg) translateZ(140px);
+}
+
+.cube-bottom {
+    transform: rotateX(-90deg) translateZ(140px);
+}
+
+.cube-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.cube-label {
+    font-family: NaziTypewriterRegular, 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: bolder;
+    font-size: 80pt;
+    color: var(--accent-fk);
+    text-shadow: 0 0 10px rgba(79, 209, 197, 0.5);
+}
+
+.cube-laser {
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(90deg, lime, green, lime);
+    border-radius: 2px;
+    animation: laser-pulse 1.3s ease-in-out infinite;
+    box-shadow: 0 0 15px lime;
+}
+
+.lazercube-pulse {
+    position: absolute;
+    top: 38%;
+    left: 50%;
+    width: 450px;
+    height: 450px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(79, 209, 197, 0.4) 0%, transparent 70%);
+    animation: pulse-expand 2s ease-out infinite;
+}
+
+.lazercube-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    border: 2px solid var(--accent-fk);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+}
+
+.ring-1 {
+    width: 250px;
+    height: 250px;
+    animation: ring-expand 3s ease-out infinite;
+    animation-delay: 0s;
+}
+
+.ring-2 {
+    width: 300px;
+    height: 300px;
+    animation: ring-expand 3s ease-out infinite;
+    animation-delay: 1.3s;
+}
+
+.ring-3 {
+    width: 350px;
+    height: 350px;
+    animation: ring-expand 3s ease-out infinite;
+    animation-delay: 2.3s;
+}
+
+.eyebrow {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-fk);
+    margin: 0;
+}
+
+@keyframes cube-rotate {
+    0% {
+        transform: rotateX(-20deg) rotateY(0deg);
+    }
+
+    100% {
+        transform: rotateX(-20deg) rotateY(360deg);
+    }
+}
+
+@keyframes laser-pulse {
+    0%, 100% {
+        opacity: 0.7;
+        transform: scaleX(0.3);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scaleX(1.6);
+    }
+}
+
+@keyframes pulse-expand {
+    0% {
+        transform: translate(-50%, -50%) scale(0.8);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(1.5);
+        opacity: 0;
+    }
+}
+
+@keyframes ring-expand {
+    0% {
+        transform: translate(-50%, -50%) scale(0.5);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 0;
+    }
+}
+
+.rz-tile-layout-item-header {
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+    padding-left: 10px !important;
+}
+
+.rz-tile-layout-item-content {
+    padding: 0px !important;
+}
+
+.rz-tile-layout-item {
+    border-radius: 5px 5px !important;
+}
+
+
+.pulse-dot {
+    width: 16px;
+    height: 16px;
+    background-color: #34d399; /* Vibrant green */
+    border-radius: 50%;
+    box-shadow: 0 0 0 rgba(52, 211, 153, 0.4);
+    animation: neon4 2s ease-in-out infinite alternate, neon5 2s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.6);
+    }
+
+    70% {
+        box-shadow: 0 0 0 5px rgba(52, 211, 153, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(52, 211, 153, 0);
+    }
+}
+
+/*.main-nav-tabs > .rz-tabview-nav {
+    display: none;
+}*/
+
+
+.online-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    background-color: #2ecc71; /* Vibrant green */
+    border-radius: 50%;
+    position: relative;
+}
+
+    /* The glowing effect */
+    .online-indicator::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #2ecc71;
+        border-radius: 50%;
+        z-index: -1;
+        animation: glow 2s infinite ease-in-out;
+    }
+
+/* CSS3 Keyframes */
+@keyframes glow {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(2.5);
+        opacity: 0;
+    }
+}
+
+/*.main-nav-tabs
+{
+
+}
+.main-nav-tabs li,
+.main-nav-tabs li a,*/
+.main-nav-tabs li button {
+    letter-spacing: 0px;
+}
+
+.main-nav-tabs li[role="presentation"] {
+    background-color: black;
+    opacity: .9;
+}
+
+    .main-nav-tabs li[role="presentation"]:hover {
+        opacity: 1;
+    }
+
+.main-nav-tabs li:has(button[aria-selected='true']) {
+    background-color: #ff0092;
+}
+
+
+.main-nav-tabs .rz-tabview-selected {
+    background-color: pink;
+}
+
+.rz-tabview-selected {
+    background-color: pink !important;
+}
+
+.main-nav-tabs li[role="presentation"] {
+    height: 37px;
+}
+
+.rz-tabview-selected {
+    border-right-width: 5px !important;
+    border-right-color: var(--jeo-gradient-rz);
+}
+
+
+.main-nav-tabs li button[role="tab"] {
+    width: 100%;
+    height: 100%;
+}
+
+
+.main-nav-tabs li.rz-tabview-selected.rz-state-focused {
+    background-color: rgba(255, 70, 70, .6) !important;
+}
+
+.spinner {
+    animation: spin 3.5s linear infinite;
+}
+
+.rz-slider-handle.rz-slider-handle-horizontal {
+    background: var(--jeo-gradient-silver) !important;
+}
+
+.echart-container,
+.monitor-panel {
+    width: 100%;
+    height: 100%;
+}
+
+.dashboard-monitor-label {
+    font-size: 15pt;
+    font-weight: 700;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+/* Diagrams */
+.cbJarvis .diagram-link-label .default-link-label {
+    font-size: 4.25pt !important;
+    font-weight: 400;
+    font-family: Consolas, Monaco, monospace;
+}
+
+.cvDb .diagram-link-label .default-link-label {
+    font-size: 9pt !important;
+    font-weight: 400;
+    font-family: Consolas, Monaco, monospace;
+}
+
+
+.monitor-accordion button span:last-of-type {
+    font-size: 14pt !important;
+    font-weight: 700;
+    font-family: Consolas, Monaco, monospace;
+    color: var(--rz-white);
+}
+
+.schema-heatmap-header{
+    margin-bottom:0px !important;
+}

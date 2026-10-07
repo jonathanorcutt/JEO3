@@ -1,0 +1,305 @@
+﻿@using System.Text
+@using JEO3.Code
+@using JEO3.Core
+@using JEO3.Generation
+@using JEO3.Schema
+@using JEO3.Site.Components
+@using JEO3.Site.Extensions
+
+@namespace JEO3.Site.Dashboard
+@inject WSWorkspace W
+
+<RadzenSplitter @ref="@actionSplitter" Orientation="Orientation.Vertical" class="splitter-full-hw-minheight">
+	<RadzenSplitterPane Size="100%">
+		<RadzenSplitter @ref="@actionInnerSplitter" class="splitter-full-hw">
+			<RadzenSplitterPane Size="50%">
+				<div class="scaffold-layout-container" style="padding: 12px; height: 100%; overflow-y: auto;">
+
+					<!-- Header Component Section -->
+					<div class="scaffold-header" style="margin-bottom: 1.25rem; border-bottom: 1px solid var(--rz-border-color); padding-bottom: 0.75rem;">
+						<h3 style="color: var(--rz-text-color); margin: 0; font-size: 1.15rem; font-weight: 700; letter-spacing: 0.5px;">C# Code Generation Blueprint</h3>
+						<span style="font-size: 0.75rem; color: #888; font-family: var(--rz-font-family);">Interactive Data Architecture Tools</span>
+					</div>
+
+					<RadzenAccordion Multiple="true">
+						<Items>
+
+							<!-- SECTION 1: ORM FRAMEWORK CONTEXT -->
+							<RadzenAccordionItem Text="Entity Framework Infrastructure" Icon="dns" Selected="true">
+								<RadzenStack Orientation="Orientation.Vertical" Gap="0.75rem" Style="width: 100%; margin-top: 0.75rem; padding: 0 4px;">
+
+									<!-- Database Context Item Box -->
+									<div class="gen-action-card" style="background: rgba(40, 167, 69, 0.05); border-left: 4px solid #28a745; border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); border-radius: 0 4px 4px 0; padding: 10px; display: flex; align-items: flex-start; justify-content: space-between;">
+										<div style="flex-grow: 1; padding-right: 12px;">
+											<div style="font-weight: 600; font-size: 0.85rem; color: #fff; margin-bottom: 2px;">Database Context</div>
+											<div style="font-size: 0.75rem; color: #aaa; line-height: 1.3;">Scaffolds the central C# Entity Framework <code>DbContext</code> class file containing complete mapping setups, namespaces, and table registrations for the database.</div>
+										</div>
+										<RadzenButton class="rz-shadow-2" Variant="Variant.Filled" Size="ButtonSize.Small" Icon="play_arrow" Text="Run" Click="@GenerateDbContextToEditor" Style="background: var(--jeo-gradient-green); min-width: 75px;" />
+									</div>
+
+								</RadzenStack>
+							</RadzenAccordionItem>
+
+							<!-- SECTION 2: DOMAIN MODELS -->
+							<RadzenAccordionItem Text="Entity Serialization & Domain Models" Icon="code" Selected="true">
+								<RadzenStack Orientation="Orientation.Vertical" Gap="0.75rem" Style="width: 100%; margin-top: 0.75rem; padding: 0 4px;">
+
+									<!-- All C# Classes Item Box -->
+									<div class="gen-action-card" style="background: rgba(111, 66, 193, 0.05); border-left: 4px solid #6f42c1; border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); border-radius: 0 4px 4px 0; padding: 10px; display: flex; align-items: flex-start; justify-content: space-between;">
+										<div style="flex-grow: 1; padding-right: 12px;">
+											<div style="font-weight: 600; font-size: 0.85rem; color: #fff; margin-bottom: 2px;">All C# Classes</div>
+											<div style="font-size: 0.75rem; color: #aaa; line-height: 1.3;">Generates standard POCO entity data structure definition models across every discovered table in the relational engine layout.</div>
+										</div>
+										<RadzenButton class="rz-shadow-2" Variant="Variant.Filled" Size="ButtonSize.Small" Icon="play_arrow" Text="Run" Click="@GenerateAllTableClassesToEditor" Style="background: var(--jeo-gradient-violet); min-width: 75px;" />
+									</div>
+
+									<!-- C# Class Single Item Box -->
+									<div class="gen-action-card" style="background: rgba(0, 123, 255, 0.05); border-left: 4px solid #007bff; border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); border-radius: 0 4px 4px 0; padding: 10px; display: flex; align-items: flex-start; justify-content: space-between;">
+										<div style="flex-grow: 1; padding-right: 12px;">
+											<div style="font-weight: 600; font-size: 0.85rem; color: #fff; margin-bottom: 2px;">C# Class (@($"{W.SelectedTable?.SchemaName}.{W.SelectedTable?.Name}"))</div>
+											<div style="font-size: 0.75rem; color: #aaa; line-height: 1.3;">Builds an isolated entity property definition structure mapping exclusively to the table currently selected in your schema exploration tree.</div>
+										</div>
+										<RadzenButton class="rz-shadow-2" Variant="Variant.Filled" Size="ButtonSize.Small" Icon="play_arrow" Text="Run" Click="@GenerateTableClassToEditor" Style="background: var(--jeo-gradient-cornflowerblue); min-width: 75px;" />
+									</div>
+
+								</RadzenStack>
+							</RadzenAccordionItem>
+
+							<!-- SECTION 3: PROGRAMMABILITY & PERFORMANCE -->
+							<RadzenAccordionItem Text="Relational Operations & Diagnostics" Icon="gavel" Selected="true">
+								<RadzenStack Orientation="Orientation.Vertical" Gap="0.75rem" Style="width: 100%; margin-top: 0.75rem; padding: 0 4px;">
+
+									<!-- Stored Procedures Item Box -->
+									<div class="gen-action-card" style="background: rgba(253, 126, 20, 0.05); border-left: 4px solid #fd7e14; border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); border-radius: 0 4px 4px 0; padding: 10px; display: flex; align-items: flex-start; justify-content: space-between;">
+										<div style="flex-grow: 1; padding-right: 12px;">
+											<div style="font-weight: 600; font-size: 0.85rem; color: #fff; margin-bottom: 2px;">Stored Procedures</div>
+											<div style="font-size: 0.75rem; color: #aaa; line-height: 1.3;">Compiles transactional execution patterns by outputting <code>CREATE</code>/<code>UPDATE</code>/<code>DELETE</code> raw SQL script setups.</div>
+										</div>
+										<RadzenButton class="rz-shadow-2" Variant="Variant.Filled" Size="ButtonSize.Small" Icon="play_arrow" Text="Run" Click="@GenerateSQLProceduresToEditor" Style="background: var(--jeo-gradient-orange); min-width: 75px;" />
+									</div>
+
+									<!-- All Indexes Item Box -->
+									<div class="gen-action-card" style="background: rgba(220, 53, 197, 0.05); border-left: 4px solid #dc3545; border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); border-radius: 0 4px 4px 0; padding: 10px; display: flex; align-items: flex-start; justify-content: space-between;">
+										<div style="flex-grow: 1; padding-right: 12px;">
+											<div style="font-weight: 600; font-size: 0.85rem; color: #fff; margin-bottom: 2px;">All Indexes</div>
+											<div style="font-size: 0.75rem; color: #aaa; line-height: 1.3;">Analyzes table layouts to list key constraints, cluster details, fragmentation metrics, and missing index optimizations.</div>
+										</div>
+										<RadzenButton class="rz-shadow-2" Variant="Variant.Filled" Size="ButtonSize.Small" Icon="play_arrow" Text="Run" Click="@(async (args) => await GenerateDatabaseIndexesToEditor(false))" Style="background: var(--jeo-gradient-red); min-width: 75px;" />
+									</div>
+
+								</RadzenStack>
+							</RadzenAccordionItem>
+
+						</Items>
+					</RadzenAccordion>
+				</div>
+			</RadzenSplitterPane>
+
+			<RadzenSplitterPane Size="50%">
+				@if (W.UI.Appearance.IsSchemaLoaded == false)
+				{
+					<LoadingCube></LoadingCube>
+				}
+				else
+				{
+					<QueryEditorPlain @ref="@queryEditorActions" Id="txtQueryEditorAction" />
+				}
+			</RadzenSplitterPane>
+		</RadzenSplitter>
+	</RadzenSplitterPane>
+</RadzenSplitter>
+
+@code {
+	// Dummies
+	private RadzenSplitter actionSplitter;
+	private RadzenSplitter actionInnerSplitter;
+	private QueryEditorPlain queryEditorActions;
+	private bool _isDisposed;
+
+	#region Context Menu
+	private async Task GenerateMissingDatabaseIndexesToEditor()
+	{
+		await GenerateDatabaseIndexesToEditor(true);
+	}
+	private async Task GenerateAllDatabaseIndexesToEditor()
+	{
+		await GenerateDatabaseIndexesToEditor(false);
+	}
+	private async Task GenerateDatabaseIndexesToEditor(bool missingOnly)
+	{
+		var content = IndexCodeStringGenerator.GetDatabaseMissingIndexesSql(W.Context, W.Result.QueryEditorResult, missingOnly);
+		await queryEditorActions.UpdateEditorQuery(content);
+	}
+	private async Task GenerateSQLProceduresToEditor()
+	{
+		var sql = ProcedureCodeGenerator.GenerateProcedures(W.SelectedTable) + Environment.NewLine;
+		var idxGen = IndexCodeStringGenerator.GetDatabaseMissingIndexesSql(W.Context, W.Result.QueryEditorResult);
+		string content = "-- Generated Procedures:" + Environment.NewLine + sql + Environment.NewLine +
+			"-- Generated Query:" + Environment.NewLine + W.Result.QueryEditorResult.GeneratedQuery + Environment.NewLine +
+			"-- " + Environment.NewLine + idxGen + Environment.NewLine;
+		await queryEditorActions.UpdateEditorQuery(content);
+	}
+	private async Task GenerateAllTableClassesToEditor()
+	{
+		var classesString = string.Empty;
+		foreach (var table in W.Context.Tables)
+		{
+			var result = W.Result.Databars.Results.FirstOrDefault(v => v.Tracker.Root.Table.ObjectId == table.ObjectId);
+			if (result == null) { continue; }
+			var clsGenerator = new TableCodeGenerator(W.Context, table, "JEO3", false);
+			classesString += clsGenerator.GenerateTableCode(result) + Environment.NewLine + Environment.NewLine;
+		}
+		await queryEditorActions.UpdateEditorQuery(classesString);
+	}
+	private async Task GenerateDbContextToEditor()
+	{
+		var ctxGen = new CodeContextGenerator(W.Context, "JEO3", W.Result.Databars.Results);
+		var code = ctxGen.Generate();
+
+		// var path = @"C:\Users\17163\source\repos\jeo3\JEO3.Code\TestOutput\";
+		// var find = "public class";
+		// var list = code.Split("\r\n\r\n\r\n", StringSplitOptions.RemoveEmptyEntries).ToList();
+		// var x = list.Select(v => new
+		// {
+		// 	Code = v,
+		// 	Name = v.Substring(v.IndexOf(find) + find.Length, v.IndexOf("{", v.IndexOf(find) + find.Length))
+		// }).ToList();
+		// foreach (var item in x)
+		// {
+		// 	var file = new JEO3.IO.File.FileObject(path + item.Name + ".cs");
+		// 	file.Create(item.Code);
+		// }
+
+		await queryEditorActions.UpdateEditorQuery(code);
+	}
+	private async Task GenerateTableClassToEditor()
+	{
+		if (W.Result.QueryEditorResult.Metrics == null)
+		{
+			var options = W.UI.Settings.ToGenerationOptions();
+			var gen = new DiagramDrivenGraphGenerator();
+			W.Result.QueryEditorResult = gen.Generate(W.SelectedTable, options);
+		}
+
+		var clsGenerator = new TableCodeGenerator(W.Context, W.SelectedTable, "JEO3", false);
+		var clsDef = clsGenerator.GenerateTableCode(W.Result.QueryEditorResult) + Environment.NewLine;
+		await queryEditorActions.UpdateEditorQuery(clsDef);
+	}
+	private async Task GenerateProcedureModels()
+	{
+		var allCSharpClasses = string.Empty;
+
+		foreach (var procedure in W.Context.Procedures)
+		{
+			if (procedure != null && new string[] { "insert", "update", "delete" }.Any(v => (procedure.Name ?? string.Empty).Trim().ToLower().Contains(v)) == false)
+			{
+				var query = $"EXEC sys.sp_describe_first_result_set "
+					+ $"N'EXEC {procedure.SchemaName}.{procedure.Name} {(string.Join(", ", procedure.Parameters.Select(v => $"{v.Name} = NULL")))}'";
+				procedure.OutputColumns = (await W.Context.Provider.GetInstances<DescribeFirstResultSet>(query)).ToList();
+				procedure.OutputCSharpDefinition = GenerateDescriptor(procedure.Name, procedure.OutputColumns);
+				allCSharpClasses += $"// Name: {procedure.SchemaName}.{procedure.Name}" + "\r\n"
+					+ "// Parameters: " + string.Join(", ", procedure.Parameters.Select(v => v.Name + "(" + v.DataType + ")")) + "\r\n"
+					+ "// Output Columns: " + string.Join(", ", procedure.OutputColumns.Select(v => v.name + "(" + v.system_type_name + ")")) + "\r\n"
+					+ procedure.OutputCSharpDefinition + "\r\n";
+			}
+			else if (procedure != null && new string[] { "insert", "update" }.Any(v => procedure.Name.ToLower().Contains(v)) && procedure.Parameters.Any())
+			{
+				var parameters = procedure.Parameters.Select(v => new DescribeFirstResultSet() { name = v.Name.TrimStart('@'), system_type_name = v.DataType, column_ordinal = v.Ordinal, is_nullable = v.IsNullable }).ToList();
+				procedure.OutputCSharpDefinition = GenerateDescriptor(procedure.Name, parameters);
+				allCSharpClasses += $"// Name: {procedure.SchemaName}.{procedure.Name}" + "\r\n"
+					+ "// Parameters: " + string.Join(", ", procedure.Parameters.Select(v => v.Name + "(" + v.DataType + ")" + (v.IsNullable ? " NULL" : string.Empty))) + "\r\n"
+					+ "// Output Columns: " + string.Join(", ", parameters.Select(v => v.name + "(" + v.system_type_name + ")")) + "\r\n"
+					+ procedure.OutputCSharpDefinition + "\r\n";
+			}
+		}
+		//System.IO.File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ProcedureCodeDefinitions.txt"), allCSharpClasses);
+	}
+	private static string GenerateDescriptor(string className, IEnumerable<DescribeFirstResultSet> columns)
+	{
+		var sb = new StringBuilder();
+
+		sb.AppendLine($"public sealed class {className}");
+		sb.AppendLine("{");
+
+		foreach (var c in columns.OrderBy(x => x.column_ordinal))
+		{
+			var type = SQLTypeMapper.SqlTypeToClr(c.system_type_name, c.is_nullable.GetValueOrDefault());
+
+			sb.AppendLine($"    public {type} {c.name} {{ get; init; }}");
+		}
+
+		sb.AppendLine("}");
+
+		return sb.ToString();
+	}
+	#endregion
+
+	#region Initialization
+	protected override void OnInitialized()
+	{
+		W.OnDashboardStateChanged += HandleStateChanged;
+	}
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender && W.UI.Appearance.IsSchemaLoaded)
+		{
+			HandleStateChanged();
+		}
+	}
+	private async void HandleStateChanged()
+	{
+		if (_isDisposed) return;
+		await InvokeAsync(StateHasChanged);
+	}
+	public void Dispose()
+	{
+		if (W != null)
+		{
+			W.OnDashboardStateChanged -= HandleStateChanged;
+		}
+		_isDisposed = true;
+	}
+	#endregion
+
+
+	#region COmmented
+
+	// private async Task ArchiveGeneratorSelected(GenerationMethod method)
+	// {
+	// 	var selectedTable = W.SelectedTable;
+
+	// 	// Run Engine
+	// 	var options = W.UI.Settings.ToGenerationOptions(W.UI.Grids.ActiveConstraints);
+	// 	QueryGenerationResult jarvisResult = null;// = await GenerationService.GoJarvis(selectedTable, options);
+
+	// 	switch (method)
+	// 	{
+	// 		case GenerationMethod.FullGraph:
+	// 			jarvisResult = new FullGraphGenerator().Generate(selectedTable, options);
+	// 			break;
+	// 		case GenerationMethod.RootSplit:
+	// 			jarvisResult = new RootSplitGenerator().Generate(selectedTable, options);
+	// 			break;
+	// 		case GenerationMethod.UpThenDown:
+	// 			jarvisResult = new UpThenDownGenerator().Generate(selectedTable, options);
+	// 			break;
+	// 		case GenerationMethod.ExtendedDiscovery:
+	// 			jarvisResult = new ExtendedDiscoveryCompressionGenerator().Generate(selectedTable, options);
+	// 			break;
+	// 		case GenerationMethod.Backtracking:
+	// 			jarvisResult = new BacktrackingSymmetricGenerator().Generate(selectedTable, options);
+	// 			break;
+	// 		case GenerationMethod.JEO3:
+	// 			//jarvisResult = new JEO3Generator().Generate(selectedTable, options);
+	// 			break;
+	// 		default:
+	// 			break;
+	// 	}
+	// 	if (jarvisResult == null) return;
+	// 	jarvisResult.Coverage = CoverageCalculator.CalculateCoverage(selectedTable, W.Context.Tables, W.Context.Relations);
+	// 	W.Result.QueryEditorResult = jarvisResult;
+
+	// 	await queryEditorActions.UpdateEditorQuery(jarvisResult.GeneratedQuery);
+	// }
+	#endregion
+}

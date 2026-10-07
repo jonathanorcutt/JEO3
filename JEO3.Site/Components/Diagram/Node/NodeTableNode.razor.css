@@ -1,0 +1,48 @@
+/* CSS for NodeTableNode component */
+.node-content-core {
+    box-shadow: 0 0 1px rgba(100,100,100,.8), 0 0 1px rgba(100,100,100,.8), 0 0 15px rgba(150,150,150,.22);
+    font-family: Monaco, monospace
+}
+.node-content-core:has(.jeo3-node-depth-0) {
+    background-color: gray !important;
+}
+
+.node-content-core:has(.jeo3-node-depth-1) {
+    background-color: deeppink !important;
+}
+
+.node-content-core:has(.jeo3-node-depth-2) {
+    background-color: dodgerblue !important;
+}
+
+.node-content-core:has(.jeo3-node-depth-3) {
+    background-color: seagreen !important;
+}
+
+.node-content-core:has(.jeo3-node-depth-4) {
+    background-color: blueviolet !important;
+}
+
+.node-content-core:has(.jeo3-node-depth-5) {
+    background-color: red !important;
+}
+
+.node-content-core:has(.jeo3-node-depth-6) {
+    background-color: lightslategrey !important;
+}
+
+.node-content-core:has(.jeo3-node-depth-7) {
+    background-color: green !important;
+}
+
+.node-content-core:has(.jeo3-node-depth-8) {
+    background-color: blueviolet !important;
+}
+
+.node-content-core:has(.jeo3-node-depth-9) {
+    background-color: teal !important;
+}
+
+.node-content-core:has(.jeo3-node-depth-10) {
+    background-color: chartreuse !important;
+}

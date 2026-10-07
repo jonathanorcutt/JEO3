@@ -1,0 +1,332 @@
+@using System.Text
+@using JEO3.Schema
+@using JEO3.Site.Components.Icons
+
+@namespace JEO3.Site.Dashboard
+@inject DialogService DialogService
+@inject WSWorkspace W
+
+<style>
+	.dashboard-top-bar {
+		width: 100%;
+		max-width: 100%;
+		min-width: 0;
+		box-sizing: border-box;
+		overflow: hidden;
+	}
+
+		.dashboard-top-bar .rz-card {
+			padding-left: 0px !important;
+			padding-right: 0px !important;
+		}
+
+	.dashboard-top-bar-tabs {
+		width: 100%;
+		min-height: 0;
+		min-width: 0;
+		max-width: 100%;
+		overflow: hidden;
+		box-sizing: border-box;
+		display: flex;
+		flex-direction: row;
+		height: 100%;
+	}
+
+		.dashboard-top-bar-tabs .mud-tabs-panels {
+			min-width: 0;
+			max-width: 100%;
+			overflow: hidden;
+			height: 0;
+			flex: 1 1 auto;
+		}
+
+		.dashboard-top-bar-tabs .mud-tab-panel {
+			min-height: 0;
+			min-width: 0;
+			max-width: 100%;
+		}
+
+	.dashboard-top-bar-stack {
+		width: 100%;
+		max-width: 100%;
+		min-width: 0;
+		flex-wrap: nowrap !important;
+		overflow: hidden;
+		box-sizing: border-box;
+	}
+
+		.dashboard-top-bar-stack .rz-card {
+			margin: 0px !important;
+		}
+
+	.dashboard-top-bar-content {
+		display: flex;
+		align-items: center;
+		flex-wrap: nowrap;
+		min-width: 0;
+		margin-left: 15px;
+		width: 100%;
+		overflow: hidden;
+		box-sizing: border-box;
+		gap: 1rem;
+	}
+
+		.dashboard-top-bar-content > * {
+			min-width: 0;
+		}
+</style>
+
+<RadzenCard Variant="Variant.Outlined" class="dashboard-config-container padding-left-0 dashboard-top-bar">
+	<RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Start" Wrap="FlexWrap.NoWrap" class="dashboard-top-bar-stack">
+
+		<RadzenTabs RenderMode="TabRenderMode.Client" TabPosition="TabPosition.Left" SelectedIndexChanged="UpdateTabChanged" class="main-nav-tabs">
+			<Tabs>
+				<RadzenTabsItem Text="INSIGHT" Style="font-size:9pt;padding-left:0px;padding-right:0px;">
+					<Template>
+						INSIGHT&nbsp;&nbsp;<RadzenBadge BadgeStyle="BadgeStyle.Success" Text="📊" />
+					</Template>
+					<ChildContent>
+						<div class="dashboard-top-bar-content">
+							@if (SelectedProcedure != null)
+							{
+								var proc = SelectedProcedure;
+
+								<div class="dashboard-config-section-right-start dashboard-config-section-right-start-flex config-section-margin-left-40">
+									<span class="dashboard-config-label">Object</span>
+									<span class="metric-value-bold">@proc.FullName</span>
+								</div>
+
+								@if (proc.IsSystemObject || proc.IsEncrypted)
+								{
+									<div class="dashboard-config-section-right-start dashboard-config-section-right-flex-2">
+										<span class="dashboard-config-label">Flags</span>
+										<span class="metric-value-bold">
+											@(proc.IsSystemObject ? "SYSTEM " : "")@(proc.IsEncrypted ? "ENCRYPTED " : "")
+										</span>
+									</div>
+								}
+
+								<div class="dashboard-config-section-right-start dashboard-config-section-right-flex-2">
+									<span class="dashboard-config-label">Parameters</span>
+									<span class="metric-reach-value">@proc.Parameters.Count</span>
+								</div>
+								<div class="dashboard-config-section-right">
+									<!-- Decorative gauge: parameter count against an arbitrary 10-param visual ceiling, no real threshold behind this -->
+									<RadzenProgressBarCircular Value="@proc.Parameters.Count" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Info" AriaLabel="Parameters" Max="10" />
+								</div>
+
+								<div class="dashboard-config-section-right-start dashboard-config-section-right-flex-2">
+									<span class="dashboard-config-label">Output Columns</span>
+									<span class="metric-reach-value">@(proc.OutputColumns?.Count ?? 0)</span>
+								</div>
+								<div class="dashboard-config-section-right">
+									<!-- Decorative gauge: same as above, purely visual -->
+									<RadzenProgressBarCircular Value="@(proc.OutputColumns?.Count ?? 0)" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Success" AriaLabel="Output Columns" Max="15" />
+								</div>
+
+								<div class="dashboard-config-section-right-start dashboard-config-section-right-flex-2">
+									<span class="dashboard-config-label">Definition</span>
+									<span class="metric-value-wrapper">
+										<span class="metric-reach-label" style="color: @((string.IsNullOrEmpty(proc.Definition)) ? "var(--rz-warning)" : "cornflowerblue")">
+											<span class="metric-reach-value">@(string.IsNullOrEmpty(proc.Definition) ? "UNAVAILABLE" : "View")</span>
+										</span>
+										@if (!string.IsNullOrEmpty(proc.Definition))
+										{
+											<button type="button" @onclick="ShowDefinitionDialog" title="View Procedure Definition" class="info-icon-btn">
+												<IconLink IconStyle="IconLink.IconStyleType.Info" />
+											</button>
+										}
+									</span>
+								</div>
+							}
+							else
+							{
+								<span class="dialog-empty-text">Select a procedure to view insights.</span>
+							}
+						</div>
+					</ChildContent>
+				</RadzenTabsItem>
+
+				<RadzenTabsItem Text="ACTION" Style="font-size:9pt;padding-left:0px;padding-right:0px;">
+					<Template>
+						&nbsp;ACTION&nbsp;&nbsp;<RadzenBadge BadgeStyle="BadgeStyle.Info" Text="🛠️" />
+					</Template>
+					<ChildContent>
+						<div class="dashboard-top-bar-content">
+							@if (SelectedProcedure != null)
+							{
+								<div class="dashboard-config-section-right">
+									<button @onclick="GenerateSingleProcedureModel">Generate C# Model</button>
+									@if (!string.IsNullOrEmpty(SelectedProcedure.OutputCSharpDefinition))
+									{
+										<button @onclick="ShowGeneratedModelDialog">View Model</button>
+									}
+								</div>
+
+
+								<div class="dashboard-config-section-right">
+									<button type="button" class="btn btn-primary" @onclick="GenerateSingleProcedureModel">
+										Generate C# Output Model
+									</button>
+								</div>
+								@if (!string.IsNullOrEmpty(SelectedProcedure.OutputCSharpDefinition))
+								{
+									<div class="dashboard-config-section-right">
+										<button type="button" class="btn btn-secondary" @onclick="ShowGeneratedModelDialog">
+											View Generated Model
+										</button>
+									</div>
+								}
+							}
+							else
+							{
+								<span class="dialog-empty-text">Select a procedure to see available actions.</span>
+							}
+						</div>
+					</ChildContent>
+				</RadzenTabsItem>
+			</Tabs>
+		</RadzenTabs>
+	</RadzenStack>
+</RadzenCard>
+
+@code {
+	private int selectedIndex = 0;
+	private void UpdateTabChanged(int index)
+	{
+		selectedIndex = index;
+	}
+
+	// ASSUMPTION NOT YET CONFIRMED: mirrors the confirmed W.UI.Grids.Selected.Columns
+	// pattern, but "Procedures" on Selected has not been verified to exist.
+	// If it compiles, great. If not, this is the one line to fix.
+	private IProcedure? SelectedProcedure => W.UI.Grids.Selected?.StoredProcedureDefinitions?.FirstOrDefault();
+
+	private async Task ShowDefinitionDialog()
+	{
+		var proc = SelectedProcedure;
+		if (proc == null) return;
+
+		var result = await DialogService.OpenAsync("PROCEDURE DEFINITION", ds =>
+			@<RadzenStack Gap="1rem" class="dialog-stack-wrapper-large">
+				<div><span class="dialog-label-bold">OBJECT:</span> @proc.FullName</div>
+				<div class="dialog-scroll-container">
+					<pre class="table-item-text" style="white-space:pre-wrap;">@proc.Definition</pre>
+				</div>
+				<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" class="dialog-footer-margin">
+					<RadzenButton Text="Dismiss" Click="() => ds.Close(true)" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" Style="width: 90px;" />
+				</RadzenStack>
+			</RadzenStack>
+		,
+			new DialogOptions() { CloseDialogOnOverlayClick = true, ShowClose = true, Width = "auto" });
+	}
+
+	private async Task ShowGeneratedModelDialog()
+	{
+		var proc = SelectedProcedure;
+		if (proc == null) return;
+
+		var result = await DialogService.OpenAsync("GENERATED C# MODEL", ds =>
+			@<RadzenStack Gap="1rem" class="dialog-stack-wrapper-large">
+				<div class="dialog-scroll-container">
+					<pre class="table-item-text" style="white-space:pre-wrap;">@proc.OutputCSharpDefinition</pre>
+				</div>
+				<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" class="dialog-footer-margin">
+					<RadzenButton Text="Dismiss" Click="() => ds.Close(true)" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" Style="width: 90px;" />
+				</RadzenStack>
+			</RadzenStack>
+		,
+			new DialogOptions() { CloseDialogOnOverlayClick = true, ShowClose = true, Width = "auto" });
+	}
+
+	// Scoped, single-procedure version of the loop body inside
+	// DashboardTopBar.razor.cs's GenerateProcedureModels(). Duplicated rather
+	// than shared since that method is private to DashboardTopBar - flagging
+	// as a refactor candidate (extract to a shared static helper) rather than
+	// silently forking the logic.
+	private async Task GenerateSingleProcedureModel()
+	{
+		var proc = SelectedProcedure;
+		if (proc == null) return;
+
+		var isInsertOrUpdate = new[] { "insert", "update" }.Any(v => (proc.Name ?? string.Empty).ToLower().Contains(v));
+		var isDelete = (proc.Name ?? string.Empty).ToLower().Contains("delete");
+
+		if (!isDelete && !isInsertOrUpdate)
+		{
+			// Mirrors DashboardTopBar's "else" branch: describe the actual result set via SQL
+			// NOTE: requires access to W.Context.Provider - same dependency DashboardTopBar uses.
+			var query = $"EXEC sys.sp_describe_first_result_set "
+				+ $"N'EXEC {proc.SchemaName}.{proc.Name} {(string.Join(", ", proc.Parameters.Select(v => $"{v.Name} = NULL")))}'";
+			proc.OutputColumns = (await W.Context.Provider.GetInstances<DescribeFirstResultSet>(query)).ToList();
+			proc.OutputCSharpDefinition = GenerateDescriptor(proc.Name, proc.OutputColumns);
+		}
+		else if (isInsertOrUpdate && proc.Parameters.Any())
+		{
+			var parameters = proc.Parameters.Select(v => new DescribeFirstResultSet()
+			{
+				name = v.Name.TrimStart('@'),
+				system_type_name = v.DataType,
+				column_ordinal = v.Ordinal,
+				is_nullable = v.IsNullable
+			}).ToList();
+			proc.OutputCSharpDefinition = GenerateDescriptor(proc.Name, parameters);
+		}
+
+		StateHasChanged();
+	}
+
+	// Duplicated from DashboardTopBar.razor.cs (private static there) so this
+	// component doesn't depend on internals of a sibling component.
+	private static string GenerateDescriptor(string className, IEnumerable<DescribeFirstResultSet> columns)
+	{
+		var sb = new StringBuilder();
+		sb.AppendLine($"public sealed class {className}");
+		sb.AppendLine("{");
+		foreach (var c in columns.OrderBy(x => x.column_ordinal))
+		{
+			var type = SqlTypeToClr(c);
+			sb.AppendLine($"    public {type} {c.name} {{ get; init; }}");
+		}
+		sb.AppendLine("}");
+		return sb.ToString();
+	}
+
+	private static string SqlTypeToClr(DescribeFirstResultSet c)
+	{
+		var nullable = c.is_nullable == true;
+		string type = c.system_type_name!.Split('(')[0].ToLower() switch
+		{
+			"bigint" => "long",
+			"int" => "int",
+			"smallint" => "short",
+			"tinyint" => "byte",
+			"bit" => "bool",
+			"decimal" => "decimal",
+			"numeric" => "decimal",
+			"money" => "decimal",
+			"smallmoney" => "decimal",
+			"float" => "double",
+			"real" => "float",
+			"date" => "DateTime",
+			"datetime" => "DateTime",
+			"datetime2" => "DateTime",
+			"smalldatetime" => "DateTime",
+			"time" => "TimeSpan",
+			"uniqueidentifier" => "Guid",
+			"binary" => "byte[]",
+			"varbinary" => "byte[]",
+			"image" => "byte[]",
+			"char" => "string",
+			"varchar" => "string",
+			"nchar" => "string",
+			"nvarchar" => "string",
+			"text" => "string",
+			"ntext" => "string",
+			"xml" => "string",
+			_ => "object"
+		};
+		if (type is "string" or "byte[]" or "object") return type;
+		return nullable ? $"{type}?" : type;
+	}
+}

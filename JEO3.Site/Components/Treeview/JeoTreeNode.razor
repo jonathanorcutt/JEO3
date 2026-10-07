@@ -1,0 +1,145 @@
+﻿@using JEO3.Site.Components.Icons
+@using JEO3.Schema
+
+@namespace JEO3.Site.Components.Treeview
+
+<div class="jeo-tree-node">
+
+	<div class="@GetItemClass()"
+		 @onclick="Select">
+
+		@if (HasChildren)
+		{
+			<button type="button"
+					class="jeo-tree-expand"
+					@onclick="Toggle"
+					@onclick:stopPropagation="true">
+				@(Expanded ? "▼" : "▶")
+			</button>
+		}
+		else
+		{
+			<span class="jeo-tree-spacer"></span>
+		}
+
+		<span class="jeo-tree-label">
+			<VSIcon Width="16" Type="VSIconType.VSCodeGithub"
+					Height="16"
+					Name="@IconName"
+					Extension="ImageType.svg"
+					Class="fa-mr-5" />
+
+			@GetName(Item)
+		</span>
+
+	</div>
+
+	@if (Expanded)
+	{
+		<div class="jeo-tree-children">
+			@foreach (var grouping in Item.Children)
+			{
+				// 1. Leech the concrete type of the children inside this grouping
+				var firstChild = grouping.Children.Cast<IObject>().FirstOrDefault();
+
+				if (firstChild != null)
+				{
+					// 2. Turn the problem upside down: Grab the display name from the grouping itself
+					string folderName = grouping.Name;
+
+					<div class="jeo-tree-node">
+						<div class="jeo-tree-item">
+							<span class="jeo-tree-spacer"></span>
+
+							<span class="jeo-tree-label">
+								@* 3. Leech the icon context! Use the parent's icon state or a generic folder style *@
+								@if (IconName != string.Empty)
+								{
+									<span class="fa-mr-5" style="color: #d4af37;">▶</span>
+								}
+								@folderName
+							</span>
+						</div>
+
+						@* 4. Recursively render by casting the non-generic IEnumerable *@
+						<div class="jeo-tree-children">
+							@foreach (var child in grouping.Children)
+							{
+								if (child is IObject childObject)
+								{
+									<JeoTreeNode Item="childObject"
+												 SelectedItem="SelectedItem"
+												 OnClick="OnClick" />
+								}
+							}
+						</div>
+					</div>
+				}
+			}
+
+		</div>
+	}
+
+	
+
+</div>
+
+@code {
+
+	[Parameter, EditorRequired] public IObject Item { get; set; } = default!;
+	[Parameter] public IObject? SelectedItem { get; set; }
+	[Parameter] public EventCallback<IObject> OnClick { get; set; }
+	private bool _Expanded = false;
+	private bool Expanded
+	{
+		get
+		{
+			return _Expanded;
+		}
+		set
+		{
+			_Expanded = value;
+		}
+	}
+
+	public JeoTreeNode()
+	{
+	}
+	private bool IsTopLevelItem => (Item is IDatabase || (Item is ISchema && Item.Name != "dbo"));
+	protected override void OnInitialized()
+	{
+		if (IsTopLevelItem)
+		{
+			Expanded = true;
+		}
+	}
+
+	private bool IsSelected => ReferenceEquals(Item, SelectedItem);
+	private bool HasChildren => Item.Children.Any(g => g.Children.Cast<object>().Any());
+
+	private async Task Select() => await OnClick.InvokeAsync(Item);
+	private void Toggle() => Expanded = !Expanded;
+	private string GetItemClass() => (IsSelected) ? "jeo-tree-item selected" : "jeo-tree-item";
+	private string GetName(IObject item) => item is ITable ? $"{item.SchemaName}.{item.Name}" : item.Name ?? item.GetType().Name;
+	private string IconName
+	{
+		get
+		{
+			if (Item is IDatabase) return "Time_Series_Data_Sets";
+			if (Item is ISchema) return "Workflow";
+			if (Item is ITable) return "Azure_Support_Center_Blue";
+			if (Item is IColumn) return "Workflow";
+			if (Item is IStatistic) return "Azure_Workbooks";
+			if (Item is IIndex) return "Identity_Secure_Score";
+			if (Item is IExtendedProperty) return "Azure_Blockchain_Service";
+			if (Item is ITrigger) return "Power";
+			if (Item is IMissingIndex) return "Heart";
+			if (Item is IView) return "Anomaly_Detector";
+			if (Item is IProcedure) return "Defender_Programable_Board";
+			if (Item is IMissingIndex) return "Azure_Chaos_Studio";
+			if (Item is IUserDefinedType) return "Load_Test";
+			return "";
+		}
+	}
+
+}

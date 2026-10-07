@@ -1,0 +1,51 @@
+@using JEO3.Monitor
+@using JEO3.Site.Services
+@using PanoramicData.ECharts
+@inherits MonitorChartBase
+
+@namespace JEO3.Site.Components.ECharts
+
+<div class="monitor-panel">
+	<div class="monitor-panel-title">🚨 BLOCKING CHAIN</div>
+	<PanoramicData.ECharts.EChart @ref="Chart" Options="@Options" Width="@Width" Height="@Height" />
+</div>
+
+@code {
+	[Parameter] public int TopN { get; set; } = 10;
+
+	protected override ChartOptions Options { get; set; } = ChartOptionsLibrary.BlockingChart_Options;
+
+	protected override async Task RenderInitialAsync(MonitorSnapshot initial)
+	{
+		if (initial.BlockingChain != null)
+		{
+			await UpdateChartData(initial.BlockingChain);
+			await InvokeAsync(StateHasChanged);
+		}
+	}
+
+	protected override async Task AppendDeltasAsync(MonitorDeltaResponse delta)
+	{
+		if (delta.BlockingChain != null)
+		{
+			await UpdateChartData(delta.BlockingChain);
+			await InvokeAsync(StateHasChanged);
+		}
+	}
+
+	private async Task UpdateChartData(IEnumerable<BlockingRow> activeRequests)
+	{
+		var topActive = activeRequests
+			.OrderByDescending(r => r.WaitTimeSec)
+			.Take(TopN)
+			.ToList();
+
+		Options.XAxis!.Data = topActive.Select(r => (object)$"SPID {r.SessionId}").ToList();
+
+		if (Options.Series?.FirstOrDefault() is BarSeries bar)
+		{
+			bar.Data = topActive.Select(r => (object)r.WaitTimeSec).ToList();
+		}
+		if (Chart != null) await Chart.UpdateAsync();
+	}
+}

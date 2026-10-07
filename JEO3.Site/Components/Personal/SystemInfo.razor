@@ -1,0 +1,86 @@
+﻿@namespace JEO3.Site.Dashboard
+
+<RadzenRow Class="rz-p-1" Style="padding:8px 16px 2px 16px !important">
+
+    <!-- Header Section (Left Column) -->
+    <RadzenColumn Size="12" SizeMD="3">
+        <RadzenText TextStyle="TextStyle.Caption" Class="rz-color-primary rz-font-weight-bold" Style="letter-spacing: 1px;">SYSTEM</RadzenText>
+        <RadzenText TextStyle="TextStyle.H4" Class="rz-mb-1 rz-font-weight-bold">Environment</RadzenText>
+    </RadzenColumn>
+
+    <!-- Cards Section (Right Column - Spans into a 4-column horizontal row) -->
+    <RadzenColumn Size="12" SizeMD="9">
+        <RadzenRow Gap="1rem">
+
+            <!-- Application Card -->
+            <RadzenColumn Size="12" SizeSM="6" SizeLG="3">
+                <RadzenCard Variant="Variant.Outlined" Class="rz-p-4 rz-h-100">
+                    <RadzenText TextStyle="TextStyle.Subtitle2" Class="rz-color-primary rz-mb-3 rz-font-weight-bold">APPLICATION</RadzenText>
+                    <div class="rz-display-flex rz-justify-content-space-between rz-mb-1"><RadzenText TextStyle="TextStyle.Body2">Version</RadzenText><RadzenText TextStyle="TextStyle.Body2" Class="rz-font-weight-bold">@AppVersion</RadzenText></div>
+                    <div class="rz-display-flex rz-justify-content-space-between rz-mb-1"><RadzenText TextStyle="TextStyle.Body2">Environment</RadzenText><RadzenText TextStyle="TextStyle.Body2" Class="rz-font-weight-bold">@EnvironmentName</RadzenText></div>
+                    <div class="rz-display-flex rz-justify-content-space-between"><RadzenText TextStyle="TextStyle.Body2">Build</RadzenText><RadzenText TextStyle="TextStyle.Body2" Class="rz-font-weight-bold">@BuildConfiguration</RadzenText></div>
+                </RadzenCard>
+            </RadzenColumn>
+
+            <!-- Runtime Card -->
+            <RadzenColumn Size="12" SizeSM="6" SizeLG="3">
+                <RadzenCard Variant="Variant.Outlined" Class="rz-p-4 rz-h-100">
+                    <RadzenText TextStyle="TextStyle.Subtitle2" Class="rz-color-primary rz-mb-3 rz-font-weight-bold">RUNTIME</RadzenText>
+                    <div class="rz-display-flex rz-justify-content-space-between rz-mb-1"><RadzenText TextStyle="TextStyle.Body2">.NET</RadzenText><RadzenText TextStyle="TextStyle.Body2" Class="rz-font-weight-bold">@DotNetVersion</RadzenText></div>
+                    <div class="rz-display-flex rz-justify-content-space-between rz-mb-1"><RadzenText TextStyle="TextStyle.Body2">OS</RadzenText><RadzenText TextStyle="TextStyle.Body2" Class="rz-font-weight-bold">@OperatingSystem</RadzenText></div>
+                    <div class="rz-display-flex rz-justify-content-space-between"><RadzenText TextStyle="TextStyle.Body2">Architecture</RadzenText><RadzenText TextStyle="TextStyle.Body2" Class="rz-font-weight-bold">@Architecture</RadzenText></div>
+                </RadzenCard>
+            </RadzenColumn>
+
+            <!-- Database Card -->
+            <RadzenColumn Size="12" SizeSM="6" SizeLG="3">
+                <RadzenCard Variant="Variant.Outlined" Class="rz-p-4 rz-h-100">
+                    <RadzenText TextStyle="TextStyle.Subtitle2" Class="rz-color-primary rz-mb-3 rz-font-weight-bold">DATABASE</RadzenText>
+                    <div class="rz-display-flex rz-justify-content-space-between rz-mb-1"><RadzenText TextStyle="TextStyle.Body2">Provider</RadzenText><RadzenText TextStyle="TextStyle.Body2" Class="rz-font-weight-bold">@DatabaseProvider</RadzenText></div>
+                    <div class="rz-display-flex rz-justify-content-space-between rz-mb-1"><RadzenText TextStyle="TextStyle.Body2">Server</RadzenText><RadzenText TextStyle="TextStyle.Body2" Class="rz-font-weight-bold">@DatabaseServer</RadzenText></div>
+                    <div class="rz-display-flex rz-justify-content-space-between"><RadzenText TextStyle="TextStyle.Body2">Database</RadzenText><RadzenText TextStyle="TextStyle.Body2" Class="rz-font-weight-bold">@DatabaseName</RadzenText></div>
+                </RadzenCard>
+            </RadzenColumn>
+
+            <!-- Session Card -->
+            <RadzenColumn Size="12" SizeSM="6" SizeLG="3">
+                <RadzenCard Variant="Variant.Outlined" Class="rz-p-4 rz-h-100">
+                    <RadzenText TextStyle="TextStyle.Subtitle2" Class="rz-color-primary rz-mb-3 rz-font-weight-bold">SESSION</RadzenText>
+                    <div class="rz-display-flex rz-justify-content-space-between rz-mb-1"><RadzenText TextStyle="TextStyle.Body2">Tables</RadzenText><RadzenText TextStyle="TextStyle.Body2" Class="rz-font-weight-bold">@TableCount</RadzenText></div>
+                    <div class="rz-display-flex rz-justify-content-space-between rz-mb-1"><RadzenText TextStyle="TextStyle.Body2">Columns</RadzenText><RadzenText TextStyle="TextStyle.Body2" Class="rz-font-weight-bold">@ColumnCount</RadzenText></div>
+                    <div class="rz-display-flex rz-justify-content-space-between"><RadzenText TextStyle="TextStyle.Body2">Connected</RadzenText><RadzenText TextStyle="TextStyle.Body2" Class="rz-font-weight-bold">@ConnectionState</RadzenText></div>
+                </RadzenCard>
+            </RadzenColumn>
+
+        </RadzenRow>
+    </RadzenColumn>
+</RadzenRow>
+
+@code {
+    [Inject]
+    protected WSWorkspace W { get; set; } = default!;
+
+    private string AppVersion =>
+        typeof(Program).Assembly.GetName().Version?.ToString()
+        ?? "Unknown";
+
+    private string EnvironmentName =>
+        Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
+        ?? "Unknown";
+
+    private string BuildConfiguration =>
+#if DEBUG
+        "Debug";
+#else
+        "Release";
+#endif
+    private string DotNetVersion => Environment.Version.ToString();
+    private string OperatingSystem => System.Runtime.InteropServices.RuntimeInformation.OSDescription;
+    private string Architecture => System.Runtime.InteropServices.RuntimeInformation.OSArchitecture.ToString();
+    private string DatabaseProvider => W.Context?.Provider?.GetType().Name ?? "Unknown";
+    private string DatabaseServer => W.Context?.Provider?.Connection?.Server ?? "Unknown";
+    private string DatabaseName => W.Context?.Provider?.Connection?.Database ?? "Unknown";
+    private int TableCount => W.Context?.Tables?.Count ?? 0;
+    private int ColumnCount => W.Context?.Tables?.Sum(t => t.Columns?.Count ?? 0) ?? 0;
+    private string ConnectionState => W.Context?.Provider.Connection is null ? "Disconnected" : "Connected";
+}

@@ -1,0 +1,148 @@
+﻿@using JEO3.Generation
+@using JEO3.Generation.Models
+@using JEO3.Engine.Models
+@using Radzen
+@using Radzen.Blazor
+@using JEO3.Schema
+
+@namespace JEO3.Site.Dashboard
+
+<div class="dashboard-pane-container">
+
+	<RadzenSplitter class="splitter-full-hw">
+		<!--------------------------------------------------- PROCEDURES ------------------------------------------------------------>
+
+		<RadzenSplitterPane @bind-Collapsed="@W.UI.Appearance.IsPaneCollapsedColumns" Size="20%" Style="@(W.UI.Appearance.IsPaneFullScreenQueryEditor ? "display: none !important;" : "")">
+			<div class="dashboard-pane-container">
+				<div class="dashboard-pane-titlebar-container">
+					<div class="dashboard-pane-titlebar">
+						<div class="titlebar-flex-row">
+							<span class="titlebar-label-bold">Stored Procedures ( @(W.Context?.Procedures?.Count) )</span>
+						</div>
+						<div class="dashboard-pane-titlebar-right-container">
+						</div>
+					</div>
+				</div>
+				<div class="dashboard-pane-body-container-scroll">
+					<RadzenDataGrid @ref="gridStoredProcedureDefinitions" Data="@W.UI.Grids.Core.StoredProcedureDefinitions" @bind-Value="@W.UI.Grids.Selected.StoredProcedureDefinitions"
+									TItem="IProcedure" RowSelect="@OnStoredProcedureDefinitionSelected" SelectionMode="DataGridSelectionMode.Single" AllowFiltering="true" AllowColumnResize="true"
+									FilterMode="FilterMode.Simple" AllowPaging="false" AllowSorting="true" AllowVirtualization="true" Style="min-width:10px;">
+						<Columns>
+							<RadzenDataGridColumn Property="@nameof(IProcedure.SchemaName)" Title="Schema" Width="120px" Resizable="true" />
+							<RadzenDataGridColumn Property="@nameof(IProcedure.Name)" Title="Procedure Name" Width="120px" Resizable="true" />
+						</Columns>
+					</RadzenDataGrid>
+				</div>
+			</div>
+		</RadzenSplitterPane>
+
+		<!--------------------------------------------------- VIEWS ------------------------------------------------------------>
+
+		<RadzenSplitterPane @bind-Collapsed="@W.UI.Appearance.IsPaneCollapsedAllObjects" Collapsible="true" Size="25%" Style="@(W.UI.Appearance.IsPaneFullScreenQueryEditor ? "display: none !important;" : "")">
+			<div class="dashboard-pane-container">
+				<div class="dashboard-pane-titlebar-container">
+					<div class="dashboard-pane-titlebar">
+						<div class="titlebar-flex-row">
+							<span class="titlebar-label-bold">Views ( @(W.Context?.Views?.Count) )</span>
+						</div>
+						<div class="dashboard-pane-titlebar-right-container titlebar-right-gap">
+							<RadzenCheckBox TValue="bool" @bind-value="@W.UI.Grids.AutoFilterAllObjects" Change="@AutoFilterAllObjectsChanged" />
+							<span class="titlebar-count-text">Auto-Filter</span>
+						</div>
+					</div>
+				</div>
+				<div class="dashboard-pane-body-container-scroll">
+					<RadzenDataGrid @ref="gridViewDefinitions" Data="@W.UI.Grids.Core.ViewDefinitions" @bind-Value="@W.UI.Grids.Selected.ViewDefinitions"
+									TItem="IView" RowSelect="@OnViewDefinitionSelected" SelectionMode="DataGridSelectionMode.Single" AllowFiltering="true" AllowColumnResize="true"
+									FilterMode="FilterMode.Simple" AllowPaging="false" AllowSorting="true" AllowVirtualization="true" Style="min-width:10px;">
+						<Columns>
+							<RadzenDataGridColumn Property="@nameof(IView.SchemaName)" Title="Schema" Width="120px" Resizable="true" />
+							<RadzenDataGridColumn Property="@nameof(IView.Name)" Title="View Name" Width="120px" Resizable="true" />
+						</Columns>
+					</RadzenDataGrid>
+				</div>
+			</div>
+		</RadzenSplitterPane>
+
+		<!--------------------------------------------------- RELATIONS ------------------------------------------------------------>
+
+		<RadzenSplitterPane @bind-Collapsed="@W.UI.Appearance.IsPaneCollapsedTables" Size="30%" Style="@(W.UI.Appearance.IsPaneFullScreenQueryEditor ? "display: none !important;" : "")">
+
+			<div class="dashboard-pane-container">
+				<div class="dashboard-pane-titlebar-container">
+					<div class="dashboard-pane-titlebar">
+						<div class="titlebar-flex-row">
+							<span class="titlebar-label-bold">
+								@(W.UI.Grids?.AutoFilterRelations == true && W.SelectedTable != null ? $"Relations: {W.SelectedTable?.TablePath}" : "All Table Relations")
+							</span>
+						</div>
+						<div class="dashboard-pane-titlebar-right-container titlebar-right-gap">
+
+							<RadzenCheckBox TValue="bool" Value="@W.UI.Grids.AutoFilterRelations" Change="@(async (args) => await AutoFilterRelationsChanged((bool)args!))" />
+							<span class="titlebar-count-text">Auto-Filter</span>
+						</div>
+					</div>
+				</div>
+				<div class="dashboard-pane-body-container-scroll">
+					<RadzenDataGrid @ref="gridTableRelations" Data=@W.UI.Grids.Core.Relations @bind-Value=@W.UI.Grids.Selected.Relations TItem="IRelationColumnPair" SelectionMode="DataGridSelectionMode.Single" AllowFiltering="true" AllowColumnResize="true"
+									FilterMode="FilterMode.Simple" AllowPaging="false" AllowSorting="true" AllowVirtualization="true" Style="min-width:10px;">
+						<Columns>
+							<RadzenDataGridColumn Property="@nameof(IRelationColumnPair.ParentTableName)" Title="Primary Table" Width="170px" Resizable="true" />
+							<RadzenDataGridColumn Property="@nameof(IRelationColumnPair.ParentColumnName)" Title="Primary Column" Width="110px" Resizable="true" />
+							<RadzenDataGridColumn Property="@nameof(IRelationColumnPair.ReferencedTableName)" Title="Foreign Table" Width="170px" Resizable="true" />
+							<RadzenDataGridColumn Property="@nameof(IRelationColumnPair.ReferencedColumnName)" Title="Foreign Column" Width="110px" Resizable="true" />
+							<RadzenDataGridColumn Title="FK Null" Width="38px">
+								<Template Context="data">
+									<input type="checkbox" checked="@data.IsNullable" disabled @onclick:stopPropagation="true" class="pointer-events-none" />
+								</Template>
+							</RadzenDataGridColumn>
+							<RadzenDataGridColumn Title="Composite Key" Width="70px">
+								<Template Context="data">
+									<input type="checkbox" checked="@data.IsComposite" disabled @onclick:stopPropagation="true" class="pointer-events-none" />
+								</Template>
+							</RadzenDataGridColumn>
+						</Columns>
+					</RadzenDataGrid>
+				</div>
+			</div>
+		</RadzenSplitterPane>
+        
+		<!--------------------------------------------------- CURRENT QUERY JOINS ------------------------------------------------------------>
+
+		<RadzenSplitterPane Size="1%" @bind-Collapsed="@W.UI.Appearance.IsPaneCollapsedRelations">
+			<div class="dashboard-pane-container">
+				<div class="dashboard-pane-titlebar-container">
+					<div class="dashboard-pane-titlebar">
+						<div class="titlebar-flex-row">
+							<span class="titlebar-label-bold">Current Query Joins ( @(W.Result.QueryEditorResult?.ExecutionNodes.Count) )</span>
+						</div>
+						<div class="dashboard-pane-titlebar-right-container titlebar-right-gap">
+							<RadzenCheckBox TValue="bool" Value="@W.UI.Grids.AutoFilterAllObjects" Change="@AutoFilterAllObjectsChanged" />
+							<span class="titlebar-count-text">Auto-Filter</span>
+						</div>
+					</div>
+				</div>
+				<div class="dashboard-pane-body-container-scroll">
+					<RadzenDataGrid Data="@W.UI.Grids.ActiveConstraints" TItem="GraphRelationConstraint" AllowPaging="false" AllowSorting="true" AllowVirtualization="true" AllowColumnResize="true" Style="height: 100%; overflow-y: visible;">
+						<Columns>
+							<RadzenDataGridColumn TItem="GraphRelationConstraint" Width="45px" TextAlign="TextAlign.Center">
+								<HeaderTemplate>Include</HeaderTemplate>
+								<Template Context="constraint">
+									<input type="checkbox" checked="@(!constraint.IsDisabled)" @onchange="@(async (args) => { await ToggleConstraint(constraint, (bool)args.Value!); })" />
+								</Template>
+							</RadzenDataGridColumn>
+							<RadzenDataGridColumn TItem="GraphRelationConstraint" Property="PrimaryTable" Title="Source Table" Resizable="true" />
+							<RadzenDataGridColumn TItem="GraphRelationConstraint" Property="PrimaryColumns" Title="Source Column(s)" Resizable="true" />
+							<RadzenDataGridColumn TItem="GraphRelationConstraint" Property="ForeignTable" Title="Target Table" Resizable="true" />
+							<RadzenDataGridColumn TItem="GraphRelationConstraint" Property="ForeignColumns" Title="Target Column(s)" Resizable="true" />
+							<RadzenDataGridColumn TItem="GraphRelationConstraint" Property="KeyName" Title="FK Constraint Name" Resizable="true" />
+						</Columns>
+					</RadzenDataGrid>
+				</div>
+
+				<div class="dashboard-pane-titlebar-right-container">
+				</div>
+			</div>
+		</RadzenSplitterPane>
+	</RadzenSplitter>
+</div>

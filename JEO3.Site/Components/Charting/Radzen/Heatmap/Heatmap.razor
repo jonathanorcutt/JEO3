@@ -1,0 +1,149 @@
+﻿@namespace JEO3.Site.Components
+
+@typeparam TItem
+
+<div class="schema-heatmap">
+    <div class="schema-heatmap-header">
+        <div>
+            <span class="schema-heatmap-eyebrow">SCHEMA ANALYSIS</span>
+            <span class="schema-heatmap-title">@Title</span>
+        </div>
+
+        <RadzenDropDown TValue="HeatMapMetric"
+                        Data="@Metrics"
+                        TextProperty="Label"
+                        ValueProperty="Value"
+                        @bind-Value="_selectedMetric"
+                        Change="@OnMetricChanged"
+                        class="schema-heatmap-metric" />
+    </div>
+    @if (Items is { Count: > 0 })
+    {
+        <div class="schema-heatmap-grid"
+             style="@GridStyle">
+
+            @foreach (var item in Items)
+            {
+                var value = GetValue(item);
+                var intensity = GetIntensity(value);
+
+                <div class="schema-heatmap-cell"
+                     style="@GetCellStyle(intensity)"
+                     title="@($"{GetLabel(item)} — {SelectedMetricLabel}: {FormatValue(value)}")">
+
+                    <span class="schema-heatmap-cell-label">
+                        @GetLabel(item)
+                    </span>
+
+                    <span class="schema-heatmap-cell-value">
+                        @FormatValue(value)
+                    </span>
+
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="schema-heatmap-empty">
+            No schema objects available.
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyList<TItem> Items { get; set; } = [];
+    [Parameter] public string Title { get; set; } = "Schema Heat Map";
+    [Parameter, EditorRequired] public Func<TItem, string> LabelSelector { get; set; } = default!;
+    [Parameter, EditorRequired] public Func<TItem, HeatMapMetric, double> ValueSelector { get; set; } = default!;
+    [Parameter, EditorRequired] public int CellWidth { get; set; } = 130;
+    [Parameter, EditorRequired]  public int CellHeight { get; set; } = 35;
+
+    private HeatMapMetric _selectedMetric = HeatMapMetric.Rows;
+    private IReadOnlyList<HeatMapMetricOption> Metrics { get; } =
+    [
+        new("Rows", HeatMapMetric.Rows),
+        new("Columns", HeatMapMetric.Columns),
+        new("Relations", HeatMapMetric.Relations),
+        new("Referenced By", HeatMapMetric.ReferencedBy),
+        new("Indexes", HeatMapMetric.Indexes),
+        new("Missing Indexes", HeatMapMetric.MissingIndexes),
+        new("Triggers", HeatMapMetric.Triggers),
+        new("Extended Properties", HeatMapMetric.ExtendedProperties),
+        new("Check Constraints", HeatMapMetric.CheckConstraints)
+    ];
+
+    private string SelectedMetricLabel =>
+        Metrics.First(x => x.Value == _selectedMetric).Label;
+
+    private double _min;
+    private double _max;
+
+
+    protected override void OnParametersSet()
+    {
+        RecalculateRange();
+    }
+
+    private void RecalculateRange()
+    {
+        if (Items.Count == 0)
+        {
+            _min = 0;
+            _max = 0;
+            return;
+        }
+
+        var values = Items.Select(GetValue).Where(double.IsFinite).ToList();
+        _min = values.Count == 0 ? 0 : values.Min();
+        _max = values.Count == 0 ? 0 : values.Max();
+    }
+    private int GridColumns => Items.Count == 0 ? 1 : 6; //Math.Max(1,(int)Math.Ceiling(Math.Sqrt(Items.Count) * .55));
+    private int GridRows => Items.Count == 0  ? 1 : (int)Math.Ceiling(Items.Count / (double)GridColumns);
+    private string GridStyle => $"grid-template-columns: repeat({GridColumns}, {CellWidth}px);" +  $"grid-auto-rows: {CellHeight}px;";
+
+    private string GetCellStyle(double intensity)
+    {
+        // Three-zone heat scale:
+        // 0   = cool
+        // 50  = yellow
+        // 100 = hot
+        var hue = 120.0 - (intensity * 1.2);
+        return  $"background: hsl({hue:F0}, 75%, 42%);" + $"width: {CellWidth}px;" + $"height: {CellHeight}px;";
+    }
+
+    private double GetValue(TItem item) => Math.Max(0, ValueSelector(item, _selectedMetric));
+    private string GetLabel(TItem item) => LabelSelector(item);
+    private double GetIntensity(double value)
+    {
+        if (_max <= _min) return value > 0 ? 100 : 0;
+        return Math.Clamp( ((value - _min) / (_max - _min)) * 100,  0,  100);
+    }
+
+    private static string FormatValue(double value) => value >= 1_000_000  ? value.ToString("N0") : value.ToString("N0");
+
+    private void OnMetricChanged(object? value)
+    {
+        if (value is HeatMapMetric metric)
+        {
+            _selectedMetric = metric;
+            RecalculateRange();
+        }
+    }
+
+    public enum HeatMapMetric
+    {
+        Rows,
+        Columns,
+        Relations,
+        ReferencedBy,
+        Indexes,
+        MissingIndexes,
+        Triggers,
+        ExtendedProperties,
+        CheckConstraints
+    }
+
+    public sealed record HeatMapMetricOption(string Label, HeatMapMetric Value);
+}

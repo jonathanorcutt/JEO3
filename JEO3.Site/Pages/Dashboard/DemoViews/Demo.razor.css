@@ -1,0 +1,29 @@
+/* CSS for Demo component */
+
+/*.main-nav-tabs
+{
+
+}
+.main-nav-tabs li,
+.main-nav-tabs li a,*/
+.main-nav-tabs li button {
+    letter-spacing: 0px;
+}
+
+.main-nav-tabs li[role="presentation"] {
+    background-color: black;
+    opacity: .9;
+}
+
+    .main-nav-tabs li[role="presentation"]:hover {
+        opacity: 1;
+    }
+
+.main-nav-tabs li:has(button[aria-selected='true']) {
+    background-color: #ff0092;
+}
+
+.nav-label{
+    font-size:14pt;
+    font-weight:bold;
+}

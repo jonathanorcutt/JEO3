@@ -1,0 +1,92 @@
+﻿@namespace JEO3.Site.Components.Layout
+
+<div class="matrix-nav">
+    @for (int i = 0; i < Groups.Count; i++)
+    {
+        var index = i;
+        var group = Groups[index];
+        bool isExpanded = ExpandedIndices.Contains(index);
+
+        <div class="matrix-nav-group">
+            <button class="matrix-nav-header @(isExpanded ? "expanded" : "")" @onclick="() => ToggleGroup(index)">
+                <span class="matrix-nav-header-icon">@group.Icon</span>
+                <span class="matrix-nav-header-label">@group.Label</span>
+                <span class="matrix-nav-chevron">@(isExpanded ? "▾" : "▸")</span>
+            </button>
+
+@*             @if (isExpanded)
+            { *@
+                <div class="matrix-nav-grid">
+                    @foreach (var item in group.Items)
+                    {
+                        <button class="matrix-nav-item @(item.TabIndex == ActiveTabIndex ? "active" : "")" @onclick="() => SelectItem(item)">
+                            <span class="matrix-nav-item-icon">@item.Icon</span>
+                            <span class="matrix-nav-item-label">@item.Label</span>
+                        </button>
+                    }
+                </div>
+            @* } *@
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public List<NavGroup> Groups { get; set; } = new();
+    [Parameter] public HashSet<int> ExpandedIndices { get; set; } = new() { 0, 1, 2, 3, 4 };
+    [Parameter] public EventCallback<HashSet<int>> ExpandedIndicesChanged { get; set; }
+    [Parameter] public bool AllowMultiple { get; set; } = true;
+    [Parameter] public int ActiveTabIndex { get; set; }
+    [Parameter] public EventCallback<NavItem> ItemSelected { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (ExpandedIndices.Count == 0 && Groups.Count > 0)
+        {
+            ExpandedIndices = Enumerable.Range(0, Groups.Count).ToHashSet();
+        }
+    }
+
+    private async Task ToggleGroup(int index)
+    {
+        var updated = new HashSet<int>(ExpandedIndices);
+        if (updated.Contains(index)) updated.Remove(index);
+        else { if (!AllowMultiple) updated.Clear(); updated.Add(index); }
+
+        ExpandedIndices = updated;
+        await ExpandedIndicesChanged.InvokeAsync(updated);
+    }
+
+    private async Task SelectItem(NavItem item) => await ItemSelected.InvokeAsync(item);
+
+    public sealed class NavGroup { public string Label { get; set; } = ""; public string Icon { get; set; } = ""; public List<NavItem> Items { get; set; } = new(); }
+    public sealed class NavItem { public string Key { get; set; } = ""; public string Label { get; set; } = ""; public string Icon { get; set; } = ""; public int TabIndex { get; set; } }
+
+    
+    public static readonly List<NavGroup> DefaultNavGroups = new()
+    {
+        new() { Label = "Live", Icon = "☢️", Items = new() {
+            new() { Key = "live", Label = "Live", Icon = "☢️", TabIndex = 0 },
+        }},
+        new() { Label = "Diagrams", Icon = "🧭", Items = new() {
+            new() { Key = "er", Label = "ER Diagram", Icon = "🗺️", TabIndex = 2 },
+            new() { Key = "node", Label = "Node Diagram", Icon = "🕸️", TabIndex = 3 },
+        }},
+        new() { Label = "Visualize", Icon = "📊", Items = new() {
+            new() { Key = "hotspots", Label = "Hotspots", Icon = "🔥", TabIndex = 5 },
+            new() { Key = "distribution", Label = "Distribution", Icon = "🛣️", TabIndex = 6 },
+            new() { Key = "density", Label = "Density", Icon = "🔭", TabIndex = 7 },
+            new() { Key = "charts", Label = "Charts", Icon = "📊", TabIndex = 8 },
+        }},
+        new() { Label = "Browse", Icon = "🌈", Items = new() {
+            new() { Key = "objects", Label = "Database Objects", Icon = "🌈", TabIndex = 4 },
+            new() { Key = "data", Label = "Data", Icon = "🛢️", TabIndex = 9 },
+        }},
+        new() { Label = "Meta", Icon = "👨🏻‍💻", Items = new() {
+            new() { Key = "gallery", Label = "Gallery", Icon = "🖼️", TabIndex = 1 },
+            new() { Key = "about", Label = "About", Icon = "👨🏻‍💻", TabIndex = 10 },
+            new() { Key = "timeline", Label = "Timeline", Icon = "🎞️", TabIndex = 11 },
+            new() { Key = "builder", Label = "Dashboard Builder", Icon = "🎮", TabIndex = 12 },
+        }},
+    };
+
+}

@@ -1,0 +1,44 @@
+@using JEO3.Site.Components.Common
+@using Radzen.Blazor
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<base href="/" />																				<!-- ✅  Base Href				-->
+	<ResourcePreloader />
+	<link rel="icon" type="image/png" href="img/pacman/pacman_ghost_gif.gif" />						<!-- ✅  Favicon				-->
+	<link href="_content/Z.Blazor.Diagrams/style.min.css" rel="stylesheet" />						<!-- ✅  Z.Blazor.Diagrams		-->
+	<script src="_content/PanoramicData.ECharts/js/panoramicdata-echarts-bundle-min.js"></script>	<!-- ✅  PanoramicData ECharts	-->
+	<script src="@Assets["js/echarts/echarts-gl.min.js"]"></script>									<!-- ✅  ECharts GL				-->
+	<link rel="stylesheet" href="@Assets["JEO3.Site.styles.css"]" />								<!-- ✅  Site					-->
+
+	<ImportMap />
+	<RadzenTheme Theme="material-dark" />															<!-- ✅  Radzen Material Theme	-->
+	<link rel="stylesheet" href="@Assets["css/fa-helpers.css"]">									<!-- ✅  Personal CSS & Theme	-->
+	<link rel="stylesheet" href="@Assets["css/keyframes.css"]">
+	<link rel="stylesheet" href="@Assets["css/jeo3.css"]">
+	<link rel="stylesheet" href="@Assets["css/dashboard.css"]">
+	<link rel="stylesheet" href="@Assets["css/radzen-overrides.css"]">
+	<HeadOutlet @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer" />	<!-- ✅  Head Render Mode		-->
+</head>
+<body>
+	<Routes @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer" />		<!-- ✅  Route Render Mode		-->
+	<ReconnectModal />																				<!-- ✅  Reconnect Modal		-->
+	<script src="_framework/blazor.web.js"></script>												<!-- ✅  Blazor MUST load 1st	-->
+	<script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>									<!-- ✅  Radzen AFTER Blazor	-->
+	<script src="_content/BlazorMonaco/jsInterop.js"></script>										<!-- ✅  Monaco AFTER Blazor	-->
+	<script src="_content/BlazorMonaco/lib/monaco-editor/min/vs/loader.js"></script>
+	<script src="_content/BlazorMonaco/lib/monaco-editor/min/vs/editor/editor.main.js"></script>
+	<script src="_content/Z.Blazor.Diagrams/script.js"></script>									<!-- ✅  Z.Blazor.Diagrams		-->
+
+	<script src="@Assets["js/jeo3.js"]"></script>													<!-- ✅  Personal JS			-->
+	<script src="@Assets["js/bob/BobAminator.js"]"></script>										<!-- ✅  Animations				-->
+	<script src="@Assets["js/bob/bob.js"]"></script>
+	<script src="@Assets["js/video/videoPlayer.js"]"></script>										<!-- ✅  Embed Video-Slideshow  -->
+	<script src="@Assets["js/video/atv-interop.js"]"></script>
+	@* <script src="@Assets["js/echarts/charts3d.js"]"></script>									<!-- ✅  ECharts Non-PD Usage	--> *@
+
+
+</body>
+</html>

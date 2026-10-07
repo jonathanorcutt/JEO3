@@ -1,0 +1,23 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+  </Folder>
+  <Project Path="JEO3.API/JEO3.API.csproj" Id="35f96a04-fd03-44a6-9f1d-e6789d1d6e85" />
+  <Project Path="JEO3.Code/JEO3.Code.csproj" Id="e480555d-b004-4d7c-beea-1211b2da69c8" />
+  <Project Path="JEO3.Console/JEO3.Console.csproj" Id="6cc15aa7-dce0-4c06-9927-159f0bbb3230" />
+  <Project Path="JEO3.Core/JEO3.Core.csproj" Id="d3f0da54-1f1c-431a-94f9-6c448d908ab1" />
+  <Project Path="JEO3.Diagrams/JEO3.Diagrams.csproj" />
+  <Project Path="JEO3.Engine/JEO3.Engine.csproj" Id="52cb0121-9c7a-4414-b17f-87853fd17c7c" />
+  <Project Path="JEO3.Extensions/JEO3.Extensions.csproj" Id="ce59334d-6382-4b92-af56-9439410948ab" />
+  <Project Path="JEO3.Generation.Models/JEO3.Generation.Models.csproj" />
+  <Project Path="JEO3.Generation/JEO3.Generation.csproj" />
+  <Project Path="JEO3.IO/JEO3.IO.csproj" Id="1659ab0d-dc06-409b-ab63-c4b3d134b464" />
+  <Project Path="JEO3.Logging/JEO3.Logging.csproj" Id="56165632-7f5e-4ed5-a4fc-8f32dcecc3b2" />
+  <Project Path="JEO3.Monitor.Charts/JEO3.Monitor.Charts.csproj" Id="f9fad3ba-2140-4b70-baf9-1288dcd84fd3" />
+  <Project Path="JEO3.Monitor/JEO3.Monitor.csproj" Id="f02b1fe7-09ff-4f6a-8c03-1d05a7316814" />
+  <Project Path="JEO3.Providers.Catalogs/JEO3.Providers.Catalogs.csproj" Id="7dee7cf2-c75f-438d-87a8-380af5dfda0c" />
+  <Project Path="JEO3.Providers.Extensions/JEO3.Providers.Extensions.csproj" Id="528a0d9d-a8e6-4502-975a-f8ec9c7e0b4f" />
+  <Project Path="JEO3.Providers/JEO3.Providers.csproj" />
+  <Project Path="JEO3.Schema/JEO3.Schema.csproj" Id="d3931567-7591-4d27-a650-4e149ac49a02" />
+  <Project Path="JEO3.Site/JEO3.Site.csproj" /> 
+</Solution>

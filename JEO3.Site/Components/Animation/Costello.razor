@@ -1,0 +1,248 @@
+﻿@namespace JEO3.Site.Components
+@using JEO3.Site.Components
+@inject TooltipService TooltipService
+@inject IJSRuntime JS
+
+<div class="costello-swarm-container">
+	@foreach (var m in Swarm)
+	{
+		<img src="@(m.ImageSource)" style="position: fixed; bottom: @(m.Y)px; left: calc(50% + @(m.X)px);
+		transform: rotate(@(m.Rotation)deg) scaleX(@(m.ScaleX)); width: 24px; height: 24px; z-index: @(m.Z);
+		transition: none; cursor: pointer" onclick="@(async () => { await DeleteBob(m); })" />
+	}
+</div>
+
+<div class="costello-trigger-container">
+
+	<button @ref="pacmanButton"
+			class="costello-trigger-btn shadow"
+			@onmouseover="@(args => TooltipService.Open(pacmanButton, (IsRunning ? "Stop" : "Start") + " Pacman Animation!", new TooltipOptions { Position = TooltipPosition.Left }))"
+			title="@(IsRunning ? "stop animation" : "start pacman volcano animation")"
+			@onclick="@(async () => { if (IsRunning) { Swarm = new(); IsRunning = false; } else { await TriggerFlashMob(25, true); } })">
+		<span style="font-family: 'JetBrains Mono', monospace, Consolas;">🥠</span>
+	</button>
+</div>
+
+@code {
+	private ElementReference pacmanButton;
+	private List<MascotBob> Swarm = new();
+	private bool IsRunning = false;
+	private static Random Rnd = new Random();
+
+	// Global choreography clock for the flash mob sync
+	private int GlobalDanceTick = 0;
+
+	// Cache previous state to avoid unnecessary re-renders
+	private string _previousStateHash = string.Empty;
+	public async Task DeleteBob(MascotBob bob)
+	{
+		if (IsRunning == false) { return;  }
+		Swarm.Remove(bob);
+		await InvokeAsync(StateHasChanged);
+	}
+
+	public async Task TriggerFlashMob(int count, bool sendFlying = false)
+	{
+		Swarm.Clear();
+		GlobalDanceTick = 0;
+		var cnt = Math.Round(count * .25, 0);
+		for (var i = 0; i < cnt; i++)
+		{
+			Swarm.Add(new MascotBob()
+			{
+				X = Rnd.Next(-100, 100), // Slight spread at birth
+				Y = 0,
+				Rotation = 0,
+				VelocityY = Rnd.Next(40, sendFlying ? 90 : 60), // Volcano blast power
+				VelocityX = Rnd.NextDouble() * 16 - 8,
+				State = MascotState.Erupting,
+				 ImageSourceOverride = "../img/pacman/pacman_ghost_gif_17.png"
+			});
+		}
+
+		Swarm.Add(new MascotBob()
+		{
+			X = Rnd.Next(-100, 100), // Slight spread at birth
+			Y = 0,
+			Rotation = 0,
+			VelocityY = Rnd.Next(40, sendFlying ? 90 : 60), // Volcano blast power
+			VelocityX = Rnd.NextDouble() * 16 - 8,
+			State = MascotState.Erupting,
+			PacmanHimself = true,
+		});
+		
+		for (int i = 0; i < count; i++)
+		{
+			Swarm.Add(new MascotBob
+			{
+				X = Rnd.Next(-100, 100), // Slight spread at birth
+				Y = 0,
+				Rotation = 0,
+				VelocityY = Rnd.Next(40, sendFlying ? 90 : 60), // Volcano blast power
+				VelocityX = Rnd.NextDouble() * 16 - 8,
+				State = MascotState.Erupting,
+				RND = Rnd.Next(1, 10)
+			});
+		}
+
+		if (!IsRunning)
+		{
+			IsRunning = true;
+			await RunChoreographyLoop();
+		}
+	}
+
+	private string CalculateStateHash()
+	{
+		// Simple hash to detect if any mascot position changed
+		var sb = new System.Text.StringBuilder();
+		foreach (var m in Swarm)
+		{
+			sb.Append($"{m.X:F1},{m.Y:F1},{m.Rotation:F1},{m.ScaleX:F1},");
+		}
+		return sb.ToString();
+	}
+
+	private async Task RunChoreographyLoop()
+	{
+		double gravity = -2;
+
+		MascotState currentGlobalPhase = MascotState.Dancing;
+		while (IsRunning)
+		{
+			GlobalDanceTick++;
+			bool activeMascs = false;
+
+			// Determine global choreography phase based on ticks
+			// Ticks 0-150: Erupting & landing
+			// Ticks 151-350: Roaming like musical chairs
+			// Ticks 351+: Synchronized flash mob dance!
+			if (GlobalDanceTick < 200) currentGlobalPhase = MascotState.Erupting;
+			else if (GlobalDanceTick < 400) currentGlobalPhase = MascotState.Roaming;
+			else if (GlobalDanceTick < 500) currentGlobalPhase = MascotState.Dancing;
+			else if (GlobalDanceTick < 800) currentGlobalPhase = MascotState.Roaming;
+			else if (GlobalDanceTick < 900) currentGlobalPhase = MascotState.Dancing;
+			else if (GlobalDanceTick < 1500) currentGlobalPhase = MascotState.Roaming;
+			else
+			{
+				GlobalDanceTick = 140;
+			}
+
+
+			foreach (var m in Swarm)
+			{
+				if (currentGlobalPhase == MascotState.Erupting)
+				{
+					// --- PHASE 1: GRAVITY & ERUPTION ---
+					m.VelocityY += gravity;
+					m.X += m.VelocityX;
+					m.Y += m.VelocityY;
+					m.Rotation += m.VelocityX * 2;
+
+					if (m.Y <= 0)
+					{
+						m.Y = 0;
+						if (Math.Abs(m.VelocityY) > 3)
+						{
+							m.VelocityY *= -0.5; // Bounce
+						}
+						else
+						{
+							m.VelocityY = 0;
+							m.VelocityX = 0;
+							m.VelocityX = Rnd.Next(0, 2) == 0 ? 1.5 : -1.5; // Start roaming speed
+						}
+					}
+					activeMascs = true;
+				}
+				else if (currentGlobalPhase == MascotState.Roaming)
+				{
+					// --- PHASE 2: MUSICAL CHAIRS COMMUTING ---
+					m.Y = 0;
+					m.X += m.VelocityX;
+					m.Rotation = 0;
+
+					// Face walking direction
+					m.ScaleX = m.VelocityX > 0 ? 1 : -1;
+
+					if (m.RND == 100)
+					{
+						if (m.X < 0 || m.X > windowWidthEstimate())
+						{
+							m.X = Math.Round(windowWidthEstimate() / 2, 0);
+						}
+						// Turn around if they wander too far from screen center bounds
+						if (m.X > (windowWidthEstimate()) || m.X < 0)
+						{
+							m.VelocityX *= -1;
+						}
+						else
+						{
+							m.VelocityX = m.PacmanHimself ? 2 : m.VelocityX * 1.0;
+						}
+					}
+					else
+					{
+						// Turn around if they wander too far from screen center bounds
+						if (m.X > (windowWidthEstimate() / 2 - 50) || m.X < -(windowWidthEstimate() / 2 - 50))
+						{
+							m.VelocityX *= -1;
+						}
+					}
+
+					// Add a tiny bit of organic random shuffling
+					if (Rnd.Next(0, 50) == 0) m.VelocityX *= -1;
+
+					activeMascs = true;
+				}
+				else if (currentGlobalPhase == MascotState.Dancing)
+				{
+					// --- PHASE 3: THE GRAND CENTRAL FLASH MOB SYNC ---
+					m.Y = 0;
+
+					// Sub-phase choreography locked to the global tick clock
+					int danceStep = (GlobalDanceTick / 20) % 7;
+
+					switch (danceStep)
+					{
+						case 0:
+							// Move left together in lockstep
+							m.X -= 3;
+							m.ScaleX = -1;
+							m.Rotation = 0;
+							break;
+						case 1:
+							// The Synchronized Shake (+10 / -10 wiggle)
+							m.Rotation = ((GlobalDanceTick / 5) % 2 == 0) ? 12 : -12;
+							break;
+						case 2:
+							// Move right together in lockstep
+							m.X += 3;
+							m.ScaleX = 1;
+							m.Rotation = 0;
+							break;
+						case 3:
+							// The Pop-Up Hop celebration frame
+							m.Y = ((GlobalDanceTick % 10) < 5) ? 10 : 0;
+							m.Rotation = 0;
+							break;
+					}
+
+					activeMascs = true;
+				}
+			}
+
+			// Only call StateHasChanged if positions actually changed
+			var currentStateHash = CalculateStateHash();
+			if (currentStateHash != _previousStateHash)
+			{
+				_previousStateHash = currentStateHash;
+				StateHasChanged();
+			}
+			
+			await Task.Delay(16); // 60 FPS smooth lock
+		}
+	}
+
+	private double windowWidthEstimate() => 2200; // Fallback bound buffer for wandering
+}

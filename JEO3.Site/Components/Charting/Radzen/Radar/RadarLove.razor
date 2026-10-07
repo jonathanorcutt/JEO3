@@ -1,0 +1,184 @@
+﻿@using JEO3.Schema
+@using JEO3.Site.Dashboard
+@using Radzen
+@using Radzen.Blazor
+
+@namespace JEO3.Site.Components.Charting
+@inject WSWorkspace W
+@implements IDisposable
+
+<!-- Flex layout wrapper forcing a 50/50 vertical split -->
+<div style="display: flex; flex-direction: column; height: 100%; width: 100%;">
+
+    @if (Table != null)
+    {
+        <div style="flex: 1; min-height: 0; padding-bottom: 12px;">
+            <RadzenSpiderChart @key="tableChartKey" Style="height:100% !important; background-color:rgba(0,0,0,0.55); border-radius:10px;">
+                <RadzenSpiderLegend Visible="true" Position="LegendPosition.Right" />
+                <RadzenSpiderSeries TItem="RadarPoint"
+                                    Data="@TableRadar"
+                                    CategoryProperty="Metric"
+                                    ValueProperty="Value"
+                                    Title="@Table.SqlSafeName" />
+            </RadzenSpiderChart>
+        </div>
+    }
+
+    @if (Column != null)
+    {
+        <div style="flex: 1; min-height: 0; padding-top: 12px;">
+            <RadzenSpiderChart @key="columnChartKey" Style="height:100% !important; background-color:rgba(0,0,0,0.55); border-radius:10px;">
+                <RadzenSpiderLegend Visible="true" Position="LegendPosition.Right" />
+                <RadzenSpiderSeries TItem="RadarPoint"
+                                    Data="@ColumnRadar"
+                                    CategoryProperty="Metric"
+                                    ValueProperty="Value"
+                                    Title="@Column.Name" />
+            </RadzenSpiderChart>
+        </div>
+    }
+
+</div>
+
+@code {
+    [Parameter] public ITable? Table { get; set; }
+    [Parameter] public IColumn? Column { get; set; }
+
+    private string tableChartKey = Guid.NewGuid().ToString();
+    private string columnChartKey = Guid.NewGuid().ToString();
+
+    public List<RadarPoint> TableRadar { get; set; } = new();
+    public List<RadarPoint> ColumnRadar { get; set; } = new();
+    private bool _isDisposed = false;
+
+    protected override void OnParametersSet()
+    {
+        if (Table != null)
+        {
+            TableRadar = BuildTableRadar(Table);
+            if (Column == null)
+            {
+                Column = Table.Columns.FirstOrDefault(v => v.IsPrimaryKey) ?? Table.Columns.FirstOrDefault();
+            }
+        }
+        if (Column != null)
+        {
+            ColumnRadar = BuildColumnRadar(Column);
+        }
+    }
+
+    private static readonly Dictionary<string, double> TableCaps = new()
+    {
+        ["Columns"] = 20, ["Indexes"] = 5, ["Foreign Keys"] = 5, ["Referenced By FKs"] = 5,
+        ["Triggers"] = 2, ["Check Constraints"] = 3, ["Parents"] = 5, ["Children"] = 5,
+        ["Statistics"] = 15, ["Missing Indexes"] = 2
+    };
+
+    private static readonly Dictionary<string, double> ColumnCaps = new()
+    {
+        ["Index Count"] = 5, ["FK Count"] = 5, ["Referenced By FKs"] = 5, ["Index Links"] = 5,
+        ["Check Constraints"] = 5, ["Missing Indexes"] = 5
+    };
+
+    private static double Normalize(double value, double cap) => Math.Min(100, value / cap * 100);
+
+    private List<RadarPoint> BuildTableRadar(ITable t)
+    {
+        var raw = new Dictionary<string, double>
+        {
+            ["Columns"] = t.Columns.Count, ["Indexes"] = t.Indexes.Count, ["Foreign Keys"] = t.ForeignKeys.Count,
+            ["Referenced By FKs"] = t.ReferencedByForeignKeys.Count, ["Triggers"] = t.Triggers.Count,
+            ["Check Constraints"] = t.CheckConstraints.Count, ["Parents"] = t.ParentRelations.Count,
+            ["Children"] = t.ChildRelations.Count, ["Statistics"] = t.Statistics.Count, ["Missing Indexes"] = t.MissingIndexes.Count
+        };
+        return raw.Select(kv => new RadarPoint { Metric = kv.Key, Value = Normalize(kv.Value, TableCaps[kv.Key]) }).ToList();
+    }
+
+    private List<RadarPoint> BuildColumnRadar(IColumn c)
+    {
+        var raw = new Dictionary<string, double>
+        {
+            ["Index Count"] = c.Indexes.Count, ["FK Count"] = c.ForeignKeys.Count, ["Referenced By FKs"] = c.ReferencedByForeignKeys.Count,
+            ["Index Links"] = c.IndexLinks.Count, ["Check Constraints"] = c.CheckConstraints.Count, ["Missing Indexes"] = c.MissingIndexes.Count
+        };
+        return raw.Select(kv => new RadarPoint { Metric = kv.Key, Value = Normalize(kv.Value, ColumnCaps[kv.Key]) }).ToList();
+    }
+
+    #region Initialization
+
+    protected override void OnInitialized()
+    {
+        W.OnDashboardStateChanged += HandleWorkspaceUpdated;
+        W.OnTableChanged += HandleTableChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (W.SelectedTable != null)
+            {
+                var table = W.SelectedTable;
+                if (table != null && table.Columns.Any())
+                {
+                    Table = table;
+                    Column = Table.Columns.FirstOrDefault(v => v.IsPrimaryKey);
+                }
+            }
+            StateHasChanged();
+        }
+    }
+
+    public void Dispose()
+    {
+        if (_isDisposed) return;
+        _isDisposed = true;
+        W.OnDashboardStateChanged -= HandleWorkspaceUpdated;
+        W.OnTableChanged -= HandleTableChanged;
+    }
+
+    private void HandleWorkspaceUpdated()
+    {
+        if (_isDisposed) return;
+
+        InvokeAsync(() =>
+        {
+            Table = W.SelectedTable;
+            if (Table != null)
+            {
+                TableRadar = BuildTableRadar(Table);
+                Column = Table.Columns.FirstOrDefault(v => v.IsPrimaryKey);
+                if (Column != null)
+                {
+                    ColumnRadar = BuildColumnRadar(Column);
+                }
+            }
+
+            tableChartKey = Guid.NewGuid().ToString();
+            columnChartKey = Guid.NewGuid().ToString();
+
+            StateHasChanged();
+        });
+    }
+
+    private void HandleTableChanged()
+    {
+        if (_isDisposed) return;
+
+        InvokeAsync(() =>
+        {
+            Table = W.SelectedTable;
+            if (Table != null)
+            {
+                TableRadar = BuildTableRadar(Table);
+            }
+
+            tableChartKey = Guid.NewGuid().ToString();
+
+            StateHasChanged();
+        });
+    }
+
+    #endregion
+
+}

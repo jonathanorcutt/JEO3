@@ -1,0 +1,20 @@
+/* CSS for JEOGrid component */
+
+.jeo-grid .rz-column-title-content {
+    font-size: 8pt;
+}
+
+.jeo-grid .rz-col-icon button {
+    padding: 0px !important;
+    min-height: 15px !important;
+    height: 20px !important;
+}
+
+.jeo-grid {
+    width: 100% !important;
+}
+    .jeo-grid .rz-grid-table th:first-child,
+    .jeo-grid .rz-grid-table td:first-child {
+        min-width: 200px !important;
+        width: 200px !important;
+    }

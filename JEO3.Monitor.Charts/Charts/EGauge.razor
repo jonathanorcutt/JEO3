@@ -1,0 +1,14 @@
+﻿@using JEO3.Core
+@using JEO3.Monitor
+@using PanoramicData.ECharts
+
+@inherits MonitorChartBase
+
+@namespace JEO3.Monitor.ECharts
+
+<div class="monitor-panel" onmousemove="updateCoordinates(event)">
+	<div class="echart-container">
+		<div class="coordinate-selector"></div>
+		<PanoramicData.ECharts.EChart @ref="Chart" Options="@Options" Width="@Width" Height="@Height" />
+	</div>
+</div>

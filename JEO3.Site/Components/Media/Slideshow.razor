@@ -1,0 +1,101 @@
+﻿@using System.Timers
+@implements IDisposable
+
+<div class="slideshow-container">
+    <!-- CRITICAL FIX: Adding @key forces the animation to re-trigger on index change -->
+    <div @key="currentImageIndex" class="slide fade-in">
+        <img src="@Images[currentImageIndex]" alt="Slideshow Image" />
+        @if (ShowCaptions && Captions?.Length > currentImageIndex)
+        {
+            <div class="caption">@Captions[currentImageIndex]</div>
+        }
+    </div>
+
+    <!-- Navigation Arrows -->
+    <button class="prev" @onclick="PreviousSlide">❮</button>
+    <button class="next" @onclick="NextSlide">❯</button>
+
+    <!-- Indicator Dots -->
+    <div class="dots-container">
+        @for (int i = 0; i < Images.Count; i++)
+        {
+            int index = i;
+            <span class="dot @(index == currentImageIndex ? "active" : "")"
+                  @onclick="() => JumpToSlide(index)"></span>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<string> Images { get; set; } = new();
+    [Parameter] public string[]? Captions { get; set; }
+    [Parameter] public int IntervalSeconds { get; set; } = 4;
+    [Parameter] public bool ShowCaptions { get; set; } = true;
+
+    private int currentImageIndex = 0;
+    private Timer? timer;
+
+    protected override void OnInitialized()
+    {
+        if (Images.Any())
+        {
+            timer = new Timer(IntervalSeconds * 1000);
+            timer.Elapsed += OnTimerElapsed;
+            timer.AutoReset = true;
+            timer.Start();
+        }
+    }
+
+    private void OnTimerElapsed(object? sender, ElapsedEventArgs e)
+    {
+        InvokeAsync(() =>
+        {
+            NextSlideWithoutReset();
+            StateHasChanged();
+        });
+    }
+
+    // Separated method for timer to prevent recursive loop
+    private void NextSlideWithoutReset()
+    {
+        if (!Images.Any()) return;
+        currentImageIndex = (currentImageIndex + 1) % Images.Count;
+    }
+
+    private void NextSlide()
+    {
+        NextSlideWithoutReset();
+        ResetTimer(); // Reset so it doesn't instantly change again
+    }
+
+    private void PreviousSlide()
+    {
+        if (!Images.Any()) return;
+        currentImageIndex = (currentImageIndex - 1 + Images.Count) % Images.Count;
+        ResetTimer(); // Reset so it doesn't instantly change again
+    }
+
+    private void JumpToSlide(int index)
+    {
+        currentImageIndex = index;
+        ResetTimer();
+    }
+
+    private void ResetTimer()
+    {
+        if (timer != null)
+        {
+            timer.Stop();
+            timer.Start();
+        }
+    }
+
+    public void Dispose()
+    {
+        if (timer != null)
+        {
+            timer.Elapsed -= OnTimerElapsed;
+            timer.Dispose();
+        }
+    }
+}

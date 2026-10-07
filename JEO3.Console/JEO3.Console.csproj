@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Data.SqlClient.Extensions.Azure" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\JEO3.Code\JEO3.Code.csproj" />
+		<ProjectReference Include="..\JEO3.Generation\JEO3.Generation.csproj" />
+		<ProjectReference Include="..\JEO3.IO\JEO3.IO.csproj" />
+		<ProjectReference Include="..\JEO3.Providers\JEO3.Providers.csproj" />
+		<ProjectReference Include="..\JEO3.Engine\JEO3.Engine.csproj" />
+	</ItemGroup>
+
+</Project>

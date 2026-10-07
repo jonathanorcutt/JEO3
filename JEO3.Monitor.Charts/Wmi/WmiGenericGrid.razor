@@ -1,0 +1,29 @@
+﻿@namespace JEO3.Monitor.Charts.WMI
+@inherits WmiMonitorComponentBase
+
+<RadzenDataGrid Data="@Enumerable.Range(0, Data.First().Value.Count)"
+                TItem="int"
+                AllowFiltering="false"
+                AllowSorting="false">
+    <Columns>
+        @foreach (var columnKey in Data.Keys)
+        {
+            var currentColumn = columnKey;
+
+            <RadzenDataGridColumn TItem="int" Title="@currentColumn">
+                <Template Context="rowIndex">
+                    @{
+                        var value = Data[currentColumn][rowIndex];
+                    }
+                    <span>@value</span>
+                </Template>
+            </RadzenDataGridColumn>
+        }
+    </Columns>
+</RadzenDataGrid>
+
+
+@code
+{
+    [Parameter] public Dictionary<string, List<object>> Data { get; set; }
+}

@@ -1,0 +1,34 @@
+﻿@namespace JEO3.Site.Components.Common
+
+
+@inherits ErrorBoundary
+
+@if (CurrentException is null)
+{
+    @ChildContent
+}
+else if (IsDisconnectedException(CurrentException))
+{
+    // Clear the error and render child content normally during disposal
+    @ChildContent
+}
+else
+{
+    // Let other actual errors show the default error UI
+    @ErrorContent
+}
+
+@code {
+    private bool IsDisconnectedException(Exception ex)
+    {
+        // Check inner exceptions since disposal errors can be wrapped
+        while (ex != null)
+        {
+            if (ex is Microsoft.JSInterop.JSDisconnectedException)
+                return true;
+
+            ex = ex.InnerException;
+        }
+        return false;
+    }
+}

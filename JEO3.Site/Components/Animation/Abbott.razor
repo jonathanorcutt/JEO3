@@ -1,0 +1,131 @@
+﻿@namespace JEO3.Site.Components
+
+<div style="position: relative; width: 100%; height: 30px; bottom: 15px; overflow: hidden; pointer-events: none;">
+    @foreach (var m in Swarm)
+    {
+        <img src="@(m.ImageSource)"
+             style="position: fixed;
+        bottom: @(m.Y)px;
+        left: calc(30% + @(m.X)px);
+        transform: rotate(@(m.Rotation)deg) scaleX(@(m.ScaleX));
+        width: @(m.Width)px;
+        height: @(m.Height)px;
+        z-index: @(m.Z);
+        transition: none; /* Crucial: CSS transitions ruin game loops */" />
+	}
+
+</div>
+
+<div style="position: absolute; bottom: 40px; left: 20px; z-index: 10000;height:30px">
+    <button class="btn btn-warning fw-bold shadow" @onclick="@(async () => await Erupt(12))">🎬 Abbott!</button>
+</div>
+
+
+@code {
+    // The Explicitly Typed Mascot State
+  
+    private List<MascotBob> Swarm = new();
+    private bool IsRunning = false;
+    private static Random Rnd = new Random();
+
+    // The Spawner
+    public async Task Erupt(int count)
+    {
+        // Clear old swarm and spawn 30 new clones at the bottom middle
+        Swarm.Clear();
+        for (int i = 0; i < count; i++)
+        {
+            Swarm.Add(new MascotBob
+            {
+                X = 0,
+                Y = 0, // 0 is the floor
+                Rotation = Rnd.Next(0, 360),
+
+                // Blast them upward (Positive Y is up since we use CSS 'bottom')
+                VelocityY = Rnd.Next(25, 45),
+
+                // Spread them left and right
+                VelocityX = Rnd.NextDouble() * 20 - 10,
+
+                // Spin them wildly
+                RotationalVelocity = Rnd.NextDouble() * 30 - 15,
+                RND = Rnd.Next(1, 6)
+            });
+        }
+
+        if (!IsRunning)
+        {
+            IsRunning = true;
+            await RunPhysicsLoop();
+        }
+    }
+
+    // The Pure C# Gravity Engine
+    private async Task RunPhysicsLoop()
+    {
+        double gravity = -1.5; // Pulls VelocityY down every frame
+        double floorFriction = 0.8;
+        double bounceDampening = -0.6; // Reverses direction and loses energy
+
+        while (IsRunning)
+        {
+            bool allSettled = true;
+
+            foreach (var m in Swarm)
+            {
+                // Apply Gravity
+                m.VelocityY += gravity;
+
+                // Apply Velocities to Position
+                m.X += m.VelocityX;
+                m.Y += m.VelocityY;
+                m.Rotation += m.RotationalVelocity;
+
+                // Look Left or Right based on X velocity
+                if (Math.Abs(m.VelocityX) > 0.5)
+                {
+                    m.ScaleX = m.VelocityX > 0 ? 1 : -1;
+                }
+
+                // Floor Collision Detection (Google Gravity style pile-up)
+                if (m.Y <= 0)
+                {
+                    m.Y = 0; // Snap to floor
+
+                    if (Math.Abs(m.VelocityY) > 2)
+                    {
+                        // Bounce!
+                        m.VelocityY *= bounceDampening;
+                        m.RotationalVelocity *= 0.7; // Slow the spin on impact
+                    }
+                    else
+                    {
+                        // Stop moving vertically if the bounce is too small
+                        m.VelocityY = 0;
+                        m.RotationalVelocity = 0;
+                        m.VelocityX *= floorFriction; // Slide to a halt
+                    }
+                }
+
+                // Keep loop alive if anyone is still moving significantly
+                if (Math.Abs(m.VelocityY) > 0.5 || Math.Abs(m.VelocityX) > 0.5)
+                {
+                    allSettled = false;
+                }
+
+                m.Z = Rnd.Next(-1, 3);
+            }
+
+            StateHasChanged(); // Force Blazor to render the new frame
+
+            if (allSettled)
+            {
+                IsRunning = false; // Kill the loop to save CPU when they stop moving
+            }
+            else
+            {
+                await Task.Delay(16); // ~60 FPS (1000ms / 60 = 16.6ms)
+            }
+        }
+    }
+}

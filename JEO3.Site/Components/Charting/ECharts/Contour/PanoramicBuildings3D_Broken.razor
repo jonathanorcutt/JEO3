@@ -1,0 +1,73 @@
+﻿@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+@namespace JEO3.Site.Components.Charting
+@typeparam TRow
+
+<div id="@_containerId" class="schema-buildings-3d" style="width: @(Width); height: @(Height); background-color: #0a0c10;"></div>
+
+@code {
+    [Parameter] public string Width { get; set; } = "100%";
+    [Parameter] public string Height { get; set; } = "100%";
+    [Parameter] public string Title { get; set; } = "Schema 3D Metropolis";
+
+    // 🌟 THE FIX: Map matching TRow generic collections parameters seamlessly
+    [Parameter] public IEnumerable<TRow> Rows { get; set; } = [];
+    [Parameter] public Func<TRow, string> RowLabelSelector { get; set; } = _ => string.Empty;
+    [Parameter] public Func<TRow, string, double> CellSelector { get; set; } = (_, _) => 0;
+    
+    // 🌟 ADD THIS: Tells the layout engine which column property name metric to extract for building heights
+    [Parameter] public string TargetMetric { get; set; } = "Columns"; 
+    [Parameter] public string GeoJsonPath { get; set; } = "./assets/data/buildings.json";
+
+    private readonly string _containerId = $"chart-buildings-3d-{Guid.NewGuid():N}";
+    private IJSObjectReference? _module;
+    private bool _jsAvailable = false;
+    private bool _isDisposed = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _jsAvailable = true;
+            _module = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/echarts/charts3d.js");
+            await BuildBuildingsChartAsync();
+        }
+    }
+
+    private async Task BuildBuildingsChartAsync()
+    {
+        if (_isDisposed || !_jsAvailable || _module == null || Rows == null) return;
+
+        var rowsList = Rows.ToList();
+        if (rowsList.Count == 0) return;
+
+        // 🌟 THE CORRECTION: Iterate over your cached generic rowsList list context array!
+        // This ensures the row identifier (r) accurately matches your Func<TRow, string, double> signature type.
+        var transportPayload = rowsList.Select(r => new
+        {
+            tablePath = RowLabelSelector(r),
+            value = Math.Clamp(CellSelector(r, TargetMetric), 0.0, 1.0)
+        }).ToList();
+
+        try
+        {
+            await _module.InvokeVoidAsync(
+                "renderPanoramicBuildings3D",
+                _containerId,
+                Title,
+                GeoJsonPath,
+                transportPayload
+            );
+        }
+        catch { }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_module != null)
+        {
+            try { await _module.DisposeAsync(); } catch { }
+        }
+        _isDisposed = true;
+    }
+}

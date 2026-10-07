@@ -1,0 +1,155 @@
+﻿@using JEO3.Monitor.ECharts
+@using JEO3.Schema
+@using JEO3.Site.Components.Charting
+@using JEO3.Site.Components.Icons
+@using JEO3.Site.Dashboard
+
+@namespace JEO3.Site.Components.TileLayout
+
+<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap" class="rz-mb-1 rz-mt-1">
+	<RadzenSwitch @bind-Value=@editMode Name="EditMode" />
+	<RadzenLabel Text="Edit mode" Component="EditMode" />
+
+	<RadzenSwitch @bind-Value=@showGrid Name="ShowGrid" />
+	<RadzenLabel Text="Show grid" Component="ShowGrid" />
+
+    <VSIcon Width="22" Height="22" Name="file_type_opencl" Type="VSIconType.VSCode" Class="fa-mr7 fa-m;-15" /> 
+    <label for="preventRootTypeRecursion" class="sidebar-config-checkbox-label fa-mr-15">Dashboard saves automatically</label>
+</RadzenStack>
+
+<div class="dashboard-pane-container query-results-pane">
+	<div class="dashboard-pane-body-container-scroll">
+        <div class="sample-tile-layout">
+			<TileLayoutManager DefaultTiles="@DashboardLayout" StorageKey="user_homepage_grid" EditMode="@editMode" ShowGrid="@showGrid" />
+		</div>
+	</div>
+</div>
+
+@code{
+	
+    private List<GenericTileItem> DashboardLayout => new()
+    {
+		// Row 1: Top Charts
+		new GenericTileItem
+        {
+            Id = "analytics_widget1",
+            Title = "SQL MONITOR KILLER",
+            Icon = "analytics",
+            Col = 1, Row = 1, ColSpan = 32, RowSpan = 16,
+            ChildContent = @<WaitRateChart Width="770px" Height="250px"/>
+
+        },
+        new GenericTileItem
+        {
+            Id = "analytics_widget2",
+            Title = "WAIT ACTIVITY — LIVE",
+            Icon = "analytics",
+            Col = 33, Row = 1, ColSpan = 32, RowSpan = 16,
+            ChildContent = @<WaitCandleChart Width="770px" Height="250px"/>
+
+        },
+        
+        new GenericTileItem
+        {
+            Id = "analytics_widget3",
+            Title = "Node Diagram",
+            Icon = "analytics",
+            Col = 1, Row = 44, ColSpan = 32, RowSpan = 46,
+            ChildContent = @<DiagramViewerJarvis />
+        },
+		// Row 2: Middle Charts
+		new GenericTileItem
+        {
+            Id = "analytics_widget4",
+            Title = "Panoramic Contour 3D",
+            Icon = "analytics",
+            Col = 33, Row = 17, ColSpan = 35, RowSpan = 27,
+            ChildContent = @<PanoramicContour3D TRow="ITable" Rows="@W.Context?.Tables" Columns="@MetricNames" RowLabelSelector="@(t => t.TablePath)" Width="700px" Height="400px"
+						  CellSelector="@((t, m) => GetContourNormalizedMetric(t, m))" Title="Schema Heat Map" IntensityLabel="Complexity" />
+
+        },
+        new GenericTileItem
+        {
+            Id = "analytics_widget5",
+            Title = "Query Editor",
+            Icon = "analytics",
+            Col = 33, Row = 44, ColSpan = 35, RowSpan = 46,
+            ChildContent = @<PanoramicRelations3D Width="700px" Height="700px" Title="Welcome. Feel free to explore." Tables="@W.Context?.Tables" />
+            //@<PanoramicRelations3D Width="700px" 
+            //           Height="400px" 
+            //           Title="Database Transaction Flight Paths" 
+            //           Tables="@W.Context?.Tables" />
+
+        },
+		new GenericTileItem
+        {
+            Id = "analytics_widget6",
+            Title = "ER Diagram",
+            Icon = "analytics",
+            Col = 1, Row = 17, ColSpan = 32, RowSpan = 27,
+            ChildContent = @<DiagramViewerDatabase />
+
+        },
+		// new GenericTileItem
+  //       {
+  //           Id = "analytics_widget7",
+  //           Title = "ER Diagram",
+  //           Icon = "analytics",
+  //           Col = 1, Row = 67, ColSpan = 16, RowSpan = 25,
+  //           ChildContent = @<TableNav />
+
+  //       },
+		// new GenericTileItem
+  //       {
+  //           Id = "analytics_widget8",
+  //           Title = "ER Diagram",
+  //           Icon = "analytics",
+  //           Col = 33, Row = 67, ColSpan = 32, RowSpan = 25,
+  //           ChildContent = @<VoxChart3D Title="Voxel Asset Blueprint" ImageUrl="../../img/branding/vox.jpg"  Width="600px" Height="400px" />
+
+  //       },
+		// new GenericTileItem
+  //       {
+  //           Id = "analytics_widget9",
+  //           Title = "ER Diagram",
+  //           Icon = "analytics",
+  //           Col = 1, Row = 12, ColSpan = 64, RowSpan = 30,
+  //           ChildContent = @<JEOGrid AllowVirtualization="true" PrimaryKeyColumn="PrimaryKeyColumn" DataTable="@W.Result?.Databars?.Tables"  />
+
+  //       },
+  //       new GenericTileItem
+  //       {
+  //           Id = "analytics_widget7",
+  //           Title = "Database Treeview",
+  //           Icon = "analytics",
+  //           Col = 49, Row = 33, ColSpan = 16, RowSpan = 25,
+  //           ChildContent = @<JeoTreeView Items="@(new List<IObject>() { W.Context.Database})" />
+  //       },
+		// new GenericTileItem
+  //       {
+  //           Id = "analytics_widget5",
+  //           Title = "ER Diagram",
+  //           Icon = "analytics",
+  //           Col = 1, Row = 59, ColSpan = 20, RowSpan = 25,
+  //           ChildContent = @<DiagramViewerDatabase />
+
+  //       },
+  //       new GenericTileItem
+  //       {
+  //           Id = "analytics_widget6",
+  //           Title = "Node Diagram",
+  //           Icon = "analytics",
+  //           Col = 21, Row = 59, ColSpan = 28, RowSpan = 25,
+  //           ChildContent = @<DiagramViewerJarvis />
+  //       },
+  //       new GenericTileItem
+  //       {
+  //           Id = "analytics_widget7",
+  //           Title = "Database Treeview",
+  //           Icon = "analytics",
+  //           Col = 49, Row = 59, ColSpan = 16, RowSpan = 36,
+  //           ChildContent = @<JeoTreeView Items="@(new List<IObject>() { W.Context.Database})" />
+  //       }
+    };
+
+} 

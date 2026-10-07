@@ -1,0 +1,49 @@
+﻿@namespace JEO3.Site.Dashboard
+@inject IJSRuntime JSRuntime
+
+<div style="position:absolute;top:0px;left:0px;width:100vw;height:100vh">
+<!-- Blazor only sees an empty div. It has no idea a video lives here. -->
+<div id="videoContainer" @key='"dont-touch-me-blazor"'></div>
+</div>
+@code {
+    [Parameter]
+    public string RelativeFilePath { get; set; } = "../assets/matrix.webm";
+    [Parameter]
+    public int MarginTop { get; set; } = 0;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InjectPureCanvasVideo(RelativeFilePath);
+        }
+    }
+
+    private async Task InjectPureCanvasVideo(string url)
+    {
+        // We inject raw HTML directly via JS. Blazor's diffing engine is completely blind to this.
+        await JSRuntime.InvokeVoidAsync("eval", $@"
+            var container = document.getElementById('videoContainer');
+            if (container && !document.getElementById('myVideo')) {{
+                container.innerHTML = `
+                    <video id='myVideo' autoplay muted playsinline preload='auto' loop style='width:100%;height:100%;object-fit: cover;margin-top:{MarginTop}px'>
+                        <source src='{url}' type='video/webm'>
+                    </video>
+                `;
+            }}
+        ");
+    }
+
+    // Call this if you need to change it later
+    private async Task ChangeVideo(string newUrl)
+    {
+        await JSRuntime.InvokeVoidAsync("eval", $@"
+            var v = document.getElementById('myVideo');
+            if (v) {{
+                v.src = '{newUrl}';
+                v.load();
+                v.play();
+            }}
+        ");
+    }
+}

@@ -1,0 +1,492 @@
+﻿@using JEO3.Site.Components.Icons
+
+@namespace JEO3.Site.Dashboard
+
+@inject DialogService DialogService
+@inject NotificationService NotificationService
+
+<RadzenCard Variant="Variant.Outlined" class="dashboard-config-container padding-left-0 dashboard-top-bar">
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Start" Wrap="FlexWrap.NoWrap" class="dashboard-top-bar-stack">
+        <RadzenTabs RenderMode="TabRenderMode.Client" TabPosition="TabPosition.Left" SelectedIndexChanged="UpdateTabChanged" class="main-nav-tabs">
+            <Tabs>
+                <RadzenTabsItem Text="INSIGHT" Style="font-size:9pt;padding-left:0px;padding-right:0px;">
+                    <Template>
+                        INSIGHT <i class="fa-solid fa-bar-chart fa-ml7"></i>
+                    </Template>
+                    <ChildContent>
+                        <div class="dashboard-top-bar-content">
+                            @if (W.SelectedTable != null)
+                            {
+                                <div class="dashboard-config-section-right-start dashboard-config-section-right-start-flex config-section-margin-left-40">
+                                    <span class="dashboard-config-label">Indexes</span>
+                                    <span class="metric-value-wrapper">
+                                        <span class="metric-reach-label" style="color: @((W.SelectedTable.Indexes.Count < 1) ? "var(--rz-warning)" : "cornflowerblue")">
+                                            @* <span class="metric-reach-value">View</span> *@
+                                        </span>
+@*                                         <button type="button" @onclick="ShowTableCoverageMetricsDialog" title="View Table Indexes" class="info-icon-btn">
+                                            <IconLink IconStyle=" IconLink.IconStyleType.Info" />
+                                        </button> *@
+                                    </span>
+                                </div>
+                                <div class="dashboard-config-section-right">
+                                    <RadzenProgressBarCircular Value="@W.SelectedTable.Indexes.Count" ShowValue="true" ProgressBarStyle="ProgressBarStyle.Warning" AriaLabel="Indexes" Max="10">
+                                        <Template>
+                                            @W.SelectedTable.Indexes.Count
+                                        </Template>
+                                    </RadzenProgressBarCircular>
+                                </div>
+                            }
+
+                            @if (W.SelectedTable != null)
+                            {
+                                <div class="dashboard-config-section-right-start dashboard-config-section-right-flex-2">
+                                    <span class="dashboard-config-label">Columns</span>
+                                    <span class="metric-value-wrapper">
+                                        <span class="metric-reach-label" style="color: @((W.SelectedTable.Columns.Count < 1) ? "var(--rz-warning)" : "cornflowerblue")">
+                                            @* <span class="metric-reach-value">View</span> *@
+                                        </span>
+@*                                         <button type="button" @onclick="ShowTableCoverageMetricsDialog" title="View Table Columns" class="info-icon-btn">
+                                            <IconLink IconStyle=" IconLink.IconStyleType.Info" />
+                                        </button> *@
+                                    </span>
+                                </div>
+                                <div class="dashboard-config-section-right">
+                                    <RadzenProgressBarCircular Value="@(W.SelectedTable.Columns.Count)" ShowValue="true" ProgressBarStyle="ProgressBarStyle.Success" AriaLabel="Columns" Max="10">
+                                        <Template>
+                                            @(W.SelectedTable.Columns.Count)
+                                        </Template>
+                                    </RadzenProgressBarCircular>
+                                        </div>
+                            }
+
+                            @if (W.SelectedTable != null)
+                            {
+                                <div class="dashboard-config-section-right-start dashboard-config-section-right-flex-2">
+                                    <span class="dashboard-config-label">Triggers</span>
+                                    <span class="metric-value-wrapper">
+                                        <span class="metric-reach-label" style="color: @((W.SelectedTable.Triggers.Count < 1) ? "var(--rz-warning)" : "cornflowerblue")">
+                                            @* <span class="metric-reach-value">View</span> *@
+                                        </span>
+@*                                         <button type="button" @onclick="ShowTableCoverageMetricsDialog" title="View Table Triggers" class="info-icon-btn">
+                                            <IconLink IconStyle=" IconLink.IconStyleType.Info" />
+                                        </button> *@
+                                    </span>
+                                </div>
+                                <div class="dashboard-config-section-right">
+                                    <RadzenProgressBarCircular Value="@(W.SelectedTable.Triggers.Count)" ShowValue="true" ProgressBarStyle="ProgressBarStyle.Primary" AriaLabel="Triggers" Max="10">
+                                        <Template>
+                                            @(W.SelectedTable.Triggers.Count)
+                                        </Template>
+                                    </RadzenProgressBarCircular>
+                                        </div>
+                            }
+
+                            @if (W.SelectedTable != null)
+                            {
+                                <div class="dashboard-config-section-right-start dashboard-config-section-right-flex-2">
+                                    <span class="dashboard-config-label">Constraints</span>
+                                    <span class="metric-value-wrapper">
+                                        <span class="metric-reach-label" style="color: @((W.SelectedTable.CheckConstraints.Count < 1) ? "var(--rz-warning)" : "cornflowerblue")">
+                                            @* <span class="metric-reach-value">View</span> *@
+                                        </span>
+@*                                         <button type="button" @onclick="ShowTableCoverageMetricsDialog" title="View Table Check Constraints" class="info-icon-btn">
+                                            <IconLink IconStyle=" IconLink.IconStyleType.Info" />
+                                        </button> *@
+                                    </span>
+                                </div>
+                                <div class="dashboard-config-section-right">
+                                    <RadzenProgressBarCircular Value="@(W.SelectedTable.CheckConstraints.Count)" ShowValue="true" ProgressBarStyle="ProgressBarStyle.Info" AriaLabel="Check Constraints" Max="10" >
+                                        <Template>
+                                            @(W.SelectedTable.CheckConstraints.Count)
+                                        </Template>
+                                    </RadzenProgressBarCircular>
+                                </div>
+                            }      
+                            
+                            @if (_Result != null && _Result.Metrics != null)
+                            {
+                                <div class="dashboard-config-section-right-start dashboard-config-section-right-start-flex">
+                                    <span class="dashboard-config-label">Maximum Reach</span>
+                                    <span class="metric-value-wrapper">
+                                        <span class="metric-reach-label" style="color: @((_Result.Coverage.ReachablePercentage < 15) ? "var(--rz-warning)" : "cornflowerblue")">
+                                            <span class="metric-reach-value">@_Result.Coverage.ReachableLabel</span>
+                                        </span>
+                                        @if (W.SelectedTable != null && _Result.Coverage != null && _Result.Coverage.ReachableTables != null && _Result.Coverage.ReachableTables.Any())
+                                        {
+                                            <button type="button" @onclick="ShowTableCoverageMetricsDialog" title="View Table Coverage Metrics"
+                                                    class="info-icon-btn">
+                                                <IconLink IconStyle=" IconLink.IconStyleType.Info" />
+                                            </button>
+                                        }
+                                    </span>
+                                </div>
+                                <div class="dashboard-config-section-right">
+                                    <RadzenProgressBarCircular Value="@_Result.Coverage.ReachablePercentage" AriaLabel="Reachable Score" />
+                                </div>
+                                <div class="dashboard-config-section-right">
+                                    <span class="dashboard-config-label">Highest Confidence Fit</span>
+                                    <span class="metric-value-bold">
+                                        @_Result?.MatrixEvaluationLabel
+                                    </span>
+                                </div>
+                                <div class="dashboard-config-section-right dashboard-config-section-right-flex-2">
+                                    <span class="dashboard-config-label">Duplicates</span>
+                                    <span class="metric-value-wrapper-2">
+                                        <span style="color: @(_Result.Metrics?.DuplicateCount > 0 ? "var(--rz-warning)" : "var(--rz-text-color)")">
+                                            @_Result.Metrics?.DuplicateCount
+                                        </span>
+                                        @if (_Result.Metrics?.DuplicateCount > 0)
+                                        {
+                                            <button type="button" @onclick="ShowDuplicateTrailsDialog" title="View Duplicate Trails"
+                                                    class="warning-icon-btn">
+                                                <IconLink IconStyle=" IconLink.IconStyleType.Warning" />
+                                            </button>
+                                        }
+                                    </span>
+                                </div>
+                                <div class="dashboard-config-section-right">
+                                    <div class="score-wrapper">
+                                        <span class="dashboard-config-label">Score:</span>
+                                        <span class="score-info-wrapper">
+                                            @if (_Result.Metrics?.Score?.Details?.Count > 0)
+                                            {
+                                                <button type="button" @onclick="ShowConfidenceScoreDialog" title="View Confidence Score Breakdown"
+                                                        class="info-icon-btn">
+                                                    <IconLink IconStyle=" IconLink.IconStyleType.Info" />
+                                                </button>
+                                            }
+                                        </span>
+                                        <RadzenProgressBarCircular Value="_Result.Metrics.Score.ConfidenceScore" AriaLabel="Confidence:" Style="margin-right:10px" />
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </ChildContent>
+                </RadzenTabsItem>
+                <RadzenTabsItem Text="ACTION" Style="font-size:9pt;padding-left:0px;padding-right:0px;">
+                    <Template>
+                        ACTION  <i class="fa-solid fa-cog fa-ml7"></i>
+                    </Template>
+                    <ChildContent>
+                        <div class="dashboard-top-bar-content" style="width: 100%;">
+                            <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" Gap="1rem" AlignItems="AlignItems.Center" Style="width: 100%;margin-top:12px;">
+
+                                <RadzenButton class="rz-shadow-4" Variant="Variant.Filled" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@(async (args) => await OnGenerateTableClass.InvokeAsync())" Style="background:var(--jeo-gradient-cornflowerblue)"> <i class="fa-solid fa-code fa-mr2"></i> C# Class</RadzenButton>
+                                <RadzenButton class="rz-shadow-4" Variant="Variant.Filled" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@(async (args) => await OnGenerateAllCSharpClasses.InvokeAsync())" Style="background:var(--jeo-gradient-violet)">  <i class="fa-solid fa-cube fa-mr2"></i> All C# Classes</RadzenButton>
+                                <RadzenButton class="rz-shadow-4" Variant="Variant.Filled" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@(async (args) => await OnGenerateProcedures.InvokeAsync())" Style="background:var(--jeo-gradient-orange)">  <i class="fa-solid fa-gavel fa-mr2"></i> Stored Procedures</RadzenButton>
+                                <RadzenButton class="rz-shadow-4" Variant="Variant.Filled" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@(async (args) => await OnGenerateAllIndexes.InvokeAsync())" Style="background:var(--jeo-gradient-red)"> <i class="fa-solid fa-hand-point-up fa-mr2"></i> All Indexes</RadzenButton>
+                                <RadzenButton class="rz-shadow-4" Variant="Variant.Filled" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@(async (args) => await OnGenerateMissingIndexes.InvokeAsync())" Style="background:var(--jeo-gradient-green)"> <i class="fa-solid fa-question fa-mr2"></i> Missing Indexes</RadzenButton>
+                                <RadzenButton class="rz-shadow-4" Variant="Variant.Filled" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@(async (args) => await OnStressTest.InvokeAsync())" Style="background:var(--jeo-gradient-blue)" Disabled="@W.Observation.Traffic.IsRunning"> <i class="fa-solid fa-warning fa-mr2"></i> Generate Traffic</RadzenButton>
+
+                                <RadzenButton class="rz-shadow-4" Variant="Variant.Filled" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@(async (args) => await OnGenerateDbContext.InvokeAsync())" Style="background:var(--jeo-gradient-green)"> <i class="fa-solid fa-question fa-mr2"></i> Missing Indexes</RadzenButton>
+
+                                @* Fixed: Removed the accidental duplicate InvokeAsync duplicate button from here *@
+
+                                @if (W.Observation.Traffic.IsRunning)
+                                {
+                                    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" Style="margin-left: 10px;">
+                                        <RadzenLabel Text="@W.Observation.Traffic.CurrentTable" />
+                                        <RadzenLabel Text="@W.Observation.Traffic.PercentCompleted" />
+                                    </RadzenStack>
+                                }
+                            </RadzenStack>
+                        </div>
+                    </ChildContent>
+                </RadzenTabsItem>
+            </Tabs>
+        </RadzenTabs>
+    </RadzenStack>
+</RadzenCard>
+
+@code {
+
+    #region Properties
+
+    private int selectedIndex = 0;
+    private void UpdateTabChanged(int index)
+    {
+        selectedIndex = index;
+    }
+
+    #endregion
+
+    #region Dialogs
+    private void OnClick(string text)
+    {
+        NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "Button Clicked", Detail = text });
+    }
+    private async Task ShowGenerationMethodsDialog()
+    {
+        var result = await DialogService.OpenAsync("QUERY GENERATION METHODS", ds =>
+            @<RadzenStack Gap="1rem">
+                <span class="dialog-section-title">Auto-Optimize Switch</span>
+                <p>When turned <b>ON</b> queries will be generated for each of the three Traversal Methods <b>BELOW</b> and the optimizer will choose the winner and automatically update the relevant query generation options</p>
+                <span class="dialog-section-title">• Full Graph Traversal</span>
+                <p>When traversing from the root, Up and down independently from every discovered table (true graph traversal)</p>
+                <span class="dialog-section-title">• Root Split Traversal</span>
+                <p>When traversing from the root, Only recurse downward from the root and recurse upward from the root separately</p>
+                <span class="dialog-section-title">• Up Then Down Traversal</span>
+                <p>When traversing from the root, Up traversal first, then down traversal from every discovered node</p>
+
+                <span class="dialog-section-title-bolder">OTHER:</span>
+                <span class="dialog-section-title">Enable Inferred Relations</span>
+                <p>Whether or not to include any relations that the compiler suggests may exist even though no actual key exists for those 'inferred' relations.</p>
+                <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+                    <RadzenStack Orientation="Orientation.Horizontal">
+                        <RadzenButton Text="Ok" Click="() => { ds.Close(true); }" Style="width: 80px;" />
+                        <RadzenButton Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenStack>);
+    }
+
+    private async Task ShowDuplicateTrailsDialog()
+    {
+        var result = await DialogService.OpenAsync("DUPLICATE RELATIONSHIP PATHS DETECTED", ds =>
+            @<RadzenStack Gap="1rem" class="dialog-stack-wrapper">
+                <p class="dialog-description-text">
+                    The active code generator identified the following redundant traversal loops while evaluating the relational graph hierarchy. Consider pruning depth settings or using a strict strategy like <b>Split Root</b> to optimize query density.
+                </p>
+
+                <div class="dialog-scroll-container">
+                    <RadzenStack Gap="6px">
+                        @if (_Result.Metrics.DuplicateDetails != null && _Result.Metrics.DuplicateDetails.Any())
+                        {
+                            @foreach (var dup in _Result.Metrics.DuplicateDetails)
+                            {
+                                <div class="dashboard-pane-titlebar-right-container2">
+                                    <span class="duplicate-bullet">•</span>
+                                    <span class="duplicate-item-text">@dup</span>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <span class="dialog-empty-text">
+                                No path intersections detected.
+                            </span>
+                        }
+                    </RadzenStack>
+                </div>
+
+                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" class="dialog-footer-margin">
+                    <RadzenButton Text="Dismiss" Click="() => ds.Close(true)" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" Style="width: 90px;" />
+                </RadzenStack>
+            </RadzenStack>
+    ,
+            new DialogOptions()
+            {
+                CloseDialogOnOverlayClick = true,
+                ShowClose = true,
+                Width = "auto"
+            });
+    }
+
+    private async Task ShowConfidenceScoreDialog()
+    {
+        var result = await DialogService.OpenAsync("CONFIDENCE SCORE EXPLAINED", ds =>
+            @<RadzenStack Gap="1rem" class="dialog-stack-wrapper-large">
+                <div><span class="dialog-label-bold">SCORE:</span> @(_Result.Metrics.Score?.ConfidenceScore) %</div>
+                <div><span class="dialog-label-bold">HIGHEST CONFIDENCE FIT:</span> @(_Result.MatrixEvaluationLabel)</div>
+                <div><span class="dialog-label-bold">RECOMMENDED STRATEGY:</span> JEOO NOTE: Lost To Refactor</div>
+                <div><span class="dialog-label-bold">NODES VISITED:</span> @(_Result.Metrics.NodesVisited)</div>
+                <div><span class="dialog-label-bold">MAX DEPTH: @(_Result.Metrics.MaxTraversalDepth)</span></div>
+                <div><span class="dialog-label-bold">AVERAGE DEPTH:</span> @(Math.Round(_Result.Metrics.AverageTraversalDepth, 4))</div>
+                <div><span class="dialog-label-bold">HIT DEPTH LIMIT:</span> @(_Result.Metrics.HitDepthLimit ? "YES" : "NO")</div>
+                <div><span class="dialog-label-bold">QUERY PENALTIES: @_Result.Metrics?.Score?.Details?.Count </span></div>
+                <div><span class="dialog-label-bold">PENALTY SUM: @_Result.Metrics?.Score?.Details?.Sum(v => v.Delta) </span></div>
+                <div><span class="dialog-label-bold">BIGGEST PENALTY: @_Result.Metrics?.Score?.Details?.OrderBy(v => v.Delta).FirstOrDefault()?.Message </span></div>
+                <div class="dialog-scroll-container">
+                    <RadzenStack Gap="6px">
+                        @if (_Result.Metrics.Score != null && _Result.Metrics.Score.Details.Any())
+                        {
+                            @foreach (var dup in _Result.Metrics.Score.Details)
+                            {
+                                <div class="dashboard-pane-titlebar-right-container2">
+                                    Penalty: <span class="penalty-value">@dup.Delta</span>
+                                    <span class="penalty-message">@dup.Message</span>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <span class="dialog-empty-text">
+                                No path intersections detected.
+                            </span>
+                        }
+                    </RadzenStack>
+                </div>
+
+                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" class="dialog-footer-margin">
+                    <RadzenButton Text="Dismiss" Click="() => ds.Close(true)" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" Style="width: 90px;" />
+                </RadzenStack>
+            </RadzenStack>
+    ,
+            new DialogOptions()
+            {
+                CloseDialogOnOverlayClick = true,
+                ShowClose = true,
+                Width = "auto"
+            });
+    }
+
+    private async Task ShowTableCoverageMetricsDialog()
+    {
+        var result = await DialogService.OpenAsync("TABLE COVERAGE METRICS", ds =>
+            @<RadzenStack Gap="1rem" class="dialog-stack-wrapper-extra-large">
+
+                <p class="dialog-starting-table">
+                    Starting Table: @(W.SelectedTable.TablePath)
+                </p>
+
+                <div>Reachable Tables: @(_Result.Coverage.ReachableTableCount) ( @(_Result.Coverage.ReachablePercentage) ) %</div>
+                <div>Disconnected Tables: @(_Result.Coverage.DisconnectedTableCount) ( @(_Result.Coverage.DisconnectedPercentage) %)</div>
+
+                <p class="dialog-section-header">
+                    Reachable:
+                </p>
+
+                <div class="dialog-scroll-container-small">
+                    <RadzenStack Gap="6px">
+                        @foreach (var tbl in _Result.Coverage.ReachableTables)
+                        {
+                            <div class="dashboard-pane-titlebar-right-container2">
+                                <span class="info-bullet">•</span>
+                                <span class="table-item-text">@tbl</span>
+                            </div>
+                        }
+                    </RadzenStack>
+                </div>
+
+                <p class="dialog-section-header">
+                    Disconnected:
+                </p>
+
+                <div class="dialog-scroll-container-small">
+                    <RadzenStack Gap="6px">
+                        @foreach (var tbl in _Result.Coverage.DisconnectedTables)
+                        {
+                            <div class="dashboard-pane-titlebar-right-container2">
+                                <span class="info-bullet">•</span>
+                                <span class="table-item-text">@tbl</span>
+                            </div>
+                        }
+                    </RadzenStack>
+                </div>
+
+                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" class="dialog-footer-margin">
+                    <RadzenButton Text="Dismiss" Click="() => ds.Close(true)" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" Style="width: 90px;" />
+                </RadzenStack>
+            </RadzenStack>
+    ,
+            new DialogOptions()
+            {
+                CloseDialogOnOverlayClick = true,
+                ShowClose = true,
+                Width = "auto"
+            });
+    }
+
+    private async Task RenderSchemaInformationDialog()
+    {
+        var result = await DialogService.OpenAsync("SCHEMA INFORMATION", ds =>
+@<RadzenStack Gap="1rem" Style="min-width: 400px; max-width: 600px; max-height: 750px;">
+    <div>
+        <div>This version: Enterprise Torture Schema V2</div>
+        <div>includes:</div>
+        <div></div>
+        <div>40 business-themed tables</div>
+        <div>100 foreign-key relationships</div>
+        <div>Depth-10 traversal chain</div>
+        <div>Two separate depth-8 chains</div>
+        <div>Multiple cycles</div>
+        <div>Self-referencing entities</div>
+        <div>Composite PK/FK example</div>
+        <div>Diamond and cross-link patterns</div>
+        <div>Nullable and required relationships</div>
+        <div>Multiple graph entry points</div>
+        <div></div>
+        <div>For query-generation tool, Id specifically test:</div>
+        <div></div>
+        <div>Root traversal from every table.</div>
+        <div>Upward-only traversal.</div>
+        <div>Downward-only traversal.</div>
+        <div>Bidirectional traversal.</div>
+        <div>Cycle detection.</div>
+        <div>Duplicate-path elimination.</div>
+        <div>Join exclusion/reinclusion.</div>
+        <div>Coverage scoring.</div>
+        <div>Alias collision handling.</div>
+        <div>Layout rendering (tree, force-directed, radial, layered, orthogonal, etc.)</div>
+        <div></div>
+        <div>Once youve beaten this schema up a bit, the next interesting step is a V3 Nightmare Schema:</div>
+        <div></div>
+        <div>50–60 tables</div>
+        <div>150–200 FKs</div>
+        <div>multiple disconnected graph islands</div>
+        <div>composite PK chains 4–5 levels deep</div>
+        <div>inheritance-like structures</div>
+        <div>bridge tables referencing bridge tables</div>
+        <div>circular composite FKs</div>
+        <div>intentional ambiguity multiple valid join paths between the same endpoints</div>
+        <div>Thats usually where query generators start exposing edge cases. </div>
+    </div>
+</RadzenStack>
+,
+            new DialogOptions()
+            {
+                CloseDialogOnOverlayClick = true,
+                ShowClose = true,
+                Width = "auto"
+            });
+    }
+
+    private async Task ShowStrategyModalDialog()
+    {
+        var result = await DialogService.OpenAsync("SCHEMA INFORMATION", ds =>
+@<div class="dialog-content-wrapper">
+    <div class="engine-strategy-docs dialog-body-content">
+        <h3 class="dialog-title">Engine Traversal Strategy</h3>
+        <p>The engine uses a <strong>Constrained Recursive Graph Normalization</strong> strategy:</p>
+        <ol>
+            <li><strong>Ancestral State Tracking:</strong> Prevents infinite loops by forbidding re-entry into current lineage branches.</li>
+            <li><strong>Terminal Leaf Collapse:</strong> Eliminates visual noise by identifying duplicate schema types at the furthest descent.</li>
+        </ol>
+    </div>
+
+    <div class="dialog-footer-wrapper">
+        <button class="btn btn-primary" @onclick="() => DialogService.Close()">Acknowledge</button>
+    </div>
+</div>
+,
+            new DialogOptions()
+            {
+                CloseDialogOnOverlayClick = true,
+                ShowClose = true,
+                Width = "auto"
+            });
+    }
+
+    private async Task ShowGenericDialog(string title, string body)
+    {
+        var result = await DialogService.OpenAsync(title, ds =>
+@<div class="dialog-content-wrapper">
+    <div class="dashboard-pane-container-scroll dialog-body-content">
+        <h3 class="dialog-title">@title</h3>
+        @((MarkupString)body);
+    </div>
+
+    <div class="dialog-footer-wrapper">
+        <button class="btn btn-primary" @onclick="() => DialogService.Close()">OK</button>
+    </div>
+</div>,
+           new DialogOptions()
+           {
+               CloseDialogOnOverlayClick = true,
+               ShowClose = true,
+               Width = "auto"
+           });
+    }
+
+    #endregion
+}

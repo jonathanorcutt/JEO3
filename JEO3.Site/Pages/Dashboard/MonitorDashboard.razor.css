@@ -1,0 +1,74 @@
+.monitor-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+.dashboard-pane-body-container-scroll > .monitor-panel {
+    margin-top: 12px;
+}
+
+.monitor-accordion button span {
+    font-size: 22pt !important;
+    font-weight: bolder;
+    text-align:center;
+    color: white !important;
+}
+
+/*.rz-tabview-panel{
+    max-width:1510px;
+}
+*/
+
+
+
+.monitor {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    box-sizing: border-box;
+    background: #0f1620;
+    border: 1px solid #1f2b38;
+    border-radius: 8px;
+}
+
+.monitor-grid-container {
+    display: grid;
+    gap: 4px;
+    align-content: start;
+    justify-content: start;
+    overflow: auto;
+    padding: 4px;
+}
+.monitor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+    .monitor-header > div {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+.monitor-eyebrow {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: .14em;
+    color: #4cc9a0;
+}
+
+.monitor-title {
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: #f1f5f9;
+}
+
+.monitor-metric {
+    min-width: 100px;
+}

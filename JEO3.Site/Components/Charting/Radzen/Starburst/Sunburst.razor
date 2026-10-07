@@ -1,0 +1,416 @@
+﻿@using JEO3.Schema
+@using JEO3.Site.Components
+
+@namespace JEO3.Site.Components.Charting
+
+<div class="schema-sunburst"
+     @onmouseleave="ClearHover">
+
+    <svg viewBox="0 0 800 800"
+         preserveAspectRatio="xMidYMid meet"
+         role="img"
+         aria-label="Database schema visualization">
+
+        <!-- Center -->
+        <circle cx="400"
+                cy="400"
+                r="@InnerRadius"
+                class="sunburst-center" />
+
+        <text x="400"
+              y="392"
+              text-anchor="middle"
+              class="sunburst-center-title">
+            @CenterTitle
+        </text>
+
+        <text x="400"
+              y="416"
+              text-anchor="middle"
+              class="sunburst-center-subtitle">
+            @($"{TableData.Count} tables")
+        </text>
+
+        <!-- Table ring + column ring -->
+        @foreach (var table in TableData)
+        {
+            var tableIndex = TableData.IndexOf(table);
+            var tableStart = GetTableStart(tableIndex);
+            var tableEnd = GetTableEnd(tableIndex);
+
+            var tablePath = CreateArcPath(
+                tableStart,
+                tableEnd,
+                InnerRadius,
+                TableOuterRadius);
+
+            <path d="@tablePath"
+                  class="@GetTableClass(table)"
+                  @onclick="() => SelectTable(table)"
+                  @onmouseover="() => HoverTable(table)"
+                  @onclick:stopPropagation="true">
+                <title>@table.Name — @table.Columns.Count columns</title>
+            </path>
+
+            @if (ShouldShowTableLabel(table, tableStart, tableEnd))
+            {
+                var labelAngle = (tableStart + tableEnd) / 2.0;
+                var labelRadius = (InnerRadius + TableOuterRadius) / 2.0;
+                var labelPoint = PolarToCartesian(labelRadius, labelAngle);
+
+                <svg:text x="@labelPoint.X"
+                          y="@labelPoint.Y"
+                          text-anchor="middle"
+                          dominant-baseline="middle"
+                          transform="@GetLabelTransform(labelPoint, labelAngle)"
+                          class="sunburst-table-label">
+                    @table.Name
+                </svg:text>
+            }
+
+            var columns = table.Columns?.ToList() ?? [];
+
+            @if (columns.Count > 0)
+            {
+                var columnAngle = (tableEnd - tableStart) / columns.Count;
+
+                @for (var columnIndex = 0; columnIndex < columns.Count; columnIndex++)
+                {
+                    var column = columns[columnIndex];
+
+                    var columnStart = tableStart + (columnIndex * columnAngle);
+                    var columnEnd = columnStart + columnAngle;
+
+                    var columnPath = CreateArcPath(
+                        columnStart,
+                        columnEnd,
+                        TableOuterRadius + Gap,
+                        OuterRadius);
+
+                    <path d="@columnPath"
+                          class="@GetColumnClass(table, column)"
+                          @onclick="() => SelectColumn(table, column)"
+                          @onmouseover="() => HoverColumn(table, column)"
+                          @onclick:stopPropagation="true">
+                        <title>@($"{table.Name}.{column.Name}")</title>
+                    </path>
+                }
+            }
+        }
+    </svg>
+
+    @if (SelectedTable is not null)
+    {
+        <div class="sunburst-selection">
+            <strong>@SelectedTable.Name</strong>
+            <span>@SelectedTable.Columns.Count columns</span>
+        </div>
+    }
+
+    @if (SelectedColumn is not null)
+    {
+        <div class="sunburst-selection">
+            <strong>@SelectedColumn.Table.Name.@SelectedColumn.Column.Name</strong>
+        </div>
+    }
+</div>
+
+<style>
+    .schema-sunburst {
+        width: 100%;
+        height: 100%;
+        min-height: 500px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+        .schema-sunburst svg {
+            width: 100%;
+            height: 100%;
+            max-width: 900px;
+            max-height: 900px;
+            overflow: visible;
+        }
+
+    .sunburst-center {
+        fill: var(--rz-base-background-color, #fff);
+        stroke: var(--rz-border-color, #ccc);
+        stroke-width: 2;
+    }
+
+    .sunburst-center-title {
+        font-size: 22px;
+        font-weight: 600;
+        fill: currentColor;
+        pointer-events: none;
+    }
+
+    .sunburst-center-subtitle {
+        font-size: 13px;
+        opacity: .65;
+        fill: currentColor;
+        pointer-events: none;
+    }
+
+    .sunburst-table {
+        fill: var(--rz-primary, #3b82f6);
+        stroke: var(--rz-base-background-color, #fff);
+        stroke-width: 2;
+        cursor: pointer;
+        transition: opacity .15s ease, filter .15s ease;
+    }
+
+        .sunburst-table:hover {
+            filter: brightness(1.15);
+        }
+
+        .sunburst-table.selected {
+            filter: brightness(1.2);
+            stroke-width: 4;
+        }
+
+        .sunburst-table.dimmed {
+            opacity: .18;
+        }
+
+    .sunburst-column {
+        fill: color-mix( in srgb, var(--rz-primary, #3b82f6) 45%, transparent );
+        stroke: var(--rz-base-background-color, #fff);
+        stroke-width: 1.5;
+        cursor: pointer;
+        transition: opacity .15s ease, filter .15s ease;
+    }
+
+        .sunburst-column:hover {
+            filter: brightness(1.2);
+        }
+
+        .sunburst-column.selected {
+            filter: brightness(1.25);
+            stroke-width: 3;
+        }
+
+        .sunburst-column.dimmed {
+            opacity: .12;
+        }
+
+    .sunburst-table-label {
+        font-size: 11px;
+        font-weight: 600;
+        pointer-events: none;
+        fill: currentColor;
+    }
+
+    .sunburst-selection {
+        position: absolute;
+        left: 16px;
+        bottom: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 8px 12px;
+        border: 1px solid var(--rz-border-color, #ccc);
+        border-radius: 6px;
+        background: var(--rz-base-background-color, #fff);
+        box-shadow: 0 2px 8px rgba(0,0,0,.12);
+    }
+</style>
+
+@code {
+    [Parameter]
+    public IReadOnlyList<ITable> Tables { get; set; } = [];
+
+    [Parameter]
+    public string CenterTitle { get; set; } = "Schema";
+
+    [Parameter]
+    public EventCallback<ITable> TableSelected { get; set; }
+
+    [Parameter]
+    public EventCallback<IColumn> ColumnSelected { get; set; }
+
+    private const double Center = 400;
+    private const double InnerRadius = 105;
+    private const double TableOuterRadius = 220;
+    private const double OuterRadius = 350;
+    private const double Gap = 2;
+
+    private List<ITable> TableData => Tables?.ToList() ?? [];
+
+    private ITable? SelectedTable { get; set; }
+
+    private SelectedColumnInfo? SelectedColumn { get; set; }
+
+    private object? HoveredObject { get; set; }
+
+    private double TotalColumns =>
+        TableData.Sum(t => t.Columns?.Count ?? 0);
+
+    private double GetTableStart(int index)
+    {
+        if (TableData.Count == 0)
+            return 0;
+
+        return index * (360.0 / TableData.Count);
+    }
+
+    private double GetTableEnd(int index)
+    {
+        if (TableData.Count == 0)
+            return 0;
+
+        return (index + 1) * (360.0 / TableData.Count);
+    }
+
+    private void HoverTable(ITable table)
+    {
+        HoveredObject = table;
+    }
+
+    private void HoverColumn(ITable table, IColumn column)
+    {
+        HoveredObject = column;
+    }
+
+    private void ClearHover()
+    {
+        HoveredObject = null;
+    }
+
+    private async Task SelectTable(ITable table)
+    {
+        SelectedTable = table;
+        SelectedColumn = null;
+
+        if (TableSelected.HasDelegate)
+            await TableSelected.InvokeAsync(table);
+    }
+
+    private async Task SelectColumn(ITable table, IColumn column)
+    {
+        SelectedTable = null;
+
+        SelectedColumn = new SelectedColumnInfo(table, column);
+
+        if (ColumnSelected.HasDelegate)
+            await ColumnSelected.InvokeAsync(column);
+    }
+
+    private string GetTableClass(ITable table)
+    {
+        var classes = "sunburst-table";
+
+        if (SelectedTable is not null)
+            classes += SelectedTable == table
+                ? " selected"
+                : " dimmed";
+
+        return classes;
+    }
+
+    private string GetColumnClass(ITable table, IColumn column)
+    {
+        var classes = "sunburst-column";
+
+        if (SelectedColumn is not null)
+        {
+            if (SelectedColumn.Table == table &&
+                SelectedColumn.Column == column)
+            {
+                classes += " selected";
+            }
+            else
+            {
+                classes += " dimmed";
+            }
+        }
+        else if (SelectedTable is not null &&
+                 SelectedTable != table)
+        {
+            classes += " dimmed";
+        }
+
+        return classes;
+    }
+
+    private bool ShouldShowTableLabel(
+        ITable table,
+        double start,
+        double end)
+    {
+        var angle = end - start;
+
+        if (angle < 12)
+            return false;
+
+        return table.Name.Length < 28;
+    }
+
+    private string GetLabelTransform(
+        Point point,
+        double angle)
+    {
+        var rotation = angle > 90 && angle < 270
+            ? angle + 180
+            : angle;
+
+        return $"rotate({rotation} {point.X:F2} {point.Y:F2})";
+    }
+
+    private static Point PolarToCartesian(
+        double radius,
+        double angle)
+    {
+        var radians = (angle - 90) * Math.PI / 180;
+
+        return new Point(
+            Center + radius * Math.Cos(radians),
+            Center + radius * Math.Sin(radians));
+    }
+
+    private static string CreateArcPath(
+        double startAngle,
+        double endAngle,
+        double innerRadius,
+        double outerRadius)
+    {
+        var startOuter = PolarToCartesian(
+            outerRadius,
+            startAngle);
+
+        var endOuter = PolarToCartesian(
+            outerRadius,
+            endAngle);
+
+        var startInner = PolarToCartesian(
+            innerRadius,
+            startAngle);
+
+        var endInner = PolarToCartesian(
+            innerRadius,
+            endAngle);
+
+        var largeArc =
+            endAngle - startAngle > 180 ? 1 : 0;
+
+        return
+            $"M {startOuter.X:F2},{startOuter.Y:F2} " +
+            $"A {outerRadius},{outerRadius} 0 {largeArc},1 " +
+            $"{endOuter.X:F2},{endOuter.Y:F2} " +
+            $"L {endInner.X:F2},{endInner.Y:F2} " +
+            $"A {innerRadius},{innerRadius} 0 {largeArc},0 " +
+            $"{startInner.X:F2},{startInner.Y:F2} Z";
+    }
+
+    private sealed record SelectedColumnInfo(
+        ITable Table,
+        IColumn Column);
+
+    private readonly record struct Point(
+        double X,
+        double Y);
+}
+```

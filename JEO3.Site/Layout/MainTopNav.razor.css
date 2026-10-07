@@ -1,0 +1,8 @@
+.large-checkbox .rz-chkbox-box {
+    width: 32px;
+    height: 32px;
+}
+
+    .large-checkbox .rz-chkbox-box .rz-icon {
+        font-size: 24px;
+    }

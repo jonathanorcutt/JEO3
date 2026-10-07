@@ -1,0 +1,91 @@
+.atv-root {
+    font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+    font-size: 14px;
+    outline: none;
+    border: 1px solid var(--atv-border, #333);
+    border-radius: 6px;
+    background: var(--atv-bg, #1e1e1e);
+    color: var(--atv-fg, #ddd);
+    max-height: 600px;
+    overflow-y: auto;
+    position: relative;
+}
+
+.atv-search {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 8px;
+    position: sticky;
+    top: 0;
+    background: inherit;
+    border-bottom: 1px solid var(--atv-border, #333);
+    z-index: 2;
+}
+
+.atv-search input {
+    flex: 1;
+    background: var(--atv-input-bg, #2a2a2a);
+    border: 1px solid var(--atv-border, #444);
+    color: inherit;
+    padding: 4px 6px;
+    border-radius: 4px;
+}
+
+.atv-clear {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    opacity: 0.6;
+}
+.atv-clear:hover { opacity: 1; }
+
+.atv-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 28px;
+    cursor: pointer;
+    white-space: nowrap;
+    position: relative;
+    user-select: none;
+}
+
+.atv-row:hover { background: var(--atv-hover, rgba(255,255,255,0.06)); }
+.atv-row.atv-selected { background: var(--atv-selected, rgba(66,133,244,0.25)); }
+.atv-row.atv-focused { outline: 1px dashed var(--atv-focus, #4285f4); outline-offset: -1px; }
+
+.atv-toggle {
+    width: 16px;
+    text-align: center;
+    display: inline-block;
+    transition: transform 0.12s ease;
+    font-size: 10px;
+    opacity: 0.75;
+}
+.atv-toggle.expanded { transform: rotate(90deg); }
+.atv-toggle-spacer { width: 16px; display: inline-block; }
+
+.atv-checkbox { margin: 0 2px; cursor: pointer; }
+.atv-icon { display: inline-block; width: 18px; text-align: center; }
+.atv-text mark { background: #ffd54f; color: #000; border-radius: 2px; padding: 0 1px; }
+
+.atv-empty { padding: 16px; text-align: center; opacity: 0.6; }
+
+.atv-drop-indicator {
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    height: 2px;
+    background: var(--atv-focus, #4285f4);
+    pointer-events: none;
+}
+.atv-drop-indicator.before { top: 0; }
+.atv-drop-indicator.after { bottom: 0; }
+.atv-drop-indicator.inside {
+    top: 2px; bottom: 2px; left: 2px; right: 2px; height: auto;
+    background: transparent;
+    border: 2px solid var(--atv-focus, #4285f4);
+    border-radius: 4px;
+}

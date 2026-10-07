@@ -1,0 +1,9 @@
+
+.slideshow-card {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+}
+.slideshow-card-label {
+    margin-left: 15px !important;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+}

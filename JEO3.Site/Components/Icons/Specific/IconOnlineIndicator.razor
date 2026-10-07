@@ -1,0 +1,8 @@
+﻿<span class="online-indicator @(Class)" style="width:@(Width);height:@(Height);@(Style)"></span>
+
+@code {
+	[Parameter] public int Width { get; set; } = 12;
+	[Parameter] public int Height { get; set; } = 12;
+	[Parameter] public string Class { get; set;}
+	[Parameter] public string Style { get; set; }
+}

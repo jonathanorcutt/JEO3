@@ -1,0 +1,197 @@
+﻿@namespace JEO3.Site.Dashboard
+@using System.Data
+@using JEO3.Extensions
+@using JEO3.Monitor
+@using JEO3.Monitor.Charts.WMI
+@using JEO3.Monitor.Wmi
+@inherits WmiMonitorComponentBase
+
+
+<div class="dashboard-pane-container">
+	<div class="dashboard-pane-body-container-scroll">
+		<JEOGrid DataTable="@_table" PrimaryKeyColumn="PrimaryKeyColumn"
+				 OnRowClick="@(async ((object? a, string? b) row) => {  })"
+				 AllowVirtualization="true" />
+	</div>
+</div>
+
+@code
+{
+	[Parameter] public WmiDataType WmiType { get; set; }
+	private Dictionary<string, List<object>> Data
+	{
+		get
+		{
+			switch (WmiType)
+			{
+				case WmiDataType.Databases:
+					return Wmi.Databases;
+				case WmiDataType.Exceptions:
+					return Wmi.Exceptions;
+				case WmiDataType.Locks:
+					return Wmi.Locks;
+				case WmiDataType.Memory:
+					return Wmi.Memory;
+				case WmiDataType.QueryStore:
+					return Wmi.QueryStore;
+				case WmiDataType.WebService:
+					return Wmi.WebService;
+			}
+			return null;
+		}
+	}
+	private DataTable _table;
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			await NotifyRefreshed();
+		}
+	}
+
+	protected override async Task NotifyRefreshed()
+	{
+		var tbl = ConvertToDataTable(Data);
+		switch (WmiType)
+		{
+			case WmiDataType.Databases:
+				_table = tbl.ToList<WmiDatabaseRow>().Select(v => new
+				{
+					PrimaryKeyColumn = v.Name,
+					v.Name,
+					// v.Caption,
+					// v.Description,
+					v.ActiveTransactions,
+					v.DataFilesSizeKB,
+					v.LogCacheHitRatio,
+					v.LogFilesSizeKB,
+					v.LogFilesUsedSizeKB,
+					v.PercentLogUsed,
+					v.WriteTransactionsPersec,
+					v.TransactionsPersec
+				}).OrderByDescending(v => v.DataFilesSizeKB).ToDataTable();
+				break;
+			case WmiDataType.Exceptions:
+				_table = tbl.ToList<WmiExceptionRow>().Select(v => new
+				{
+					PrimaryKeyColumn = v.Name,
+					 v.Name,
+					// v.Caption,
+					// v.Description,
+					v.NumberofExcepsThrown,
+					v.NumberofExcepsThrownPersec,
+					v.NumberofFiltersPersec,
+					v.NumberofFinallysPersec
+				}).OrderByDescending(v => v.NumberofExcepsThrown).ToDataTable();
+				break;
+			case WmiDataType.Locks:
+				_table = tbl.ToList<WmiLockRow>().Select(v => new
+				{
+					PrimaryKeyColumn = v.Name,
+					v.Name,
+					// v.Caption,
+					// v.Description,
+					v.AverageWaitTimems,
+					v.AverageWaitTimems_Base,
+					v.LockRequestsPersec,
+					v.LockTimeoutsPersec,
+					v.LockWaitsPersec,
+					v.LockWaitTimems
+				}).OrderByDescending(v => v.AverageWaitTimems).ToDataTable();
+				break;
+			case WmiDataType.Memory:
+				_table = tbl.ToList<WmiMemoryRow>().Select(v => new
+				{
+					PrimaryKeyColumn = v.Name,
+					v.Name,
+					// v.Caption,
+					// v.Description,
+					v.AllocatedBytesPersec,
+					v.FinalizationSurvivors,
+					v.NumberGCHandles,
+					v.NumberGen0Collections,
+					v.NumberGen1Collections,
+					v.NumberGen2Collections,
+					v.NumberInducedGC,
+					v.NumberTotalcommittedBytes,
+					v.NumberTotalreservedBytes
+				}).OrderByDescending(v => v.NumberGen0Collections).ToDataTable();
+				break;
+			case WmiDataType.QueryStore:
+				_table = tbl.ToList<WmiQueryStoreRow>().Select(v => new
+				{
+					PrimaryKeyColumn = v.Name,
+					v.Name,
+					// v.Caption,
+					// v.Description,
+					v.QueryStoreCPUusage,
+					v.QueryStorelogicalreads,
+					v.QueryStorelogicalwrites,
+					v.QueryStorephysicalreads
+				}).OrderByDescending(v => v.QueryStoreCPUusage).ToDataTable();
+				break;
+			case WmiDataType.WebService:
+				_table = tbl.ToList<WmiWebServiceRow>().Select(v => new
+				{
+					PrimaryKeyColumn = v.Name,
+					v.Name,
+					// v.Caption,
+					// v.Description,
+					BytesReceivedPersec = v.BytesReceivedPersec,
+					v.BytesSentPersec,
+					v.BytesTotalPersec,
+					// v.CurrentAnonymousUsers,
+					// v.CurrentConnections,
+					v.PostRequestsPersec,
+					v.GetRequestsPersec,
+					v.TotalPostRequests,
+					v.TotalGetRequests,
+					v.TotalBytesReceived,
+					v.TotalBytesSent,
+					v.TotalBytesTransferred
+				}).OrderByDescending(v => v.BytesReceivedPersec).ToDataTable();
+				break;
+		}
+
+		await InvokeAsync(StateHasChanged);
+	}
+
+	public static DataTable ConvertToDataTable(Dictionary<string, List<object>> dict)
+	{
+		DataTable dt = new DataTable();
+
+		if (dict == null || dict.Count == 0)
+			return dt;
+
+		// 1. Create columns using the dictionary keys
+		foreach (string key in dict.Keys)
+		{
+			dt.Columns.Add(key, typeof(object));
+		}
+
+		// 2. Find the maximum row count among all lists
+		int maxRows = dict.Values.Max(list => list?.Count ?? 0);
+
+		// 3. Populate rows dynamically
+		for (int i = 0; i < maxRows; i++)
+		{
+			DataRow row = dt.NewRow();
+			foreach (string key in dict.Keys)
+			{
+				// If the current list has an item at index i, add it; otherwise, insert DBNull
+				if (dict[key] != null && i < dict[key].Count)
+				{
+					row[key] = dict[key][i] ?? DBNull.Value;
+				}
+				else
+				{
+					row[key] = DBNull.Value;
+				}
+			}
+			dt.Rows.Add(row);
+		}
+
+		return dt;
+	}
+}

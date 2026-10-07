@@ -1,0 +1,94 @@
+﻿@using Radzen
+@using Radzen.Blazor
+
+@namespace JEO3.Site.Components.Charting
+@typeparam TRow
+
+<div class="schema-contour">
+    <RadzenChart Animate="true" Style="width:100%; height:100% !important;min-height:870px">
+        <RadzenContourSeries Data="@_samples" CategoryProperty="X"  ValueProperty="Y" IntensityProperty="Intensity" ColorRange="@ColorRanges"
+                             ShowLines="@ShowLines" LineColor="rgba(0,0,0,0.5)" LineWidth="1" IntensityLabel="@IntensityLabel" Title="@Title" />
+        <RadzenCategoryAxis Min="0" Max="@XMax" Step="1">
+            <RadzenGridLines Visible="true" />
+            <RadzenAxisTitle Text="@XAxisTitle" />
+        </RadzenCategoryAxis>
+        <RadzenValueAxis Min="0" Max="@YMax" Step="1">
+            <RadzenGridLines Visible="true" />
+            <RadzenAxisTitle Text="@YAxisTitle" />
+        </RadzenValueAxis>
+        <RadzenLegend Position="LegendPosition.Right" />
+    </RadzenChart>
+</div>
+
+<style>
+    .schema-contour {
+        width: 100%;
+        min-height: 500px;
+    }
+</style>
+
+@code {
+    [Parameter] public IEnumerable<TRow> Rows { get; set; } = [];
+    [Parameter] public IReadOnlyList<string> Columns { get; set; } = [];
+    [Parameter] public Func<TRow, string> RowLabelSelector { get; set; } = _ => string.Empty;
+    [Parameter] public Func<TRow, string, double> CellSelector { get; set; } = (_, _) => 0;
+
+    [Parameter] public string Title { get; set; } = "Schema Heat Map";
+    [Parameter] public string XAxisTitle { get; set; } = "Metric";
+    [Parameter] public string YAxisTitle { get; set; } = "Table";
+    [Parameter] public string IntensityLabel { get; set; } = "Intensity";
+    [Parameter] public bool ShowLines { get; set; } = true;
+    [Parameter] public double CellWidth { get; set; } = 130;
+    [Parameter] public double CellHeight { get; set; } = 100;
+
+    private IReadOnlyList<ContourSample> _samples = [];
+
+    private double XMax => Math.Max(1, Columns.Count - 1);
+    private double YMax => Math.Max(1, _samples.Count == 0 ? 0 : _samples.Max(s => s.Y));
+
+    private IList<SeriesColorRange> ColorRanges { get; } =
+    [
+        new() { Min = 0.0, Max = 0.2, Color = "#1e3a8a" },
+        new() { Min = 0.2, Max = 0.4, Color = "#2563eb" },
+        new() { Min = 0.4, Max = 0.6, Color = "#22c55e" },
+        new() { Min = 0.6, Max = 0.8, Color = "#facc15" },
+        new() { Min = 0.8, Max = 1.0, Color = "#ef4444" }
+    ];
+
+    protected override void OnParametersSet() => _samples = BuildSamples();
+
+    private List<ContourSample> BuildSamples()
+    {
+        var rows = Rows?.ToList() ?? [];
+        if (rows.Count == 0 || Columns.Count == 0) return [];
+
+        var samples = new List<ContourSample>();
+
+        for (var y = 0; y < rows.Count; y++)
+        {
+            var row = rows[y];
+            for (var x = 0; x < Columns.Count; x++)
+            {
+                samples.Add(new ContourSample
+                {
+                    X = x,
+                    Y = y,
+                    Intensity = Math.Clamp(CellSelector(row, Columns[x]), 0, 1),
+                    Label = $"{RowLabelSelector(row)} / {Columns[x]}",
+                    Item = row
+                });
+            }
+        }
+
+        return samples;
+    }
+
+    private sealed class ContourSample
+    {
+        public double X { get; init; }
+        public double Y { get; init; }
+        public double Intensity { get; init; }
+        public string Label { get; init; } = string.Empty;
+        public TRow Item { get; init; } = default!;
+    }
+}

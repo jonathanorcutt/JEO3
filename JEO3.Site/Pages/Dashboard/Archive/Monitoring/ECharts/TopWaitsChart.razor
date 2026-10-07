@@ -1,0 +1,58 @@
+@using JEO3.Core
+@using JEO3.Monitor
+@using JEO3.Site.Services
+@using PanoramicData.ECharts
+@inherits MonitorChartBase
+
+@namespace JEO3.Site.Components.ECharts
+
+<div class="monitor-panel">
+    <div class="monitor-panel-title">🚨 TOP WAIT TYPES (latest sample)</div>
+    <PanoramicData.ECharts.EChart @ref="Chart" Options="@Options" Width="@Width" Height="@Height" />
+</div>
+
+@code {
+    [Parameter] public int TopN { get; set; } = 8;
+
+    protected override ChartOptions Options { get; set; } = ChartOptionsLibrary.TopWaitsChart_Options;
+    protected override async Task RenderInitialAsync(MonitorSnapshot initial)
+    {
+        if (initial.History != null && initial.History.Count > 0)
+        {
+            await UpdateChartData(initial.History);
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    protected override async Task AppendDeltasAsync(MonitorDeltaResponse delta)
+    {
+        if (delta.History != null && delta.History.Count > 0)
+        {
+            await UpdateChartData(delta.History);
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task UpdateChartData(IEnumerable<WaitRateSample> historySamples)
+    {
+        // Grab the absolute newest sample from the provided batch
+        var latestSample = historySamples.OrderByDescending(h => h.Timestamp).FirstOrDefault();
+
+        if (latestSample?.TopWaits == null) return;
+
+        var topWaits = latestSample.TopWaits
+            .OrderByDescending(w => w.WaitMsPerSec)
+            .Take(TopN)
+            .ToList();
+
+        // Update X-Axis labels
+        Options.XAxis!.Data = topWaits.Select(w => (object)w.WaitType).ToList();
+
+        // Update Bar Series data
+        if (Options.Series?.FirstOrDefault() is BarSeries bar)
+        {
+            bar.Data = topWaits.Select(w => (object)w.WaitMsPerSec).ToList();
+        }
+        if (Chart != null) await Chart.UpdateAsync();
+    }
+}

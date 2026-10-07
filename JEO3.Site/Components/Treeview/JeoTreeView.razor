@@ -1,0 +1,29 @@
+﻿@using JEO3.Schema
+
+@namespace JEO3.Site.Components.Treeview
+
+<div class="jeo-tree">
+    @foreach (var item in Items)
+    {
+        <JeoTreeNode Item="item"
+                     SelectedItem="SelectedItem"
+                     OnClick="NodeClicked" />
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public IEnumerable<IObject> Items { get; set; } = [];
+
+    [Parameter]
+    public EventCallback<IObject> OnClick { get; set; }
+
+    private IObject? SelectedItem { get; set; }
+
+    private async Task NodeClicked(IObject item)
+    {
+        SelectedItem = item;
+
+        await OnClick.InvokeAsync(item);
+    }
+}

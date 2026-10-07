@@ -1,0 +1,59 @@
+@using Radzen
+@using Radzen.Blazor
+
+@namespace JEO3.Site.Components.Charting
+@typeparam TItem
+
+<div class="viz-wrap" style="@Style">
+    <RadzenChart Animate="true" Style="width:100%; height:100%;">
+
+        <RadzenBulletSeries TItem="BulletPoint"
+                            Data="@_points"
+                            CategoryProperty="Label"
+                            ValueProperty="Value"
+                            TargetProperty="Target"
+                            Title="@Title" />
+
+        <RadzenCategoryAxis>
+            <RadzenAxisTitle Text="@CategoryAxisTitle" />
+        </RadzenCategoryAxis>
+
+        <RadzenValueAxis>
+            <RadzenAxisTitle Text="@ValueAxisTitle" />
+        </RadzenValueAxis>
+
+    </RadzenChart>
+</div>
+
+@code {
+    [Parameter] public IEnumerable<TItem> Items { get; set; } = [];
+    [Parameter] public Func<TItem, string> LabelSelector { get; set; } = _ => string.Empty;
+    [Parameter] public Func<TItem, double> ValueSelector { get; set; } = _ => 0;
+    [Parameter] public Func<TItem, double> TargetSelector { get; set; } = _ => 0;
+    [Parameter] public string Title { get; set; } = "Actual vs Target";
+    [Parameter] public string CategoryAxisTitle { get; set; } = "Table";
+    [Parameter] public string ValueAxisTitle { get; set; } = "Value";
+    [Parameter] public string Style { get; set; } = "width:100%; height:100%;";
+
+    private List<BulletPoint> _points = [];
+
+    protected override void OnParametersSet() => _points = BuildPoints();
+
+    private sealed class BulletPoint
+    {
+        public string Label { get; init; } = string.Empty;
+        public double Value { get; init; }
+        public double Target { get; init; }
+    }
+
+    private List<BulletPoint> BuildPoints()
+    {
+        var items = Items?.ToList() ?? [];
+        return items.Select(i => new BulletPoint
+        {
+            Label = LabelSelector(i),
+            Value = ValueSelector(i),
+            Target = TargetSelector(i)
+        }).ToList();
+    }
+}

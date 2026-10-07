@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Folder Include="Postgres\" />
+		<Folder Include="Oracle\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Data.SqlClient" />
+		<PackageReference Include="Npgsql" />
+		<PackageReference Include="Oracle.ManagedDataAccess" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\JEO3.Extensions\JEO3.Extensions.csproj" />
+		<ProjectReference Include="..\JEO3.Providers.Catalogs\JEO3.Providers.Catalogs.csproj" />
+		<ProjectReference Include="..\JEO3.Providers\JEO3.Providers.csproj" />
+	</ItemGroup>
+
+</Project>

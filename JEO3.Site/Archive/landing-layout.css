@@ -1,0 +1,2118 @@
+
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    GLOBAL    ------------------------------------
+--------------------------------------------------------------------------------------------
+    Rather than dragging Bootstrap back in for two rules, cheapest fix is dropping a tiny reset 
+    into landing-layout.css (or better, somewhere global like jeo3.css so the dashboard doesn't 
+    quietly have the same latent issue):
+*/
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    BRANDING    ------------------------------------
+--------------------------------------------------------------------------------------------
+*/
+
+/* JEO3 Logo */
+.jeo-logo {
+    width: 115px;
+    height: 28px;
+    margin-left: -20px;
+}
+
+.github-badge {
+    margin: 0px 0px 0px 0px;
+    font-size: 5pt;
+    height: 35px;
+    width: 45px;
+    padding: 0px 0px 0px 0px;
+}
+
+.github-admin-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 35px !important;
+    width:105px;
+    padding: 3px 8px;
+    margin-top: 0px;
+    margin-right: 22px;
+    border-radius: 6px;
+    background-color: #1a1f2c;
+    color: #ffffff !important;
+    font-family: "Consolas", "Monaco", monospace;
+    font-size: 18px;
+    font-weight: 500;
+    text-decoration: none !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    -webkit-animation: neon2 1.3s ease-in-out infinite alternate;
+    -moz-animation: neon2 1.3s ease-in-out infinite alternate;
+    animation: neon2 5s ease-in-out infinite alternate, horizontal-shake 0.5s ease-in-out;
+}
+
+    .github-admin-badge:hover {
+        background-color: #24292e;
+        /* Classic GitHub Dark */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        border-color: rgba(255, 255, 255, 0.25);
+        animation: horizontal-shake 0.5s ease, neon1 0.5s ease-in-out infinite alternate;
+    }
+
+    .github-admin-badge svg {
+        transition: transform 0.1s ease;
+    }
+
+    .github-admin-badge:hover svg {
+        transform: scale(1.15);
+    }
+
+.github-admin-badge-text {
+    font-size: 9pt;
+}
+
+.jeo-smartadmin-link {
+    font-family: "Consolas", "Monaco", monospace;
+    /* Monospace matches the matrix theme background! */
+    font-size: 14px;
+    text-decoration: none !important;
+    padding: 4px 10px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    background: var(--jeo-gradient-silver2);
+    color: red;
+    height: 30px !important;
+    margin-top: 1px;
+}
+
+    /* Subtle gray for the utility domain */
+    .jeo-smartadmin-link .domain {
+        color: #718096;
+        font-weight: 400;
+    }
+
+    /* Bold accent for actual repository */
+    .jeo-smartadmin-link .repo {
+        color: #e53e3e;
+        /* Keeps a variant of red theme, but structured */
+        font-weight: 600;
+    }
+
+    /* Interactive Hover Effect */
+    .jeo-smartadmin-link:hover {
+        background: rgba(229, 62, 62, 0.08);
+        /* Light tint of red theme */
+        box-shadow: inset 0 0 0 1px rgba(229, 62, 62, 0.2);
+    }
+
+        .jeo-smartadmin-link:hover .domain {
+            color: #2d3748;
+        }
+
+
+
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    BOB    ------------------------------------
+--------------------------------------------------------------------------------------------
+*/
+
+
+
+/* Bob's Parent Container */
+.bob-parent-container-class {
+    position: relative; /* REQUIRED: Acts as the coordinate anchor for Bob's offsets */
+    overflow: visible !important; /* REQUIRED: Allows Bob to sneak outside the bounds to hide/peer */
+}
+
+/* Bob Himself */
+.bob-element-class {
+    position: absolute; /* REQUIRED: Takes him out of document flow so top/left/transforms work */
+    top: 0;
+    left: 0;
+    will-change: transform; /* Performance optimization for buttery smooth Web Animations */
+    /* Crucial for rotations: pivots Bob from his feet rather than his center stomach */
+    transform-origin: bottom center;
+}
+
+/* The Target Widget */
+svg.navigator {
+    position: relative; /* Ensures it respects z-index styling layers properly */
+    z-index: 1; /* Baseline layer so Bob's z-index: -1 can slip cleanly underneath */
+}
+
+.bob {
+    position: fixed;
+    width: 30px;
+    height: 30px;
+    right: 20px;
+    bottom: 20px;
+    z-index: 999999;
+    pointer-events: none;
+    user-select: none;
+    will-change: transform;
+}
+
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    MATRIX ANIMATION    ------------------------------------
+--------------------------------------------------------------------------------------------
+*/
+
+/* matrix theme */
+
+
+.matrix-bg {
+    background: #000;
+    overflow: hidden;
+    margin: 0;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 100%;
+}
+
+.matrix-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    max-height: 100%;
+    overflow: hidden;
+    z-index: 2;
+}
+
+.matrix-text {
+    color: #0f0;
+    font-size: 230px;
+    font-family: monospace;
+    position: relative;
+    text-shadow: 0 0 10px #0f0, 0 0 20px #0f0, 0 0 30px #0f0;
+    z-index: 2; /* Ensure it stays above the rain effect */
+}
+
+    .matrix-text::before {
+        content: attr(data-text);
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        animation: glitch 2s infinite;
+        clip-path: polygon(0 0, 100% 0, 100% 25%, 0 45%);
+        transform: translate(-2px, -2px);
+        color: #0f0;
+        text-shadow: 0 0 5px #0f0, 0 0 15px #0f0;
+    }
+
+.rain {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient( 0deg, rgba(0, 255, 0, 0.1) 0, rgba(0, 255, 0, 0.2) 2px, transparent 4px );
+    animation: rain 10s linear infinite;
+    z-index: 1; /* Place it behind the text */
+}
+
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    FONTS    ------------------------------------
+--------------------------------------------------------------------------------------------
+*/
+
+@font-face {
+    font-family: 'NaziTypewriterRegular';
+    src: url('/fonts/NaziTypewriterRegular.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'UbuntuMonoBold';
+    src: url('/fonts/UbuntuMono-Bold.ttf') format('truetype');
+}
+.jeo3-typewriter {
+    font-family: 'NaziTypewriterRegular' !important;
+    font-weight: normal;
+    font-style: normal;
+}
+.jeo3-ubuntu {
+    font-family: 'UbuntuMonoBold' !important;
+    font-weight: normal;
+    font-style: normal;
+}
+
+
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    mainlayout.css    ------------------------------------
+--------------------------------------------------------------------------------------------
+Structure: Left Sidebar (NavMenu), Right Sidebar, TopNavTopBar, Sidebar Toggle btns
+Appearance: Color Picker (--rz-primary), Fullscreen btn, Dark Mode btn, Preferred Colors
+--------------------------------------------------------------------------------------------
+*/
+
+/* Top Nav Bar Silver Horizontal Gradient */
+.titlebar-container {
+    background: var(--jeo-gradient-silver);
+}
+
+.titlebar-right-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+}
+
+
+.navbar-header-label {
+    font-family: 'UbuntuMonoBold' !important;
+    font-variant: small-caps;
+    font-size:22pt;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    margin-left: 15px;
+}
+
+.navbar-header-label-database {
+    font-family: "Anonymous+Pro";
+    font-variant: normal;
+    padding-left: 10px;
+    font-size: 32pt;
+    color: lime !important;
+    font-family: "Consolas", "Monaco", monospace;
+    font-weight: bolder;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.database-title-container {
+    height: 50px !important;
+    padding-right: 12px;
+}
+/* Nav Bar Green Horizontal Gradient */
+.navbar-container {
+    background: var(--jeo-gradient-rz);
+    height: 50px;
+    padding: 0px 0px 0px 0px;
+    margin: 0px 0px 0px 0px;
+}
+
+.navbar-right-colorpicker {
+    width: 42px;
+    height: 30px;
+    padding: 0px 3px 0px 3px;
+    border: 0.1px solid rgba(0, 134, 0, 1);
+    background: url("../img/theme/colorwheel.png") no-repeat !important;
+    background-size: contain !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: 40px 30px !important;
+    margin-right: 10px;
+}
+
+
+/* Sidebar Nav Collapse / Expand */
+.sidebar-left-container {
+    width: 57px;
+    display: flex;
+    flex-direction: column;
+    /*transition: width 0.3s ease;*/
+    font-size: 10pt;
+
+    .collapsed {
+        width: 0;
+        overflow: hidden;
+        transform: translateX(-100%);
+    }
+}
+
+.sidebar-left-panel-menu-item {
+    font-size: 7pt;
+    font-weight: 700;
+}
+
+.sidebar-horizontal-divider {
+    height: 1px;
+    background: #22262e;
+    margin: 4px 0;
+    width: 100%;
+}
+
+
+.sidebar-right-container {
+    width: 217px;
+    height: 100%;
+}
+
+.sidebar-right-titlebar {
+    background-color: #17191d;
+    color: #ffffff;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 8.5pt;
+    font-weight: bold;
+    padding-top: 5px !important;
+    padding-left: 5px !important;
+    padding-bottom: 5px !important;
+    padding-right: 5px !important;
+    /*border-bottom: 1px solid var(--jeo-border-color);*/
+    border-bottom: 1px solid black;
+    border-left: 1px solid black;
+    border-right: 1px solid black;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+}
+
+.sidebar-right-section-titlebar {
+    background-color: var(--rz-header-background-color);
+    color: var(--rz-white);
+    height: 24px;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 10pt;
+    font-weight: bold;
+    padding-left: 5px;
+    margin-top: 5px;
+    display: flex;
+    /*border: .5px solid var(--rz-black);*/
+}
+
+
+
+
+/* 
+--------------------------------------------------------------------------------------------
+--------------------------------------    JEO3  ----------------------------------------
+--------------------------------------------------------------------------------------------
+*/
+
+:root {
+    /* JEO Preferred Styles */
+    --jeo-primary: rgba(100, 124, 100, 1);
+    --jeo-dark: color-mix(in srgb, var(--jeo-primary) 99%, white);
+    --jeo-bright: oklch(from var(--jeo-primary) calc(l + 0.15) c h);
+    --jeo-rz-5: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 5%, white) 10%, transparent);
+    --jeo-rz-15: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, white) 20%, transparent);
+    --jeo-rz-25: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, white) 50%, transparent);
+    --jeo-rz-35: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, white) 40%, transparent);
+    --jeo-rz-45: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, white) 50%, transparent);
+    --jeo-rz-55: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, white) 60%, transparent);
+    --jeo-rz-65: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, white) 70%, transparent);
+    --jeo-rz-75: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, white) 80%, transparent);
+    --jeo-rz-85: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, white) 90%, transparent);
+    --jeo-rz-95: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, white) 100%, transparent);
+    --jeo-rz-dark-5: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 5%, black) 10%, transparent);
+    --jeo-rz-dark-15: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, black) 20%, transparent);
+    --jeo-rz-dark-25: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, black) 50%, transparent);
+    --jeo-rz-dark-35: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, black) 40%, transparent);
+    --jeo-rz-dark-45: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, black) 50%, transparent);
+    --jeo-rz-dark-55: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, black) 60%, transparent);
+    --jeo-rz-dark-65: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, black) 70%, transparent);
+    --jeo-rz-dark-75: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, black) 80%, transparent);
+    --jeo-rz-dark-85: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, black) 90%, transparent);
+    --jeo-rz-dark-95: color-mix(in srgb, color-mix(in srgb, var(--jeo-primary) 15%, black) 100%, transparent);
+    /* -- */
+    --jeo-gradient-primary-stop-1: rgba(90, 90, 90, 1);
+    --jeo-gradient-primary-stop-2: rgba(90, 100, 90, 1);
+    --jeo-gradient-primary-stop-3: rgba(90, 105, 90, 1);
+    --jeo-gradient-primary-stop-4: rgba(90, 115, 90, 1);
+    --jeo-gradient-primary-stop-5: rgba(90, 125, 90, 1);
+    --jeo-gradient-primary-stop-6: rgba(100, 140, 100, 1);
+    /* -- */
+    --jeo-gradient-green-stop-1: rgba(0, 50, 00, 1);
+    --jeo-gradient-green-stop-2: rgba(30, 75, 30, 1);
+    --jeo-gradient-green-stop-3: rgba(4, 90, 40, 1);
+    --jeo-gradient-green-stop-4: rgba(50, 105, 50, 1);
+    --jeo-gradient-green-stop-5: rgba(60, 125, 60, 1);
+    --jeo-gradient-green-stop-6: rgba(70, 140, 70, 1);
+    /* -- */
+    --jeo-gradient-blue-stop-1: rgba(0, 20, 101, 0.8);
+    --jeo-gradient-blue-stop-2: rgba(0, 30, 150, 1);
+    --jeo-gradient-blue-stop-3: rgba(0, 40, 202, 1);
+    --jeo-gradient-blue-stop-4: rgba(10, 50, 240, 1);
+    --jeo-gradient-blue-stop-5: rgba(20, 60, 255, 1);
+    /* -- */
+    --jeo-gradient-red-stop-1: rgba(100, 0, 0, 0.8);
+    --jeo-gradient-red-stop-2: rgba(150, 0, 0, 1);
+    --jeo-gradient-red-stop-3: rgba(220, 0, 0, 1);
+    --jeo-gradient-red-stop-4: rgba(235, 0, 0, 1);
+    --jeo-gradient-red-stop-5: rgba(250, 0, 0, 1);
+    /* -- */
+    --jeo-gradient-orange-stop-1: rgba(142, 74, 0, 0.8);
+    --jeo-gradient-orange-stop-2: rgb(163, 85, 0, 0.8);
+    --jeo-gradient-orange-stop-3: rgb(169, 88, 0, 0.8);
+    --jeo-gradient-orange-stop-4: rgb(213, 111, 0, 0.8);
+    --jeo-gradient-orange-stop-5: rgb(255, 133, 0, 0.9);
+    --jeo-gradient-orange-stop-6: rgb(255, 133, 0, 1);
+    /* -- */
+    --jeo-gradient-silver-stop-1: rgba(255, 255, 255, 1);
+    --jeo-gradient-silver-stop-2: rgba(235, 235, 235, 1);
+    --jeo-gradient-silver-stop-3: rgba(215, 215, 215, 1);
+    --jeo-gradient-silver-stop-4: rgba(205, 205, 205, 1);
+    --jeo-gradient-silver-stop-5: rgba(184, 184, 184, 0.95);
+    --jeo-gradient-silver-stop-6: rgba(174, 174, 174, 0.85);
+    /* -- */
+    --jeo-gradient-violet-stop-1: rgba(50, 0, 50, 0.8);
+    --jeo-gradient-violet-stop-2: rgba(80, 0, 80, 0.8);
+    --jeo-gradient-violet-stop-3: rgba(120, 0, 120, 0.8);
+    --jeo-gradient-violet-stop-4: rgba(155, 0, 155, 0.8);
+    --jeo-gradient-violet-stop-5: rgba(205, 0, 205, 0.9);
+    --jeo-gradient-violet-stop-6: rgba(255, 0, 255, 1);
+    /* -- */
+    --jeo-gradient-black-stop-1: rgba(0, 0, 0, 0.8);
+    --jeo-gradient-black-stop-2: rgba(25, 25, 25, 0.7);
+    --jeo-gradient-black-stop-3: rgba(40, 40, 40, 0.7);
+    --jeo-gradient-black-stop-4: rgba(55, 55, 55, 0.7);
+    --jeo-gradient-black-stop-5: rgba(70, 70, 70, 0.7);
+    --jeo-gradient-black-stop-6: rgba(85, 85, 85, 0.7);
+    /* -- */
+    --jeo-gradient-cornflowerblue-stop-1: rgba(0, 72, 207, .7);
+    --jeo-gradient-cornflowerblue-stop-2: rgba(0, 72, 207, 1);
+    --jeo-gradient-cornflowerblue-stop-3: rgba(9, 108, 222, 1);
+    --jeo-gradient-cornflowerblue-stop-4: rgba(17, 143, 240, 1);
+    --jeo-gradient-cornflowerblue-stop-5: rgba(27, 159, 247, 1);
+    --jeo-gradient-cornflowerblue-stop-6: rgba(0, 187, 255, 1);
+    /* -- */
+    --jeo-gradient-pink-stop-1: rgba(186, 0, 158, 1);
+    --jeo-gradient-pink-stop-2: rgba(219, 0, 216, 1);
+    --jeo-gradient-pink-stop-3: rgba(224, 25, 255, 1);
+    --jeo-gradient-pink-stop-4: rgba(255, 36, 251, 1);
+    --jeo-gradient-pink-stop-5: rgba(255, 105, 245, 1);
+    --jeo-gradient-pink-stop-6: rgba(255, 133, 233, 1);
+    /* -- */
+    --jeo-gradient-rz-stop-6: color-mix(in srgb, var(--rz-primary) 65%, black);
+    --jeo-gradient-rz-stop-5: color-mix(in srgb, var(--rz-primary) 70%, black);
+    --jeo-gradient-rz-stop-4: color-mix(in srgb, var(--rz-primary) 76%, black);
+    --jeo-gradient-rz-stop-3: color-mix(in srgb, var(--rz-primary) 85%, black);
+    --jeo-gradient-rz-stop-2: color-mix(in srgb, var(--rz-primary) 88%, black);
+    --jeo-gradient-rz-stop-1: color-mix(in srgb, var(--rz-primary) 90%, black);
+    --jeo-gradient-rz-light-stop-6: color-mix(in srgb, var(--rz-primary) 47%, darkslategray);
+    --jeo-gradient-rz-light-stop-5: color-mix(in srgb, var(--rz-primary) 56%, darkslategray);
+    --jeo-gradient-rz-light-stop-4: color-mix(in srgb, var(--rz-primary) 65%, darkslategray);
+    --jeo-gradient-rz-light-stop-3: color-mix(in srgb, var(--rz-primary) 76%, darkslategray);
+    --jeo-gradient-rz-light-stop-2: color-mix(in srgb, var(--rz-primary) 87%, darkslategray);
+    --jeo-gradient-rz-light-stop-1: color-mix(in srgb, var(--rz-primary) 95%, darkslategray);
+    /* -- */
+    --jeo-gradient-rz-2-stop-6: color-mix(in srgb, var(--rz-primary) 90%, white);
+    --jeo-gradient-rz-2-stop-5: color-mix(in srgb, var(--rz-primary) 92%, white);
+    --jeo-gradient-rz-2-stop-4: color-mix(in srgb, var(--rz-primary) 92%, white);
+    --jeo-gradient-rz-2-stop-3: color-mix(in srgb, var(--rz-primary) 94%, white);
+    --jeo-gradient-rz-2-stop-2: color-mix(in srgb, var(--rz-primary) 96%, white);
+    --jeo-gradient-rz-2-stop-1: color-mix(in srgb, var(--rz-primary) 99%, white);
+    /* -- */
+    --jeo-gradient-primary: linear-gradient(0deg, var(--jeo-gradient-primary-stop-1) 0%, var(--jeo-gradient-primary-stop-2) 25%, var(--jeo-gradient-primary-stop-3) 45%, var(--jeo-gradient-primary-stop-4) 65%, var(--jeo-gradient-primary-stop-5) 85%, var(--jeo-gradient-primary-stop-6) 100%);
+    --jeo-gradient-green: linear-gradient(0deg, var(--jeo-gradient-green-stop-1) 0%, var(--jeo-gradient-green-stop-2) 25%, var(--jeo-gradient-green-stop-3) 45%, var(--jeo-gradient-green-stop-4) 65%, var(--jeo-gradient-green-stop-5) 85%, var(--jeo-gradient-green-stop-6) 100%);
+    --jeo-gradient-blue: linear-gradient(0deg, var(--jeo-gradient-blue-stop-1) 0%, var(--jeo-gradient-blue-stop-2) 25%, var(--jeo-gradient-blue-stop-3) 50%, var(--jeo-gradient-blue-stop-4) 75%, var(--jeo-gradient-blue-stop-5) 100%);
+    --jeo-gradient-red: linear-gradient(0deg, var(--jeo-gradient-red-stop-1) 0%, var(--jeo-gradient-red-stop-2) 25%, var(--jeo-gradient-red-stop-3) 50%, var(--jeo-gradient-red-stop-4) 75%, var(--jeo-gradient-red-stop-5) 100%);
+    --jeo-gradient-orange: linear-gradient(0deg, var(--jeo-gradient-orange-stop-1) 0%, var(--jeo-gradient-orange-stop-2) 25%, var(--jeo-gradient-orange-stop-3) 45%, var(--jeo-gradient-orange-stop-4) 65%, var(--jeo-gradient-orange-stop-5) 85%, var(--jeo-gradient-orange-stop-6) 100%);
+    --jeo-gradient-silver: linear-gradient(0deg, var(--jeo-gradient-silver-stop-1) 0%, var(--jeo-gradient-silver-stop-2) 20%, var(--jeo-gradient-silver-stop-3) 40%, var(--jeo-gradient-silver-stop-4) 60%, var(--jeo-gradient-silver-stop-5) 80%, var(--jeo-gradient-silver-stop-6) 100%);
+    --jeo-gradient-violet: linear-gradient(0deg, var(--jeo-gradient-violet-stop-1) 0%, var(--jeo-gradient-violet-stop-2) 25%, var(--jeo-gradient-violet-stop-3) 45%, var(--jeo-gradient-violet-stop-4) 65%, var(--jeo-gradient-violet-stop-5) 85%, var(--jeo-gradient-violet-stop-6) 100%);
+    --jeo-gradient-black: linear-gradient(0deg, var(--jeo-gradient-black-stop-1) 0%, var(--jeo-gradient-black-stop-2) 25%, var(--jeo-gradient-black-stop-3) 45%, var(--jeo-gradient-black-stop-4) 65%, var(--jeo-gradient-black-stop-5) 85%, var(--jeo-gradient-black-stop-6) 100%);
+    --jeo-gradient-cornflowerblue: linear-gradient(0deg, var(--jeo-gradient-cornflowerblue-stop-1) 0%, var(--jeo-gradient-cornflowerblue-stop-2) 25%, var(--jeo-gradient-cornflowerblue-stop-3) 45%, var(--jeo-gradient-cornflowerblue-stop-4) 65%, var(--jeo-gradient-cornflowerblue-stop-5) 85%, var(--jeo-gradient-cornflowerblue-stop-6) 100%);
+    --jeo-gradient-pink: linear-gradient(0deg, var(--jeo-gradient-pink-stop-1) 0%, var(--jeo-gradient-pink-stop-2) 25%, var(--jeo-gradient-pink-stop-3) 45%, var(--jeo-gradient-pink-stop-4) 65%, var(--jeo-gradient-pink-stop-5) 85%, var(--jeo-gradient-pink-stop-6) 100%);
+    --jeo-gradient-rz: linear-gradient(0deg, var(--jeo-gradient-rz-stop-1) 0%, var(--jeo-gradient-rz-stop-2) 25%, var(--jeo-gradient-rz-stop-3) 45%, var(--jeo-gradient-rz-stop-4) 65%, var(--jeo-gradient-rz-stop-5) 85%, var(--jeo-gradient-rz-stop-6) 100%);
+    --jeo-gradient-rz-light: linear-gradient(0deg, var(--jeo-gradient-rz-light-stop-1) 10%, var(--jeo-gradient-rz-light-stop-2) 25%, var(--jeo-gradient-rz-light-stop-3) 45%, var(--jeo-gradient-rz-light-stop-4) 65%, var(--jeo-gradient-rz-light-stop-5) 85%, var(--jeo-gradient-rz-light-stop-6) 90%);
+    --jeo-gradient-rz-2: linear-gradient(0deg, var(--jeo-gradient-rz-2-stop-1) 0%, var(--jeo-gradient-rz-2-stop-2) 25%, var(--jeo-gradient-rz-2-stop-3) 45%, var(--jeo-gradient-rz-2-stop-4) 65%, var(--jeo-gradient-rz-2-stop-5) 85%, var(--jeo-gradient-rz-2-stop-6) 100%);
+    /* ------- */
+}
+
+@keyframes horizontal-shake {
+    0% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-5px);
+    }
+
+    50% {
+        transform: translateX(5px);
+    }
+
+    75% {
+        transform: translateX(-5px);
+    }
+
+    100% {
+        transform: translateX(0);
+    }
+}
+
+@keyframes horizontal-shake-short {
+    0% {
+        transform: translateX(0);
+    }
+
+    10% {
+        transform: translateX(-1px);
+    }
+
+    20% {
+        transform: translateX(-2px);
+    }
+
+    30% {
+        transform: translateX(-3px);
+    }
+
+    40% {
+        transform: translateX(-4px);
+    }
+
+    50% {
+        transform: translateX(-5px);
+    }
+
+    60% {
+        transform: translateX(-4px);
+    }
+
+    70% {
+        transform: translateX(-3px);
+    }
+
+    80% {
+        transform: translateX(-2px);
+    }
+
+    90% {
+        transform: translateX(-1px);
+    }
+
+    100% {
+        transform: translateX(0px);
+    }
+}
+
+@keyframes neon-rz {
+    from {
+        box-shadow: inset 0px 0px 1px 1px rgba(100, 154, 100, 0.3);
+    }
+
+    to {
+        box-shadow: inset 0px 0px 5px 16px rgb(70, 220, 70, 1);
+    }
+}
+
+@keyframes neon-rz-2 {
+    from {
+        box-shadow: inset 0px 0px 11px 11px var(--jeo-primary);
+    }
+
+    to {
+        box-shadow: inset 0px 0px 1px 1px var(--rz-white);
+    }
+}
+
+@keyframes neon-rz-3 {
+    from {
+        box-shadow: inset 0px 0px 15px 15px var(--jeo-rz-dark-55);
+    }
+
+    to {
+        box-shadow: inset 0px 0px 15px 15px var(--jeo-rz-15);
+    }
+}
+
+@keyframes neon1 {
+    from {
+        box-shadow: inset 0px 0px 1px 1px rgba(100, 154, 100, 0.2), inset 0px 0px 0px 1px rgba(100, 164, 100, 0.2), inset 0px 0px 15px 3px rgba(100, 164, 100, 0.2), inset 0px 0px 15px 3px rgba(100, 164, 100, 0.2);
+    }
+
+    to {
+        box-shadow: inset 0px 0px 5px 16px rgb(0, 110, 250, 0.3);
+    }
+}
+
+@keyframes neon2 {
+    from {
+        box-shadow: inset 0px 0px 1px 1px rgba(100, 154, 100, 0.3), 0px 0px 2px 2px rgba(0, 139, 0, 0.3), 0px 0px 4px 4px rgba(0, 175, 0, 0.3);
+    }
+
+    to {
+        box-shadow: inset 0px 0px 5px 16px rgb(250, 0, 70, 1);
+    }
+}
+
+@keyframes neon3 {
+    from {
+        box-shadow: 0px 0px 2px 2px rgba(100, 0, 0, 0.2), 0px 0px 4px 4px rgba(200, 0, 0, 0.2);
+    }
+
+    to {
+        box-shadow: 0px 0px 2px 2px rgb(235, 50, 50, .2), 0px 0px 4px 4px rgb(235, 50, 50, .1);
+    }
+}
+
+@keyframes pulseGlow {
+    from {
+        /* Subtle initial glow: X-offset, Y-offset, Blur-radius, Color */
+        filter: drop-shadow(0 0 3px rgba(90, 255, 90, 0.3));
+    }
+
+    to {
+        /* Intense expanded glow */
+        filter: drop-shadow(0 0 12px rgba(50, 255, 50, .6));
+    }
+}
+
+/* Animation for the rain effect */
+@keyframes rain {
+    0% {
+        transform: translateY(-100%);
+    }
+
+    100% {
+        transform: translateY(100%);
+    }
+}
+
+/* Glitch effect for the text */
+@keyframes glitch {
+    0%, 100% {
+        clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
+        transform: translate(0);
+    }
+
+    33% {
+        clip-path: polygon(0 0, 100% 0, 100% 15%, 0 15%);
+        transform: translate(-5px, -5px);
+    }
+
+    66% {
+        clip-path: polygon(0 85%, 100% 85%, 100% 100%, 0 100%);
+        transform: translate(5px, 5px);
+    }
+}
+
+
+@keyframes wobble {
+    0%,100% {
+        transform: rotate3d(1,1,0,9deg);
+    }
+
+    25% {
+        transform: rotate3d(-1,1,0,9deg);
+    }
+
+    50% {
+        transform: rotate3d(-1,-1,0,9deg);
+    }
+
+    75% {
+        transform: rotate3d(1,-1,0,9deg);
+    }
+}
+
+@keyframes glow {
+    0%,100% {
+        text-shadow: 0 0 170px rgba(0,0,0,.6);
+    }
+
+    50% {
+        text-shadow: 0 0 170px rgba(0,0,0,.7);
+    }
+}
+
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    COSTELLO    ------------------------------------
+--------------------------------------------------------------------------------------------
+*/
+
+.costello-swarm-container {
+    position: absolute;
+    width: 100%;
+    height: 0px;
+    bottom: 75px;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.costello-trigger-container {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    z-index: 10000;
+    height: 30px;
+}
+
+.costello-trigger-btn {
+    background: var(--jeo-gradient-rz);
+    color: var(--rz-white);
+    font-size: 8pt;
+    font-family: Consolas;
+    letter-spacing: .1px;
+}
+
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    ERROR BOUNDARY    ------------------------------------
+--------------------------------------------------------------------------------------------
+*/
+
+.error-boundary-container {
+    padding: 30px;
+    margin: 20px;
+    background-color: #2d1e1e;
+    border: 2px solid #ff4444;
+    color: #ff9999;
+    font-family: monospace;
+    border-radius: 6px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+.error-boundary-title {
+    color: #ff4444;
+    margin-top: 0;
+}
+
+.error-boundary-hr {
+    border-color: #553333;
+}
+
+.error-boundary-stack-title {
+    color: #ffaa66;
+}
+
+.error-boundary-stack {
+    white-space: pre-wrap;
+    background: #1a1111;
+    padding: 15px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #dddddd;
+}
+
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    DASHBOARD    ------------------------------------
+--------------------------------------------------------------------------------------------
+*/
+
+.dashboard-full-absolute {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-layout-flex {
+    flex: 1 1 0%;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+    padding: 0px !important;
+    margin: 0px !important;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-pane-wrapper {
+    height: 100%;
+    overflow-y: auto;
+}
+
+.main-content-pane-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    padding: 0px !important;
+    display: flex;
+    flex-direction: column;
+}
+
+.diagram-pane-wrapper {
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    /*flex-direction: column;*/
+    overflow: hidden;
+    /*position: relative;*/
+}
+
+.tab-pane-wrapper {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+.dialog-content-wrapper {
+    padding: 20px;
+}
+
+.dialog-body-content {
+    color: #333;
+    line-height: 1.6;
+}
+
+.dialog-title {
+    color: #2c3e50;
+    border-bottom: 2px solid #2c3e50;
+    padding-bottom: 5px;
+}
+
+.dialog-footer-wrapper {
+    margin-top: 20px;
+    text-align: right;
+}
+
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    DASHBOARD TOP BAR    ------------------------------------
+--------------------------------------------------------------------------------------------
+*/
+
+.dashboard-config-section-flex {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dashboard-config-section-right-start-flex {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.metric-value-wrapper {
+    font-size: 9.5pt;
+    font-weight: bold;
+    color: var(--rz-primary);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.metric-reach-label {
+    text-align: right;
+}
+
+.metric-reach-value {
+    font-size: 7pt;
+}
+
+.info-icon-btn {
+    width: 16px;
+    height: 16px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--rz-info);
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.info-icon-svg {
+    width: 12px;
+    height: 12px;
+    fill: currentColor;
+}
+
+.metric-value-bold {
+    font-size: 9.5pt;
+    font-weight: bold;
+    color: var(--rz-primary);
+}
+
+.dashboard-config-section-right-flex-2 {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.metric-value-wrapper-2 {
+    font-size: 9.5pt;
+    font-weight: bold;
+    color: var(--rz-primary);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.metric-reach-label {
+}
+
+.warning-icon-btn {
+    width: 16px;
+    height: 16px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--rz-warning);
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.warning-icon-svg {
+    width: 12px;
+    height: 12px;
+    fill: currentColor;
+}
+
+.score-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.score-info-wrapper {
+    color: var(--rz-info);
+    display: inline-flex;
+    align-items: center;
+    margin-right: 2px;
+}
+
+.dialog-section-title {
+    font-weight: bold;
+    display: block;
+}
+
+.dialog-section-title-bolder {
+    font-weight: bolder;
+    display: block;
+}
+
+.dialog-stack-wrapper {
+    min-width: 400px;
+    max-width: 600px;
+    max-height: 450px;
+}
+
+.dialog-description-text {
+    font-size: 9.5pt;
+    color: var(--rz-text-secondary-color);
+    margin: 0;
+}
+
+.dialog-scroll-container {
+    background-color: rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 4px;
+    padding: 12px;
+    overflow-y: auto;
+    max-height: 280px;
+    box-sizing: border-box;
+}
+
+.duplicate-bullet {
+    font-weight: bold;
+    color: var(--rz-warning);
+    user-select: none;
+}
+
+.duplicate-item-text {
+    word-break: break-all;
+    font-weight: 600;
+}
+
+.dialog-empty-text {
+    color: var(--rz-text-disabled-color);
+    font-size: 9.5pt;
+    font-style: italic;
+}
+
+.dialog-footer-margin {
+    margin-top: 5px;
+}
+
+.dialog-stack-wrapper-large {
+    min-width: 400px;
+    max-width: 600px;
+    max-height: 650px;
+}
+
+.dialog-label-bold {
+    font-weight: bold;
+}
+
+.penalty-value {
+    font-weight: bold;
+    color: var(--rz-warning);
+    user-select: none;
+}
+
+.penalty-message {
+    word-break: break-all;
+    font-weight: 600;
+}
+
+.dialog-stack-wrapper-extra-large {
+    min-width: 400px;
+    max-width: 600px;
+    max-height: 750px;
+}
+
+.dialog-starting-table {
+    font-size: 11.5pt;
+    color: var(--rz-text-secondary-color);
+    margin: 0;
+}
+
+.dialog-section-header {
+    font-weight: bold;
+    font-size: 10.5pt;
+    color: var(--rz-text-secondary-color);
+    margin: 0;
+}
+
+.dialog-scroll-container-small {
+    background-color: rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 4px;
+    padding: 12px;
+    overflow-y: auto;
+    max-height: 180px;
+    box-sizing: border-box;
+}
+
+.info-bullet {
+    font-weight: bold;
+    color: var(--rz-info);
+    user-select: none;
+}
+
+.table-item-text {
+    word-break: break-all;
+    font-weight: 600;
+}
+
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    TABLE NAV    ------------------------------------
+--------------------------------------------------------------------------------------------
+*/
+
+.titlebar-left-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.titlebar-text-bold {
+    font-weight: bold;
+}
+
+.titlebar-right-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.titlebar-count-text {
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.fullscreen-btn {
+    height: 19px;
+    width: 20px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--rz-white);
+    background-color: var(--jeo-gradient-rz);
+}
+
+.filter-input-full-width {
+    width: 100%;
+}
+
+.checkbox-no-pointer {
+    pointer-events: none;
+}
+
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    DIAGRAM VIEWER DATABASE    ------------------------------------
+--------------------------------------------------------------------------------------------
+*/
+
+.diagram-titlebar {
+    border-bottom: 1px solid black;
+}
+
+.titlebar-right-wrapper-gap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.select-top-1000-btn {
+    height: 22px;
+    width: 28px !important;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--rz-white);
+    background-color: var(--rz-text-selection-color);
+    font-size: 8pt;
+    color: var(--rz-white);
+    padding: 0;
+}
+
+.emoji-large {
+    font-size: 16pt;
+}
+
+.toggle-fullscreen-btn {
+    height: 22px;
+    width: 22px;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--rz-white);
+    background-color: var(--jeo-gradient-rz);
+    padding: 0;
+}
+
+.icon-small {
+    width: 12px;
+    height: 12px;
+    fill: currentColor;
+}
+
+.diagram-body-scroll {
+    background-color: var(--rz-primary);
+}
+
+.diagram-tabs {
+    height: calc(100% - 5px);
+    overflow: hidden;
+    background: var(--jeo-gradient-rz-light);
+}
+
+.tab-header-black {
+    background-color: black;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.data-grid-full-width {
+    height: 100%;
+}
+
+.tab-header-icon-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.icon-medium {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+}
+
+.diagram-container-full {
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    position: relative;
+}
+
+.diagram-config-sidebar {
+    height: 100%;
+    background-color: var(--rz-panel-background-color, #f5f5f5);
+    transition: width 0.2s ease-in-out, min-width 0.2s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    z-index: 10;
+}
+
+.sidebar-inner-wrapper {
+    width: 240px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+.sidebar-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px 4px 16px;
+}
+
+.sidebar-title-text {
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: var(--rz-text-color);
+}
+
+.sidebar-content-wrapper {
+    padding: 12px 16px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.sidebar-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sidebar-label {
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: var(--rz-text-disabled-color, #888);
+}
+
+.dropdown-full-width {
+    width: 100%;
+    height: 32px;
+}
+
+.sidebar-divider {
+    border: none;
+    border-top: 1px solid var(--rz-border-color, #e0e0e0);
+    margin: 4px 0;
+}
+
+.sidebar-label-bottom {
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: var(--rz-text-disabled-color, #888);
+    margin-bottom: 4px;
+}
+
+
+
+
+
+
+/*
+--------------------------------------------------------------------------------------------
+----------------------------------    dashboard.css    ------------------------------------
+--------------------------------------------------------------------------------------------
+    Everything Needed For Dashboard Page
+--------------------------------------------------------------------------------------------
+*/
+    .dashboard-config-label {
+        font-variant: small-caps;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        font-size: 9pt;
+        word-spacing: 1.7px;
+    }
+
+    .dashboard-config-section-right {
+        margin-left: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        font-size: 8pt;
+        justify-content: center;
+        text-align: right;
+    }
+
+    .dashboard-config-section-left {
+        margin-left: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        font-size: 8pt;
+        justify-content: center;
+        text-align: right;
+        padding-left: 4px;
+    }
+
+    .dashboard-config-section-right,
+    .dashboard-config-section-right-start {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        font-size: 8pt;
+        justify-content: center;
+        text-align: right;
+    }
+
+    .dashboard-config-section-right {
+        margin-left: 20px;
+    }
+
+    .dashboard-config-section-right-start {
+        margin-left: auto !important;
+    }
+
+    .dashboard-config-container {
+        padding-top: 0px;
+        padding-bottom: 0px;
+        padding-left: 12px;
+        padding-right: 12px;
+        margin-bottom: 0px;
+        margin-top: 0px !important;
+    }
+
+    .dashboard-button-select-top-1000 {
+        width: 100%;
+        position: relative;
+        bottom: 0px;
+        /*border-radius: 0px;*/
+        background-color: var(--jeo-gradient-rz-light);
+        color: var(--rz-white);
+    }
+
+    .dashboard-pane-titlebar-right-expand-button {
+        box-shadow: none;
+        padding: 0px 0px 0px 0px;
+        margin-top: 0px;
+        margin-bottom: 0px;
+        border: none;
+        height: 25px !important;
+        min-height: 25px;
+        min-width: 25px;
+        width: 25px !important;
+    }
+
+    .dashboard-pane-body-container-scroll .rz-data-grid, #queryEditor {
+        height: 100%;
+        max-height: 100%;
+        overflow: hidden;
+    }
+    /* ---------------- Monaco ------------------ */
+    /* Monaco Text Editor*/
+    .dashboard-pane-container .txtQueryEditor {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+    }
+    /* future monaco host */
+    .monaco-host {
+        width: 100%;
+        height: 100%;
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .txtQueryEditor {
+        border-bottom: 1px solid #647c64;
+    }
+    /* --------  SPLITTERS - BE CAREFUL -----------*/
+    .dashboard-pane-container {
+        width: 100%;
+        height: 100%;
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        /*border: 1px solid var(--jeo-gradient-rz);*/
+        /*border: .5px solid black !important;*/
+        box-shadow: 5px 0 10px var(--jeo-gradienr-rz-light);
+    }
+
+    .dashboard-pane-titlebar-container p {
+        margin-bottom: 0px;
+        text-shadow: 5px 5px 5px var(--jeo-gradient-rz-light) !important;
+    }
+
+    .dashboard-pane-container {
+    }
+
+    .query-results-pane .dashboard-pane-titlebar-container, .diagramresults-pane .dashboard-pane-titlebar-container {
+        border-bottom: 1px solid black inset !important;
+    }
+
+    .dashboard-pane-container .dashboard-pane-titlebar-container {
+        padding-top: 0px;
+        padding-left: 6px !important;
+        border-top: none;
+        border-left: none;
+        border-right: none;
+        /*background: var(--jeo-gradient-rz-light) !important;*/
+    }
+
+        .dashboard-pane-container .dashboard-pane-titlebar-container div:nth-child(1) {
+            color: var(--rz-white) !important;
+            font-weight: bold;
+            font-family: Roboto, sans-serif;
+            font-size: 11pt;
+            padding-left: 0px;
+        }
+
+    .dashboard-pane-titlebar {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        gap: 12px;
+    }
+
+        .dashboard-pane-titlebar > div:nth-child(1) > span:nth-child(1) {
+            font-variant: small-caps;
+            font-size: 10pt;
+            /*margin-bottom: -1.5px;*/
+        }
+
+    .dashboard-pane-titlebar-right-container {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 6px;
+        padding-right: 5px;
+        padding-top: 0px;
+    }
+
+    .dashboard-pane-titlebar-right-container2 {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 8px;
+        font-size: 9.5pt;
+        font-family: monospace;
+        color: var(--rz-warning);
+    }
+
+    .dashboard-pane-container .dashboard-pane-body-container-scroll {
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        min-width: 0;
+        min-height: 0;
+    }
+
+    .dashboard-pane-generation-sidebar-header {
+        padding-top: 3px;
+        padding-bottom: 3px;
+    }
+    /* Default state */
+    .dashboard-pane-query-results-container {
+        background-color: transparent;
+        border: 1px solid #ccc;
+        transition: all 0.3s ease;
+    }
+        /* Fullscreen state */
+        .dashboard-pane-query-results-container:fullscreen {
+            width: 100vw;
+            height: 100vh;
+            background-color: white;
+            overflow-y: auto;
+            border: none;
+        }
+
+    .dashboard-pane-container .rz-chkbox-box.rz-state-active {
+        background-color: var(--rz-primary);
+    }
+
+    .dashboard-pane-container .dashboard-pane-titlebar-container .rz-chkbox-box.rz-state-active {
+        background-color: rgba(100, 124, 100, 0.7);
+        border: 0.1px solid var(--rz-base-400);
+    }
+
+    .dashboard-pane-generation-settings-container {
+        margin-bottom: 12px;
+        display: flex;
+        flex-direction: column;
+        padding: 4px 4px 4px 4px;
+    }
+
+        .dashboard-pane-generation-settings-container label {
+            font-size: 8pt;
+            font-weight: bold;
+            color: var(--rz-black);
+            /*margin-bottom: 4px;*/
+            /*text-transform: uppercase;*/
+            /*letter-spacing: 0.5px;*/
+            /*height: 22px;*/
+            /*margin-bottom: 0px;*/
+        }
+
+    .dashboard-pane-generation-settings-label {
+        margin-top: 3px;
+        margin-left: 0px;
+        margin-bottom: -3px;
+        padding: 0px 4px 0px 4px;
+        font-size: 12px !important;
+        font-weight: bold;
+        font-variant: small-caps;
+    }
+
+    .dashboard-pane-generation-settings-section-header {
+        margin-top: 3px;
+        margin-left: 0px;
+        padding: 0px 0px 0px 3px;
+        font-size: 12px !important;
+        font-weight: bold;
+        font-variant: small-caps;
+        background-color: rgba(30, 30, 30, 0.7);
+        width: 100%;
+        border: 0.2px solid rgba(5, 5, 5, 0.7);
+        color: var(--rz-white);
+        display: inline-block;
+        background: var(--jeo-gradient-black);
+    }
+
+    .dashboard-pane-generation-settings-container .rz-dropdown {
+        min-height: 15px;
+        height: 30px !important;
+        padding-left: 2px;
+        padding-right: 5px;
+        padding-top: 5px;
+        padding-bottom: 0px;
+        width: 100%;
+        font-size: 9pt;
+    }
+
+    .dashboard-pane-generation-settings-container .rz-checkbox-list .rz-chkbox-label {
+        padding-left: 0px !important;
+        padding-top: 2px;
+        margin-left: 5px !important;
+        height: 20px;
+    }
+
+    .monaco-full-stretch, .monaco-full-stretch > div {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    .dashboard-diagram-bottom-controls-panel,
+    .dashboard-query-editor-bottom-controls-panel {
+        background: var(--jeo-gradient-silver);
+        border-top: 1px solid rgba(0, 0, 0, 0.08);
+        padding: 3px 5px;
+    }
+    /* Compact Forms Label System */
+    .dashboard-pane-generation-settings-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+        .dashboard-pane-generation-settings-container label {
+            font-size: 7.5pt;
+            font-weight: bold;
+            color: var(--rz-text-secondary-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    /* ==========================================================================
+   RADZEN TAB & SCROLL OVERRIDES
+   ========================================================================== */
+    /* Force the wrapper to take up the full available track height */
+    .dashboard-pane-container .rz-tabview {
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100% !important;
+    }
+    /* Force the inner tab strip content track to isolate overflowing */
+    .dashboard-pane-container .rz-tabview-panels {
+        flex-grow: 1 !important;
+        height: 100% !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        /* Prevents the outer container from double-scrolling */
+        background-color: #14161a !important;
+    }
+    /* Let individual grid items command their own inner independent scrolling tracks */
+    .dashboard-pane-container .rz-tabview-panel {
+        height: 100% !important;
+        width: 100% !important;
+        overflow: hidden !important;
+    }
+
+    .dashboard-pane-titlebar-right-expand-button:hover {
+        -webkit-animation: neon2 1.3s ease-in-out infinite alternate;
+        -moz-animation: neon2 1.3s ease-in-out infinite alternate;
+        animation: neon2 1s ease-in-out infinite alternate;
+    }
+    /*  ------------- RAZDEN OVERRIDES  -------------  */
+    .rz-splitter {
+        width: 100%;
+        height: 100%;
+    }
+
+    .rz-splitter-pane {
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .dashboard-pane-container,
+    .rz-splitter-pane {
+        box-shadow: 3px 0 10px var(--jeo-primary);
+    }
+/*
+    .rz-splitter-pane-lastresizable div.dashboard-pane-container div.dashboard-pane-titlebar-container {
+        color: var(--rz-white) !important;
+        font-weight: bold;
+        font-family: Roboto, sans-serif;
+        font-size: 11pt;
+        padding-left: 5px;
+    }*/
+    /* DataGrid Scroll */
+    .rz-data-grid.grid-query-results .rz-data-grid-data {
+        overflow-y: hidden;
+        overflow-x: scroll;
+    }
+    /* ----------  Query Result Tabs   ---------- */
+    .rz-tabview-nav button[role="tab"] {
+        padding: 2px 5px 0px 5px;
+        font-size: 9pt;
+        font-weight: 500;
+        border: 1px solid white;
+        color: var(--rz-primary);
+    }
+        /* Query Result Tabs Hover */
+        /*.rz-tabview-nav button[role="tab"]:hover {
+            background-color: var(--rz-primary);
+            color: white;
+        }*/
+
+        .rz-tabview-nav button[role="tab"] p {
+            margin-bottom: 0px;
+        }
+
+    .rz-tabview-panel {
+        padding: 0px;
+    }
+    /* Make These Blazor Lego Blocks Smaller */
+    .rz-numeric-input,
+    .rz-inputtext,
+    .rz-text-align-left {
+        padding-left: 7px;
+    }
+    /* Tab View Scroll */
+    .rz-tabview-panel {
+        width: 100%;
+        height: 100%;
+    }
+    /*  -------------------- MISC  ------------------  */
+    .rz-layout .rz-body {
+        overflow: hidden !important;
+        padding: 0px 0px 0px 0px !important;
+    }
+    /* -------------------- GRID ----------------------*/
+    .rz-grid-table {
+        /* Grid Header Heights  */
+        thead th .rz-column-title {
+            height: 15px;
+        }
+        /* -- Header|Data|Font|Padding|Height --- */
+        thead th[role="columnheader"],
+        .rz-data-row td[role="gridcell"] {
+            padding: 0px 0px 0px 0px !important;
+        }
+
+            thead th[role="columnheader"] .rz-column-title,
+            .rz-data-row td[role="gridcell"] .rz-cell-data {
+                font-size: 7pt !important;
+                padding: 1px 1px 0px 3px !important;
+            }
+
+        thead[role="rowgroup"] th div {
+            background-color: var(--rz-white);
+        }
+        /* Grid Header Border */
+        th[role="columnheader"] {
+            border-right: 0.1px solid lightgray;
+            padding-left: 0px !important;
+        }
+            /* Grid Column Header Padding */
+            th[role="columnheader"] div {
+                padding-top: 2px;
+                padding-bottom: 2px;
+            }
+
+        .rz-state-highlight {
+            background-color: var(--jeo-primary);
+
+            .rz-cell-data {
+                color: var(--rz-white) !important;
+            }
+        }
+
+        .rz-cell-filter,
+        .rz-cell-filter-content,
+        span.rz-cell-filter-label,
+        span.rz-cell-filter-label input {
+            height: 20px !important;
+            padding: 0px 0px 0px 0px !important;
+        }
+    }
+
+
+    .diagram-node {
+        font-family: Roboto, Consolas, Monaco, Roboto;
+        font-weight: 600 !important;
+        font-size: 5.25pt !important;
+        letter-spacing: -.3px;
+    }
+
+    .node-content-core {
+        /*border: .1px solid rgba(150,150,150,.2);*/
+        border-radius: 12px;
+        /*color: var(--rz-white);*/
+        padding-top: 0px !important;
+        padding-bottom: 0px !important;
+        padding-left: 5px;
+        padding-right: 5px;
+        /*-webkit-text-fill-color: white;*/
+        -webkit-text-stroke: .005px black;
+    }
+    /*    .cvDb .diagram-link-label .default-link-label {
+        font-size: 3.75pt;
+        font-weight: 400;
+        font-family: Consolas, Monaco, monospace;
+    }
+.cvJarvis .diagram-link-label .default-link-label {
+    font-size: 5.75pt;
+    font-weight: 400;
+    font-family: Consolas, Monaco, monospace;
+}*/
+    /*
+.node-content-core:has(.jeo3-node-depth-0) {
+    background: black !important;
+}
+
+.node-content-core:has(.jeo3-node-depth-1) {
+    background: var(--color-8-indigo) !important;
+}
+
+.node-content-core:has(.jeo3-node-depth-2) {
+    background: var(--color-1-red) !important;
+}
+
+.node-content-core:has(.jeo3-node-depth-3) {
+    background: var(--color-2-orange) !important;
+}
+
+.node-content-core:has(.jeo3-node-depth-4) {
+    background: var(--color-3-yellow) !important;
+}
+
+.node-content-core:has(.jeo3-node-depth-5) {
+    background: var(--color-5-green) !important;
+}
+
+.node-content-core:has(.jeo3-node-depth-6) {
+    background: var(--color-6-teal) !important;
+}
+
+.node-content-core:has(.jeo3-node-depth-7) {
+    background: var(--color-7-blue) !important;
+}
+
+.node-content-core:has(.jeo3-node-depth-8) {
+    background: var(--color-9-magenta) !important;
+}
+
+.node-content-core:has(.jeo3-node-depth-9) {
+    background: var(--color-8-indigo) !important;
+}
+
+.node-content-core:has(.jeo3-node-depth-10) {
+    background: var(--color-10-pink) !important;
+}*/
+
+    .dashboard-diagram-bottom-controls-panel {
+        background: var(--jeo-gradient-silver);
+        border-top: 1px solid rgba(0, 0, 0, 0.08);
+        padding: 0px 10px;
+        position: relative;
+        bottom: 0px;
+        height: 60px;
+    }
+
+    .lm_tab {
+        /*background: var(--jeo-gradient-green) !important;*/
+        color: white !important;
+        font-weight: bold;
+        width: 100px;
+    }
+
+    .lm_title {
+        /*    height: 25px !important;*/
+        font-family: Consolas, Monaco, monospace;
+        padding: 0px;
+        /*display: none !important;*/
+    }
+
+    .lm_close_tab {
+        display: none;
+    }
+
+    .lm_controls {
+        display: block;
+    }
+
+
+    .rz-data-row td {
+        padding-top: 2px;
+        padding-bottom: 2px;
+    }
+
+    .rz-sortable-column > div:nth-child(1) {
+        padding-top: 0px !important;
+        padding-bottom: 0px !important;
+    }
+
+    .rz-tabview-nav li {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    /* Container for the split view */
+    .dashboard-query-editor-container {
+        width: 100%;
+        height: 100%;
+        background-color: white;
+        overflow: hidden;
+        display: flex;
+        flex-direction: row;
+        position: relative;
+    }
+    /* The Editor takes up all remaining space */
+    .grid-query-editor {
+        flex-grow: 1;
+        height: 100%;
+        position: relative;
+        background-color: white;
+        min-width: 0; /* Prevents flex blowout with Monaco */
+    }
+    /* Base sidebar styling */
+    .query-editor-config-sidebar {
+        height: 100%;
+        background-color: var(--rz-panel-background-color, #f5f5f5);
+        transition: width 0.2s ease-in-out, min-width 0.2s ease-in-out;
+        display: flex;
+        flex-direction: column;
+        overflow-x: hidden;
+        overflow-y: auto;
+        position: relative;
+        z-index: 10;
+    }
+    /* Modifier classes bound to boolean */
+    .query-editor-config-sidebar-open {
+        width: 225px;
+        min-width: 225px;
+        border-left: 1px solid var(--rz-border-color, #ccc); /* Border on left now */
+    }
+
+    .query-editor-config-sidebar-closed {
+        width: 0px;
+        min-width: 0px;
+        border-left: none;
+    }
+
+    .sidebar-toggle-button-left {
+        margin-left: -13px;
+        margin-top: 0px;
+    }
+
+    .vertical-text-standard {
+        writing-mode: vertical-rl;
+    }
+
+    .vertical-text-up {
+        writing-mode: vertical-lr;
+        transform: rotate(180deg);
+    }
+
+.sidebar-toggle-button-right-output-1,
+.sidebar-toggle-button-right-output-2,
+.sidebar-toggle-button-right-output-3,
+.sidebar-toggle-button-right,
+.sidebar-toggle-button-left {
+    color: var(--rz-white);
+    background: var(--jeo-gradient-rz) !important;
+    border-radius: 4px;
+    border: 1px solid var(--rz-border-color, #ccc);
+    cursor: pointer;
+    display: flex;
+    z-index: 20;
+    font-weight: bolder;
+    justify-content: center;
+    align-items: center;
+    font-size: 13pt !important;
+    letter-spacing: 1.8px !important;
+    animation: neon-rz-3 5s ease-in infinite alternate !important;
+}
+
+.sidebar-toggle-button-right-output-1,
+.sidebar-toggle-button-right-output-2,
+.sidebar-toggle-button-right-output-3 {
+    position: absolute;
+    margin-left: 0px;
+    background: var(--jeo-gradient-rz) !important;
+}
+.sidebar-toggle-button-right-output-1 {
+    margin-top: 120px;
+}
+.sidebar-toggle-button-right-output-2 {
+    margin-top: 145px;
+}
+.sidebar-toggle-button-right-output-3 {
+    margin-top: 170px;
+}
+
+        .sidebar-toggle-button-right.expanded,
+        .sidebar-toggle-button-left.collapsed {
+            width: 24px;
+            height: 24px;
+        }
+
+        .sidebar-toggle-button-left.expanded,
+        .sidebar-toggle-button-right.collapsed {
+            position: absolute;
+            width: 32px;
+            height: 100px !important;
+        }
+
+        .sidebar-toggle-button-left.expanded {
+            top: 0px;
+            left: 13px;
+        }
+
+        .sidebar-toggle-button-right.collapsed {
+            top: 0px;
+            right: 1px;
+        }
+    /* Cleanup for interior blocks */
+    .sidebar-config-block {
+        padding: 10px 2px 10px 5px;
+        border-bottom: 1px solid var(--rz-border-color, #eee);
+    }
+
+    .jeo-grid .rz-column-title-content {
+        font-size: 7pt;
+    }
+
+    .rz-sortable-column-icon {
+        display: none !important;
+    }
+
+    .blocker-monaco {
+        min-height: 195px;
+        width: 100%;
+    }
+
+    .rz-tick-text {
+        font-size: 6.5pt;
+    }
+
+    .rz-scheme-pastel .rz-series-0, .rz-series-value-label text {
+        fill: lime !important;
+        stroke: lime !important;
+        background-color: lime !important;
+    }
+
+    .wait-grid {
+        background-color: transparent !important;
+    }
+
+    .wait-times-div {
+        max-height: 100px !important;
+    }
+
+
+    figure {
+        width: 400px !important;
+        height: 55px;
+        position: absolute;
+        top: 8px;
+        right: 225px;
+        animation: wobble 5s ease-in-out infinite;
+        transform-origin: center center;
+        transform-style: preserve-3d;
+    }
+
+    /*h1 {
+        font-family: 'Lucida Console';
+        font-weight: bold;
+        font-size: 28pt;
+        position: absolute;
+        color: #0a0a0a;
+        color: white !important;
+        -webkit-text-stroke-color: black;
+        -webkit-text-fill-color: white;
+        -webkit-text-stroke: .25px rgba(0,0,0,0,.86);
+    }
+
+        h1:nth-child(2) {
+            transform: translateZ(5px);
+        }
+
+        h1:nth-child(3) {
+            transform: translateZ(12px);
+        }
+
+        h1:nth-child(4) {
+            transform: translateZ(19px);
+        }
+
+        h1:nth-child(5) {
+            transform: translateZ(26px);
+        }
+
+        h1:nth-child(6) {
+            transform: translateZ(32px);
+        }
+
+        h1:nth-child(7) {
+            transform: translateZ(39px);
+        }
+
+        h1:nth-child(8) {
+            transform: translateZ(46px);
+        }
+
+        h1:nth-child(9) {
+            transform: translateZ(53px);
+        }
+
+        h1:nth-child(10) {
+            transform: translateZ(60px);
+        }
+
+    h1 {*/
+        /*animation: glow 10s ease-in-out infinite;*/
+        /*animation: none;
+        -webkit-text-stroke: 1px #fff;
+    }*/
+
+
+
+
+
+

@@ -1,0 +1,82 @@
+﻿@inherits MonitorBase
+
+@namespace JEO3.Monitor.ECharts
+@using JEO3.Monitor
+
+
+<RadzenChart style="@_style">
+	<defs>
+		<linearGradient id="splineGradient" x1="0" y1="0" x2="0" y2="1">
+			<stop offset="0%" stop-color="#00cc66" stop-opacity="0.4" />
+			<stop offset="100%" stop-color="#00cc66" stop-opacity="0.0" />
+		</linearGradient>
+	</defs>
+
+	@* Directly binding to history collection *@
+	<RadzenAreaSeries Data="@WaitHistory"
+					  CategoryProperty="Timestamp"
+					  ValueProperty="TotalWaitMsPerSec"
+					  Title="ms wait / sec"
+					  FillMode="FillMode.Gradient"
+					  Fill="#00cc66"
+					  Smooth="true"
+					  Stroke="#00cc66"
+					  StrokeWidth="2">
+
+		<RadzenSeriesDataLabels Formatter="@FilterLabels" />
+
+	</RadzenAreaSeries>
+
+	@* Formatting X-Axis for time labels *@
+	<RadzenCategoryAxis FormatString="{0:HH:mm:ss}" Step="@TimeSpan.FromSeconds(10)">
+		<RadzenGridLines Visible="true" Stroke="#222c3c" StrokeWidth="1" LineType="LineType.Dashed" />
+	</RadzenCategoryAxis>
+
+	<RadzenValueAxis Min="0" Step="50000" FormatString="{0}ms/sec">
+		<RadzenGridLines Visible="true" Stroke="#222c3c" StrokeWidth="1" LineType="LineType.Dashed" />
+	</RadzenValueAxis>
+	<RadzenLineSeries Data="@WaitHistory.Select(x => new { x.Timestamp, Value = 300000d })"
+					  CategoryProperty="Timestamp"
+					  ValueProperty="Value"
+					  Title="🥠 game over"
+					  Stroke="#ff4444"
+					  StrokeWidth="2"
+					  LineType="LineType.Dashed">
+	</RadzenLineSeries>
+	<RadzenChartTooltipOptions Shared="true" />
+	<RadzenLegend Visible="true" />
+</RadzenChart>
+
+@code {
+	[Parameter] public override string Width { get; set; } = "1540px";
+	[Parameter] public override string Height { get; set; } = "150px";
+	private string _style => "height: " + Height + ";width:" + Width;
+
+	private string FilterLabels(object value)
+	{
+		// 1. Cast or parse the incoming raw object value safely
+		if (value is double numericValue)
+		{
+			// 2. Enforce your "Value exceeds X" condition
+			if (numericValue > 300000)
+			{
+				var sec = Math.Round(numericValue / 1000, 0);
+				var min = Math.Round(sec / 60, 2);
+				return min + " min/sec"; // Or format it e.g. $"{numericValue:N0}"
+			}
+		}
+
+		// 3. Return an empty string to completely suppress the label
+		return string.Empty;
+	}
+
+	protected override async Task AppendDeltasAsync(MonitorDeltaResponse delta)
+	{
+		await InvokeAsync(StateHasChanged);
+	}
+
+	protected override async Task RenderInitialAsync(MonitorSnapshot initial)
+	{
+		await InvokeAsync(StateHasChanged);
+	}
+}

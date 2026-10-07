@@ -1,0 +1,67 @@
+﻿@using Microsoft.AspNetCore.Components.Web
+
+<div class="cyber-checkbox-wrapper @(Value ? "is-checked" : "") @(Disabled ? "is-disabled" : "")"
+     @onclick="HandleClick">
+
+    <!-- Hidden native input keeps standard browser form/accessibility behaviors intact -->
+    <input type="checkbox"
+           id="@Id"
+           checked="@Value"
+           disabled="@Disabled"
+           tabindex="@(Disabled ? -1 : TabIndex)"
+           aria-checked="@(Value ? "true" : "false")"
+           aria-label="@AriaLabel"
+           @onchange="HandleChange"
+           @onclick:stopPropagation
+           class="cyber-hidden-input" />
+
+    <label for="@Id" class="cyber-visual-box" @onclick:stopPropagation>
+        <!-- Structural tactical alignment brackets -->
+        <span class="bracket-edge tl"></span>
+        <span class="bracket-edge tr"></span>
+        <span class="bracket-edge bl"></span>
+        <span class="bracket-edge br"></span>
+
+        <!-- High-contrast indicator core with fallback scaling -->
+        <span class="cyber-indicator-node"></span>
+
+    </label>
+
+    @if (ChildContent is not null)
+    {
+        @* <label for="@Id" class="cyber-label-content">@ChildContent</label> *@
+    }
+</div>
+
+@code {
+    [Parameter] public bool Value { get; set; }
+    [Parameter] public EventCallback<bool> ValueChanged { get; set; }
+    [Parameter] public EventCallback<bool> Change { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public int TabIndex { get; set; } = 0;
+    [Parameter] public string Id { get; set; } = $"cyber-cb-{Guid.NewGuid().ToString("N")}";
+    [Parameter] public string? AriaLabel { get; set; }
+
+    private async Task HandleClick()
+    {
+        if (Disabled) return;
+        await ToggleState(!Value);
+    }
+
+    private async Task HandleChange(ChangeEventArgs e)
+    {
+        if (Disabled) return;
+        if (e.Value is bool boolVal)
+        {
+            await ToggleState(boolVal);
+        }
+    }
+
+    private async Task ToggleState(bool newValue)
+    {
+        Value = newValue;
+        await ValueChanged.InvokeAsync(Value);
+        await Change.InvokeAsync(Value);
+    }
+}

@@ -1,0 +1,235 @@
+﻿@using System.Data
+@using BlazorMonaco.Editor
+@using JEO3.Generation
+@using JEO3.Site.Components.Icons
+@using Radzen
+@using Radzen.Blazor
+
+@namespace JEO3.Site.Dashboard
+
+<div class="dashboard-pane-container" @ref="queryQueryEditorPaneDiv">
+
+	<div class="dashboard-pane-titlebar-container">
+		<div class="dashboard-pane-titlebar diagram-titlebar">
+			<div class="titlebar-left-wrapper">
+				<span class="titlebar-text-bold">Query Editor</span>
+			</div>
+			<div class="dashboard-pane-titlebar-right-container titlebar-right-wrapper-gap">
+				<RadzenDropDown TValue="SqlEditorTheme" Data="@Enum.GetValues(typeof(SqlEditorTheme))" @bind-Value="@W.UI.Appearance.EditorTheme"
+								Change="@(args => OnThemeChange((SqlEditorTheme)args))" class="theme-dropdown" />
+				<input type="checkbox" checked="@W.UI.Settings.FlagAutoGenerateQueries" @onchange="@(async (args) => { W.UI.Settings.FlagAutoGenerateQueries = (bool)args.Value!; await OnGenerationSettingChanged.InvokeAsync(); })" />
+				<span class="titlebar-count-text">Auto-Generate</span>
+				<button type="button" class="dashboard-pane-titlebar-right-expand-button query-pane-toggle-btn"
+						@onclick="ToggleQueryPaneExpansionFullScreen">
+					@if (W.UI.Appearance.IsPaneFullScreenResults)
+					{
+						<IconMinimize />
+					}
+					else
+					{
+						<IconMaximize />
+					}
+				</button>
+			</div>
+		</div>
+	</div>
+
+	<div class="dashboard-query-editor-container">
+
+		<div class="grid-query-editor" oncontextmenu="return false;" onpointerup="if(event.button === 2) { this.releasePointerCapture(event.pointerId); }">
+			<StandaloneCodeEditor @key=@("query-editor-instance") CssClass="txtQueryEditor" ConstructionOptions="EditorOptions"
+								  @ref="queryEditor" OnDidInit="OnEditorInitialized" OnDidChangeModelContent="OnEditorContentChanged" />
+		</div>
+
+		<div class="query-editor-config-sidebar @(W.UI.Appearance.IsSidebarExpandedQueryEditor ? "query-editor-config-sidebar-open" : "query-editor-config-sidebar-closed")">
+			<div class="sidebar-header-row-inner">
+				<button type="button" @onclick="ToggleQueryEditorSidebar" title="Collapse Panel" class="sidebar-toggle-button-right expanded">
+					»
+				</button>
+				<VSIcon Type="VSIconType.VSCode" Name="file_type_bat" Extension="ImageType.svg" Width="20" Height="20" class="fa-ml-3 fa-pr-7"></VSIcon>
+				<span class="sidebar-generation-options-label">
+					GENERATION OPTIONS
+				</span>
+			</div>
+
+			<div class="sidebar-right-body-content">
+				
+				<label class="sidebar-right-section-titlebar"><VSIcon Type="VSIconType.VSCode" Name="file_type_storybook" Extension="ImageType.svg" Width="20" Height="20" class="fa-ml-3 fa-pr-7"></VSIcon> SELECT CLAUSE</label>
+
+				<div class="sidebar-config-block">
+					<div class="grid-two-col-gap-1">
+						<span>
+							<span class="sidebar-config-title">Root Select</span>
+							<RadzenDropDown TValue="TableSelectPolicy" @bind-Value="@W.UI.Settings.RootSelectPolicy" Data="@(Enum.GetValues<TableSelectPolicy>().Select(e => new { Text = e.ToString(), Value = e }))"
+											TextProperty="Text" ValueProperty="Value" class="select-policy-dropdown" Change="@(async (val) => { W.UI.Settings.RootSelectPolicy = (TableSelectPolicy)val; await OnRootSelectPolicyChanged(); })" />
+						</span>
+						<span>
+							<span class="sidebar-config-title">Join Select</span>
+							<RadzenDropDown TValue="TableSelectPolicy" @bind-Value="@W.UI.Settings.JoinSelectPolicy" Data="@(Enum.GetValues<TableSelectPolicy>().Select(e => new { Text = e.ToString(), Value = e }))"
+											TextProperty="Text" ValueProperty="Value" class="select-policy-dropdown" Change="@(async (val) => { W.UI.Settings.JoinSelectPolicy = (TableSelectPolicy)val; await OnJoinSelectPolicyChanged(); })" />
+						</span>
+					</div>
+				</div>
+
+				
+				<label class="sidebar-right-section-titlebar"><VSIcon Type="VSIconType.VSCodeGithub" Name="Collaborative_Service" Extension="ImageType.svg" Width="20" Height="20" class="fa-ml-3 fa-pr-7"></VSIcon> TRAVERSAL</label>
+				<div class="sidebar-config-block">
+					<div class="grid-two-col-gap-3">
+						<span>
+							<span class="sidebar-config-title">Levels Up</span>
+							<RadzenNumeric TValue="int" Min="0" Max="15" @bind-Value="@W.UI.Settings.LevelsUp" Change="@(async (val) => await OnLevelsChanged(val))" class="levels-numeric-input" />
+						</span>
+						<span>
+							<span class="sidebar-config-title">Levels Down</span>
+							<RadzenNumeric TValue="int" Min="0" Max="15" @bind-Value="@W.UI.Settings.LevelsDown" Change="@(async (val) => await OnLevelsChanged(val))" class="levels-numeric-input" />
+						</span>
+					</div>
+				</div>
+				<label class="sidebar-right-section-titlebar">
+					<VSIcon Type="VSIconType.VSCode" Name="file_type_light_readthedocs" Extension="ImageType.svg" Width="20" Height="20" class="fa-ml-3 fa-pr-7"></VSIcon>
+					FORMATTING
+				</label>
+				<div class="sidebar-config-block">
+					<span>
+						<input type="checkbox" id="generateCTEs" checked="@W.UI.Settings.IncludeCTEs" @onchange="@(async (args) => { W.UI.Settings.IncludeCTEs = (bool)args.Value!; await OnGenerationSettingChanged.InvokeAsync(); })" />
+
+						<label for="generateCTEs" class="sidebar-config-checkbox-label">Include CTE's</label>
+					</span>
+				</div>
+				<div class="sidebar-config-block">
+					<span>
+						<RadzenCheckBox @bind-Value=@W.UI.Settings.IgnoreNullableForeignKeys
+										TValue="bool"
+										Name="ignoreNullableForeignKeys"
+										Change="@(async () => await OnGenerationSettingChanged.InvokeAsync())" />
+						<label for="ignoreNullableForeignKeys" class="sidebar-config-checkbox-label">Ignore Nullable FKs</label>
+					</span>
+				</div>
+				<div class="sidebar-config-block">
+					<span>
+						<RadzenCheckBox @bind-Value=@W.UI.Settings.IgnoreTablesWithZeroRows
+										TValue="bool"
+										Name="ignoreTablesWithZeroRows"
+										Change="@(async () => await OnGenerationSettingChanged.InvokeAsync())" />
+						<label for="ignoreTablesWithZeroRows" class="sidebar-config-checkbox-label">Ignore Tables with Zero Rows</label>
+					</span>
+				</div>
+				<div class="sidebar-config-block">
+					<span>
+						<RadzenCheckBox @bind-Value=@W.UI.Settings.PreventRootTypeRecursion
+										TValue="bool"
+										Name="preventRootTypeRecursion"
+										Change="@(async () => await OnGenerationSettingChanged.InvokeAsync())" />
+						<label for="preventRootTypeRecursion" class="sidebar-config-checkbox-label">Prevent Self-Joins</label>
+					</span>
+				</div>
+				<div class="sidebar-config-block display-none">
+					<span>
+						<RadzenCheckBox @bind-Value=@W.UI.Settings.StrictIndexMatchingOnly
+										TValue="bool"
+										Name="strictIndexMatchingOnly"
+										Change="@(async (args) => await OnStrictToggleChanged(args))" />
+						<label for="strictIndexMatchingOnly" class="sidebar-config-checkbox-label">Strict Index Matching Only</label>
+					</span>
+				</div>
+				<div class="sidebar-config-block display-none">
+					<span>
+						<RadzenCheckBox @bind-Value=@W.UI.Settings.BiasSmallerTableScans
+										TValue="bool"
+										Name="biasSmallerTableScans"
+										Disabled="@W.UI.Settings.StrictIndexMatchingOnly"
+										Change="@(async () => await OnGenerationSettingChanged.InvokeAsync())" />
+						<label for="biasSmallerTableScans" class="sidebar-config-label-sm">Bias Smaller Table Scans</label>
+					</span>
+				</div>
+				<div class="sidebar-config-block display-none">
+					<span>
+						<RadzenCheckBox @bind-Value=@W.UI.Settings.EnforceStrictCyclePath
+										TValue="bool"
+										Name="strictCycle"
+										Disabled="@W.UI.Settings.StrictIndexMatchingOnly"
+										Change="@(async () => await OnGenerationSettingChanged.InvokeAsync())" />
+						<label for="strictCycle" class="sidebar-config-label-sm">Strict Cycle Pruning</label>
+					</span>
+				</div>
+
+				<div class="sidebar-config-block display-none">
+					<span>
+						<RadzenCheckBox @bind-Value=@W.UI.Settings.EnforceStrictLeafCollapse
+										TValue="bool"
+										Name="leafCollapse"
+										Disabled="@W.UI.Settings.StrictIndexMatchingOnly"
+										Change="@(async () => await OnGenerationSettingChanged.InvokeAsync())" />
+						<label for="leafCollapse" class="sidebar-config-label-sm">Collapse Terminal Leaves</label>
+					</span>
+				</div>
+				<div class="sidebar-config-block display-none">
+					<span>
+						<RadzenCheckBox @bind-Value=@W.UI.Settings.EnforceStrictDepthLimit
+										TValue="bool"
+										Name="depthLimit"
+										Disabled="@W.UI.Settings.StrictIndexMatchingOnly"
+										Change="@(async () => await OnGenerationSettingChanged.InvokeAsync())" />
+						<label for="depthLimit" class="sidebar-config-label-sm">Depth Hard-Cap</label>
+					</span>
+				</div>
+				
+				<label class="sidebar-right-section-titlebar"><VSIcon Type="VSIconType.VSCode" Name="file_type_freemarker" Extension="ImageType.svg" Width="20" Height="20" class="fa-ml-3 fa-pr-7"></VSIcon> ANNOTATION</label>
+				<div class="sidebar-config-block sidebar-config-block-no-border">
+					<RadzenCheckBoxList @bind-Value="@SelectedAnnotationFlags" TValue="AnnotationVerbosity" Change="@OnAnnotationSelectionChanged" class="annotation-checklist">
+						<Items>
+							<RadzenCheckBoxListItem Text="Generation Info" Value="AnnotationVerbosity.GenerationInfo" />
+							<RadzenCheckBoxListItem Text="Graph Summary" Value="AnnotationVerbosity.ExecutionSummary" />
+							<RadzenCheckBoxListItem Text="Traversal Summary" Value="AnnotationVerbosity.TraversalSummary" />
+							<RadzenCheckBoxListItem Text="Cardinality Estimates" Value="AnnotationVerbosity.CardinalityEstimation" />
+							<RadzenCheckBoxListItem Text="Table Footers" Value="AnnotationVerbosity.TableFooter" />
+							<RadzenCheckBoxListItem Text="Path Breadcrumbs" Value="AnnotationVerbosity.PathBreadcrumbs" />
+							<RadzenCheckBoxListItem Text="SELECT Warning" Value="AnnotationVerbosity.DoNotRemoveAscii" />
+						</Items>
+					</RadzenCheckBoxList>
+				</div>
+			</div>
+		</div>
+		@if (!W.UI.Appearance.IsSidebarExpandedQueryEditor)
+		{
+			<button type="button" @onclick="ToggleQueryEditorSidebar" title="Expand Configuration Options" class="sidebar-toggle-button-right collapsed vertical-text-up">
+				⚙️
+				<span>OPTIONS</span>
+			</button >
+			<button type="button" @onclick="@(async () => await OutputEditorText(OutputType.Sql))" title="Download .sql" class="sidebar-toggle-button-right-output-1 vertical-text-up-icon">
+				<VSIcon Type="VSIconType.VSIcons" Name="SQL_16x" Extension="ImageType.png" Width="20" Height="14"></VSIcon>
+			</button>
+			<button type="button" @onclick="@(async () => await OutputEditorText(OutputType.Cs))" title="Download .cs" class="sidebar-toggle-button-right-output-2 vertical-text-up-icon">
+				<VSIcon Type="VSIconType.VSCode" Name="file_type_csharp" Extension="ImageType.svg" Width="20" Height="14"></VSIcon>
+			</button>
+			<button type="button" @onclick="@(async () => await OutputEditorText(OutputType.Txt))" title="Download .txt" class="sidebar-toggle-button-right-output-3 vertical-text-up-icon">
+				<VSIcon Type="VSIconType.VSCode" Name="file_type_dtd" Extension="ImageType.svg" Width="20" Height="14"></VSIcon>
+			</button>
+		}
+	</div>
+</div>
+
+@code {
+	#region Dialogs
+
+	private async Task ShowOmitSelectColumnsInlineDialog() =>
+	await DialogService.OpenAsync("QUERY GENERATION COLUMN OMMISSION:", ds =>
+			@<RadzenStack Gap="1.5rem">
+				<section>Enter the column names to omit from query generation.</section>
+				<section>One entry per line (E.g. PersonID)</section>
+				<div class="dialog-flex-column-minheight">
+					<RadzenTextArea @bind-Value="@W.UI.Settings.ColumnsToOmitFromSelectText" class="textarea-full-flex" />
+				</div>
+				<RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+					<RadzenStack Orientation="Orientation.Horizontal">
+						<RadzenButton Text="Ok" Click="async () => { ds.Close(true); await OnGenerationSettingChanged.InvokeAsync(); }" class="btn-width-80" />
+					</RadzenStack>
+					<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" class="dialog-footer-action-row">
+						<RadzenButton Text="Refresh" Click="(async () => { await this.OnGenerationSettingChanged.InvokeAsync(); })" ButtonStyle="ButtonStyle.Info" />
+					</RadzenStack>
+				</RadzenStack>
+			</RadzenStack>);
+
+	#endregion
+
+}

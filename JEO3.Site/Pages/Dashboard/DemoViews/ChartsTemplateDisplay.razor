@@ -1,0 +1,291 @@
+﻿@using JEO3.Schema
+@using JEO3.Site.Components.Charting
+@using JEO3.Site.Components.Icons
+
+@namespace JEO3.Site.Dashboard
+@implements IDisposable
+@inject WSWorkspace W
+@if (W.UI.Appearance.IsSchemaLoaded)
+{
+	<RadzenTabs RenderMode="TabRenderMode.Client" @bind-SelectedIndex="selectedChartsTabIndex" class="main-nav-tabs" Style="background: var(--jeo-primary-rz) !important; color: var(--rz-white) !important;">
+		<Tabs>
+			<RadzenTabsItem>
+				<Template>
+					<VSIcon Width="22" Height="22" Name="file_type_pddl_plan" Type="VSIconType.VSCode" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> Stacked
+				</Template>
+				<ChildContent>
+					<div class="tab-pane-wrapper">
+						<!-- STACKED COLUMN: per-table breakdown of related-object counts -->
+						<StackedColumn TItem="ITable" Items="@W.Context.Tables" CategorySelector="@(t => t.TablePath)"
+									   SeriesNames="@(new[] { "Indexes", "Foreign Keys", "Triggers", "Check Constraints" })"
+									   ValueSelector="@GetContourNormalizedMetric"  ValueAxisTitle="Count" />
+					</div>
+				</ChildContent>
+			</RadzenTabsItem>
+			<RadzenTabsItem>
+				<Template>
+					<VSIcon Width="22" Height="22" Name="file_type_plsql" Type="VSIconType.VSCode" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> Radar
+				</Template>
+				<ChildContent>
+					<RadarLove Table="@_table" Column="@_table?.Columns.FirstOrDefault()" />
+				</ChildContent>
+			</RadzenTabsItem>
+			<RadzenTabsItem>
+				<Template>
+					<VSIcon Width="22" Height="22" Name="file_type_peeky" Type="VSIconType.VSCode" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> Pie
+				</Template>
+				<ChildContent>
+					@if (W.UI.Appearance.IsSchemaLoaded)
+					{
+						<!-- PIE/DONUT: column data type distribution across the whole schema -->
+						@if (W.Context?.Tables != null)
+						{
+							<PieBreakdown TItem="IColumn"  Items="@W.Context.Tables.SelectMany(t => t.Columns)"
+										  GroupSelector="@(c => c.DataType)" Title="Column Data Types"  Donut="true" />
+						}
+					}
+				</ChildContent>
+			</RadzenTabsItem>
+			<RadzenTabsItem>
+				<Template>
+					<VSIcon Width="22" Height="22" Name="file_type_julia" Type="VSIconType.VSCode" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> Bubble
+				</Template>
+				<ChildContent>
+					<!-- BUBBLE: three metrics at once -->
+					<BubbleCorrelation TItem="ITable" Items="@W.Context?.Tables" XSelector="@(t => t.Columns.Count)"  YSelector="@(t => t.ForeignKeys.Count)"
+									   SizeSelector="@(t => t.Indexes.Count)"  LabelSelector="@(t => t.TablePath)"  Title="Columns x FKs, sized by Indexes"
+									   XAxisTitle="Columns" YAxisTitle="Foreign Keys" />
+				</ChildContent>
+			</RadzenTabsItem>
+			<RadzenTabsItem>
+				<Template>
+					<VSIcon Width="22" Height="22" Name="file_type_gnuplot" Type="VSIconType.VSCode" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> Trend
+				</Template>
+				<ChildContent>
+					<!-- LINE TREND: fake cumulative growth, ordered alphabetically since there's no real timestamp -->
+					<LineTrend TItem="ITable" Items="@W.Context?.Tables"   LabelSelector="@(t => t.TablePath)" ValueSelector="@(t => t.Columns.Count)"
+							   OrderSelector="@(t => t.TablePath)"  SeriesTitle="Cumulative Columns" ValueAxisTitle="Running Column Total" />
+				</ChildContent>
+			</RadzenTabsItem>
+			<RadzenTabsItem>
+				<Template>
+					<VSIcon Width="22" Height="22" Name="file_type_allure" Type="VSIconType.VSCode" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> Sunburst
+				</Template>
+				<ChildContent>
+					<Sunburst Tables="@W.Context?.Tables" TableSelected="@OnTableRowSelected" />
+				</ChildContent>
+			</RadzenTabsItem>
+
+			<RadzenTabsItem>
+				<Template>
+					<VSIcon Width="22" Height="22" Name="file_type_typedoc" Type="VSIconType.VSCode" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> Funnel
+				</Template>
+				<ChildContent>
+					@if (W.UI.Appearance.IsSchemaLoaded)
+					{
+						<!-- FUNNEL: uses _cachedFunnelStages rebuilt by RebuildChartCaches() on schema change -->
+						<FunnelDrill Stages="@_cachedFunnelStages" Title="Schema Completeness" />
+					}
+				</ChildContent>
+			</RadzenTabsItem>
+			<RadzenTabsItem>
+				<Template>
+					<VSIcon Width="22" Height="22" Name="file_type_alchemy" Type="VSIconType.VSCode" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> Bubble
+				</Template>
+				<ChildContent>
+					<!-- BUBBLE: three metrics at once -->
+					<BubbleCorrelation TItem="ITable" Items="@W.Context?.Tables"  XSelector="@(t => t.Columns.Count)" YSelector="@(t => t.ForeignKeys.Count)"
+									   SizeSelector="@(t => t.Indexes.Count)" LabelSelector="@(t => t.TablePath)" Title="Columns x FKs, sized by Indexes"
+									   XAxisTitle="Columns" YAxisTitle="Foreign Keys" />
+				</ChildContent>
+			</RadzenTabsItem>
+			<RadzenTabsItem>
+				<Template>
+					<VSIcon Width="22" Height="22" Name="file_type_dal" Type="VSIconType.VSCode" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> Scatter
+				</Template>
+				<ChildContent>
+					<!-- SCATTER: correlation between two raw metrics -->
+					<ScatterCorrelation TItem="ITable" Items="@W.Context?.Tables" XSelector="@(t => t.Columns.Count)" YSelector="@(t => t.Indexes.Count)"
+										LabelSelector="@(t => t.TablePath)" Title="Columns vs Indexes" XAxisTitle="Columns" YAxisTitle="Indexes" />
+				</ChildContent>
+			</RadzenTabsItem>
+			<RadzenTabsItem>
+				<Template>
+					<VSIcon Width="22" Height="22" Name="file_type_atom" Type="VSIconType.VSCode" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> Waterfalls
+				</Template>
+				<ChildContent>
+					@if (W.UI.Appearance.IsSchemaLoaded)
+					{
+						<!-- WATERFALL: uses _cachedWaterfallSteps rebuilt by RebuildChartCaches() on table change -->
+						<WaterfallComposition Steps="@_cachedWaterfallSteps" Title="@($"{_table?.TablePath} Composition")" />
+					}
+				</ChildContent>
+			</RadzenTabsItem>
+			<RadzenTabsItem Text="SOON">
+			</RadzenTabsItem>
+		</Tabs>
+	</RadzenTabs>
+}
+@code {
+
+	#region Charts
+	private ITable _table { get; set; }
+	private int selectedChartsTabIndex = 0;
+	private List<WaterfallComposition.WaterfallStep>? _cachedWaterfallSteps;
+	private List<FunnelDrill.FunnelStage>? _cachedFunnelStages;
+	private ITable? _lastChartTable;
+
+	private static Dictionary<string, double> GetTableCaps()
+	{
+		return new()
+		{
+			["Columns"] = 50,
+			["Indexes"] = 15,
+			["Foreign Keys"] = 15,
+			["Referenced By FKs"] = 15,
+			["Triggers"] = 10,
+			["Check Constraints"] = 10,
+			["Parents"] = 15,
+			["Children"] = 15,
+			["Statistics"] = 15,
+			["Missing Indexes"] = 10
+		};
+	}
+
+	private double GetContourNormalizedMetric(ITable t, string metric)
+	{
+		double raw = metric switch
+		{
+			"Columns" => t.Columns.Count,
+			"Indexes" => t.Indexes.Count,
+			"Foreign Keys" => t.ForeignKeys.Count,
+			"Referenced By FKs" => t.ReferencedByForeignKeys.Count,
+			"Triggers" => t.Triggers.Count,
+			"Check Constraints" => t.CheckConstraints.Count,
+			"Parents" => t.ParentRelations.Count,
+			"Children" => t.ChildRelations.Count,
+			"Statistics" => t.Statistics.Count,
+			"Missing Indexes" => t.MissingIndexes.Count,
+			_ => 0
+		};
+
+		return Math.Min(1.0, raw / GetTableCaps()[metric]);
+	}
+
+	private async Task OnTableRowSelected(ITable table)
+	{
+		W.SelectTable(table);
+
+
+		if (table != null && table.Columns.Any())
+		{
+			W.UI.Grids.Selected.Tables = [table];
+			W.UI.Grids.Core.Columns = table.Columns;
+
+			var firstColumn = table.Columns.First();
+			W.UI.Grids.Selected.Columns = [firstColumn];
+
+			// do the state work directly instead of calling OnColumnSelected,
+			// which triggers its own StateHasChanged
+			if (W.UI.Grids.AutoFilterRelations)
+			{
+				W.UI.Grids.SearchColumnName = firstColumn.Name;
+			}
+		}
+
+		W.NotifyMainLayoutStateChanged();
+		StateHasChanged();
+	}
+	#endregion
+
+	#region Initiialization
+
+	protected override void OnInitialized()
+	{
+		// Subscribe to workspace events
+		W.OnDashboardStateChanged += HandleWorkspaceUpdated;
+		W.OnTableChanged += HandleTableChanged;
+	}
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			if (W.SelectedTable != null)
+			{
+				var table = W.SelectedTable;
+				if (table != null && table.Columns.Any())
+				{
+					RebuildChartCaches();
+				}
+			}
+			StateHasChanged();
+		}
+	}
+
+	public void Dispose()
+	{
+		if (_isDisposed) return;
+		_isDisposed = true;
+
+		W.OnDashboardStateChanged -= HandleWorkspaceUpdated;
+		W.OnTableChanged -= HandleTableChanged;
+	}
+
+	private async void HandleWorkspaceUpdated()
+	{
+		if (_isDisposed) return;
+		_table = W.SelectedTable;
+		await InvokeAsync(StateHasChanged);
+	}
+
+	private async void HandleTableChanged()
+	{
+		if (_isDisposed) return;
+		_table = W.SelectedTable;
+		RebuildChartCaches();
+		StateHasChanged();
+	}
+
+	private void RebuildChartCaches()
+	{
+		var t = W.SelectedTable;
+		if (t == null || ReferenceEquals(t, _lastChartTable)) return;
+		_lastChartTable = t;
+
+		_cachedWaterfallSteps = new List<WaterfallComposition.WaterfallStep>
+		{
+			new() { Label = "Columns",      Value = t.Columns.Count },
+			new() { Label = "Indexes",      Value = t.Indexes.Count },
+			new() { Label = "Foreign Keys", Value = t.ForeignKeys.Count },
+			new() { Label = "Triggers",     Value = t.Triggers.Count },
+			new() { Label = "Total",        Value = t.Columns.Count + t.Indexes.Count + t.ForeignKeys.Count + t.Triggers.Count }
+		};
+
+		// Funnel scans all tables — 4 full-scan Count() calls reduced to one pass.
+		var tables = W.Context?.Tables;
+		if (tables != null)
+		{
+			int all = 0, hasPk = 0, hasFk = 0, hasIdx = 0, hasTrig = 0;
+			foreach (var tbl in tables)
+			{
+				all++;
+				if (tbl.Indexes.Any(i => i.IsPrimaryKey)) hasPk++;
+				if (tbl.ForeignKeys.Count > 0) hasFk++;
+				if (tbl.Indexes.Count > 0) hasIdx++;
+				if (tbl.Triggers.Count > 0) hasTrig++;
+			}
+			_cachedFunnelStages = new List<FunnelDrill.FunnelStage>
+			{
+				new() { Label = "All Tables",      Count = all },
+				new() { Label = "Has Primary Key", Count = hasPk },
+				new() { Label = "Has Foreign Key", Count = hasFk },
+				new() { Label = "Has Index",       Count = hasIdx },
+				new() { Label = "Has Trigger",     Count = hasTrig },
+			};
+		}
+	}
+
+	#endregion
+
+}

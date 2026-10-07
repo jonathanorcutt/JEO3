@@ -1,0 +1,38 @@
+﻿@using JEO3.Diagrams
+@using JEO3.Site
+
+@inherits TableNodeBase<TableNodeModel>
+
+@namespace JEO3.Site.Components.Diagram
+
+
+<div class="node-content-core">
+	<div class="node-title @(Node.CssClassName)">@Node.Title</div>
+</div>
+
+@code {
+	#region Properties
+
+	[Parameter]
+	public TableNodeModel Node { get; set; } = null!;
+
+	// Consolidate backend attributes to inline CSS
+	private string NodeStyle =>
+		$"font-family: Consolas, Calibri, Consolas, Monaco, monospace;" +
+		$"font-size: {Node.FontSize}px; " +
+		$"background-color: {Node.BackgroundColor} !important; " +
+		$"color:{Node.TextColor};" +
+		// $"box-shadow: {(Node.Selected ? $"10 5 10 13px color-mix(in srgb, {Node.BackgroundColor} 90%, black);" : "10 10 10 13px {Node.BackgroundColor}")}; " +
+		// $"padding-left: 3px; " +
+		// $"padding-right: 3px; " +
+		// $"padding-top:0px; " +
+		// $"padding-bottom:0px; " +
+		$"min-width: {Node.MinWidth}px; " +
+		$"text-shadow: 0 0 5px #0f0, 0 0 5px #0f0, 0 0 5px #0f0;opacity:.9;" + 
+		$"text-align: center;";
+	// $"box-shadow: 0px 1px 0px 0px {Node.BackgroundColor};";
+	//$"animation: neon1 {(Node.Depth + 1) * .5}s ease-in infinite alternate";
+
+	#endregion
+
+}

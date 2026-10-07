@@ -1,0 +1,30 @@
+
+
+#pcm-c {
+    height: 250px !important;
+}
+
+.pcm-p {
+    height: 200px !important;
+    top: 200px;
+    left: 40%;
+}
+
+#logo {
+    width: 560px;
+    height: 200px !important;
+    background: black url(https://rustybrick.s3.amazonaws.com/pacman10-hp.png) 0 0 no-repeat;
+    position: relative;
+    margin-bottom: 0px
+}
+
+#logo-l {
+    width: 200px;
+    height: 2px;
+    left: 177px;
+    top: 157px;
+    background: #990;
+    position: absolute;
+    display: none;
+    overflow: hidden
+}

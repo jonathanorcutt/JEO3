@@ -1,0 +1,287 @@
+@using JEO3.Generation
+@using JEO3.Generation.Models
+@using JEO3.Schema
+@using JEO3.Site.Components.Icons
+
+@namespace JEO3.Site.Dashboard
+@inject DialogService DialogService
+@inject WSWorkspace W
+
+<style>
+    /* Same containment fixes as DashboardTopBar.razor - copied verbatim so
+       ColumnTopBar behaves identically inside RadzenTabs / Left position. */
+    .dashboard-top-bar {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+
+        .dashboard-top-bar .rz-card {
+            padding-left: 0px !important;
+            padding-right: 0px !important;
+        }
+
+    .dashboard-top-bar-tabs {
+        width: 100%;
+        min-height: 0;
+        min-width: 0;
+        max-width: 100%;
+        overflow: hidden;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: row;
+        height: 100%;
+    }
+    .dashboard-top-bar-stack {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        flex-wrap: nowrap !important;
+        overflow: hidden;
+        box-sizing: border-box;
+    }
+
+        .dashboard-top-bar-stack .rz-card {
+            margin: 0px !important;
+        }
+
+    .dashboard-top-bar-content {
+        display: flex;
+        align-items: center;
+        flex-wrap: nowrap;
+        min-width: 0;
+        margin-left: 15px;
+        width: 100%;
+        overflow: hidden;
+        box-sizing: border-box;
+        gap: 1rem;
+    }
+
+        .dashboard-top-bar-content > * {
+            min-width: 0;
+        }
+</style>
+
+<RadzenCard Variant="Variant.Outlined" class="dashboard-config-container padding-left-0 dashboard-top-bar">
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Start" Wrap="FlexWrap.NoWrap" class="dashboard-top-bar-stack">
+
+        <RadzenTabs RenderMode="TabRenderMode.Client" TabPosition="TabPosition.Left" SelectedIndexChanged="UpdateTabChanged" class="main-nav-tabs">
+            <Tabs>
+                <RadzenTabsItem Text="INSIGHT" Style="font-size:9pt;padding-left:0px;padding-right:0px;">
+                    <Template>
+                        INSIGHT&nbsp;&nbsp;<RadzenBadge BadgeStyle="BadgeStyle.Success" Text="📊" />
+                    </Template>
+                    <ChildContent>
+                        <div class="dashboard-top-bar-content">
+                            @if (SelectedColumn != null)
+                            {
+                                var col = SelectedColumn;
+
+                                <div class="dashboard-config-section-right-start dashboard-config-section-right-start-flex config-section-margin-left-40">
+                                    <span class="dashboard-config-label">Data Type</span>
+                                    <span class="metric-value-bold">
+                                        @col.DataType@(col.MaximumLength.HasValue && col.MaximumLength > 0 ? $"({col.MaximumLength})" : "")
+                                        @(col.IsNullable ? " NULL" : " NOT NULL")
+                                    </span>
+                                </div>
+
+                                @if (col.IsPrimaryKey || col.IsIdentity || col.IsComputed || col.IsUnique)
+                                {
+                                    <div class="dashboard-config-section-right-start dashboard-config-section-right-flex-2">
+                                        <span class="dashboard-config-label">Flags</span>
+                                        <span class="metric-value-bold">
+                                            @(col.IsPrimaryKey ? "PK " : "")@(col.IsIdentity ? "IDENTITY " : "")@(col.IsComputed ? "COMPUTED " : "")@(col.IsUnique ? "UNIQUE " : "")
+                                        </span>
+                                    </div>
+                                }
+
+                                <div class="dashboard-config-section-right-start dashboard-config-section-right-flex-2">
+                                    <span class="dashboard-config-label">Indexes</span>
+                                    <span class="metric-value-wrapper">
+                                        <span class="metric-reach-label" style="color: @((col.Indexes.Count < 1) ? "var(--rz-warning)" : "cornflowerblue")">
+                                            <span class="metric-reach-value">View</span>
+                                        </span>
+                                        <button type="button" @onclick="ShowColumnDetailDialog" title="View Column Indexes" class="info-icon-btn">
+                                          <IconLink IconStyle=" IconLink.IconStyleType.Info" />
+                                        </button>
+                                    </span>
+                                </div>
+                                <div class="dashboard-config-section-right">
+                                    <RadzenProgressBarCircular Value="@col.Indexes.Count" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Success" AriaLabel="Indexes" Max="10" />
+                                </div>
+
+                                <div class="dashboard-config-section-right-start dashboard-config-section-right-flex-2">
+                                    <span class="dashboard-config-label">Missing Indexes</span>
+                                    <span class="metric-value-wrapper">
+                                        <span class="metric-reach-label" style="color: @((col.MissingIndexes.Count > 0) ? "var(--rz-warning)" : "var(--rz-text-color)")">
+                                            <span class="metric-reach-value">@col.MissingIndexes.Count</span>
+                                        </span>
+                                        @if (col.MissingIndexes.Count > 0)
+                                        {
+                                            <button type="button" @onclick="ShowColumnDetailDialog" title="View Missing Indexes" class="warning-icon-btn">
+                                                <IconLink IconStyle=" IconLink.IconStyleType.Warning" />
+                                            </button>
+                                        }
+                                    </span>
+                                </div>
+
+                                <div class="dashboard-config-section-right-start dashboard-config-section-right-flex-2">
+                                    <span class="dashboard-config-label">Foreign Keys</span>
+                                    <span class="metric-value-wrapper">
+                                        <span class="metric-reach-label" style="color: @((col.ForeignKeys.Count < 1) ? "var(--rz-text-color)" : "cornflowerblue")">
+                                            <span class="metric-reach-value">@col.ForeignKeys.Count</span>
+                                        </span>
+                                        @if (col.ForeignKeys.Count > 0)
+                                        {
+                                            <button type="button" @onclick="ShowColumnDetailDialog" title="View Foreign Keys" class="info-icon-btn">
+                                                <IconLink IconStyle=" IconLink.IconStyleType.Info" />
+                                            </button>
+                                        }
+                                    </span>
+                                </div>
+
+                                <div class="dashboard-config-section-right-start dashboard-config-section-right-flex-2">
+                                    <span class="dashboard-config-label">Referenced By</span>
+                                    <span class="metric-value-wrapper">
+                                        <span class="metric-reach-label" style="color: @((col.ReferencedByForeignKeys.Count < 1) ? "var(--rz-text-color)" : "cornflowerblue")">
+                                            <span class="metric-reach-value">@col.ReferencedByForeignKeys.Count</span>
+                                        </span>
+                                    </span>
+                                </div>
+
+                                <div class="dashboard-config-section-right-start dashboard-config-section-right-flex-2">
+                                    <span class="dashboard-config-label">Check Constraints</span>
+                                    <span class="metric-value-wrapper">
+                                        <span class="metric-reach-label" style="color: @((col.CheckConstraints.Count < 1) ? "var(--rz-text-color)" : "cornflowerblue")">
+                                            <span class="metric-reach-value">@col.CheckConstraints.Count</span>
+                                        </span>
+                                    </span>
+                                </div>
+
+                                <div class="dashboard-config-section-right">
+                                    <span class="dashboard-config-label">Indexed In DB</span>
+                                    <span class="metric-value-bold" style="color: @(col.IsIndexedInDatabase ? "var(--rz-success)" : "var(--rz-warning)")">
+                                        @(col.IsIndexedInDatabase ? "YES" : "NO")
+                                    </span>
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="dialog-empty-text">Select a column to view insights.</span>
+                            }
+                        </div>
+                    </ChildContent>
+                </RadzenTabsItem>
+
+                <RadzenTabsItem Text="ACTION" Style="font-size:9pt;padding-left:0px;padding-right:0px;">
+                    <Template>
+                        &nbsp;ACTION&nbsp;&nbsp;<RadzenBadge BadgeStyle="BadgeStyle.Info" Text="🛠️" />
+                    </Template>
+                    <ChildContent>
+                        <div class="dashboard-top-bar-content">
+                            @if (SelectedColumn != null)
+                            {
+                                var col = SelectedColumn;
+
+                                @if (col.MissingIndexes != null && col.MissingIndexes.Any())
+                                {
+                                    <div class="dashboard-config-section-right-start dashboard-config-section-right-start-flex config-section-margin-left-40">
+                                        <span class="dashboard-config-label">Missing Indexes</span>
+                                        <span class="metric-value-bold" style="color:var(--rz-warning)">@col.MissingIndexes.Count found</span>
+                                    </div>
+
+                                    @foreach (var mi in col.MissingIndexes)
+                                    {
+                                        <div class="dashboard-config-section-right">
+                                            <button type="button" class="btn btn-primary" @onclick="() => ScriptMissingIndex(mi)"
+                                                    title="@mi.SuggestedKeyColumnsDisplayString">
+                                                Script Index (Impact: @(Math.Round(mi.AvgUserImpact ?? 0, 1))%)
+                                            </button>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="dialog-empty-text">No missing indexes to script for this column.</span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="dialog-empty-text">Select a column to see available actions.</span>
+                            }
+                        </div>
+                    </ChildContent>
+                </RadzenTabsItem>
+            </Tabs>
+        </RadzenTabs>
+    </RadzenStack>
+</RadzenCard>
+
+@code {
+    private int selectedIndex = 0;
+    private void UpdateTabChanged(int index)
+    {
+        selectedIndex = index;
+    }
+
+    // First-or-default: grid supports multi-select but Insight/Action here
+    // is scoped to a single column at a time, per instruction.
+    private IColumn? SelectedColumn => W.UI.Grids.Selected?.Columns?.FirstOrDefault();
+
+    private async Task ScriptMissingIndex(IMissingIndex mi)
+    {
+        var result = await DialogService.OpenAsync("MISSING INDEX SCRIPT", ds =>
+            @<RadzenStack Gap="1rem" class="dialog-stack-wrapper-large">
+                <div><span class="dialog-label-bold">TABLE:</span> @mi.SchemaName.@mi.TableName</div>
+                <div><span class="dialog-label-bold">SUGGESTED KEY COLUMNS:</span> @mi.SuggestedKeyColumnsDisplayString</div>
+                @if (!string.IsNullOrWhiteSpace(mi.IncludedColumnsDisplayString))
+                {
+                    <div><span class="dialog-label-bold">INCLUDED COLUMNS:</span> @mi.IncludedColumnsDisplayString</div>
+                }
+                <div><span class="dialog-label-bold">AVG USER IMPACT:</span> @(Math.Round(mi.AvgUserImpact ?? 0, 2))%</div>
+                <div><span class="dialog-label-bold">IMPROVEMENT MEASURE:</span> @mi.ImprovementMeasure</div>
+
+                <p class="dialog-section-header">Script:</p>
+                <div class="dialog-scroll-container-small">
+                    <pre class="table-item-text" style="white-space:pre-wrap;">@mi.IndexCreationScript</pre>
+                </div>
+
+                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" class="dialog-footer-margin">
+                    <RadzenButton Text="Dismiss" Click="() => ds.Close(true)" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" Style="width: 90px;" />
+                </RadzenStack>
+            </RadzenStack>
+        ,
+            new DialogOptions()
+            {
+                CloseDialogOnOverlayClick = true,
+                ShowClose = true,
+                Width = "auto"
+            });
+    }
+
+    private async Task ShowColumnDetailDialog()
+    {
+        var col = SelectedColumn;
+        if (col == null) return;
+
+        var result = await DialogService.OpenAsync("COLUMN DETAIL", ds =>
+            @<RadzenStack Gap="1rem" class="dialog-stack-wrapper-large">
+                <div><span class="dialog-label-bold">COLUMN:</span> @col.TablePath.@col.Name</div>
+                <div><span class="dialog-label-bold">TYPE:</span> @col.DataType @(col.MaximumLength.HasValue ? $"({col.MaximumLength})" : "")</div>
+                <div><span class="dialog-label-bold">NULLABLE:</span> @(col.IsNullable ? "YES" : "NO")</div>
+
+                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" class="dialog-footer-margin">
+                    <RadzenButton Text="Dismiss" Click="() => ds.Close(true)" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" Style="width: 90px;" />
+                </RadzenStack>
+            </RadzenStack>
+        ,
+            new DialogOptions()
+            {
+                CloseDialogOnOverlayClick = true,
+                ShowClose = true,
+                Width = "auto"
+            });
+    }
+}

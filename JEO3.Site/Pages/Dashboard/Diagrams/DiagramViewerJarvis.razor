@@ -1,0 +1,147 @@
+﻿@using System.Data
+@using Blazor.Diagrams.Components
+@using Blazor.Diagrams.Components.Widgets
+@using JEO3.Diagrams
+@using JEO3.Site.Components
+@using JEO3.Site.Components.Common
+@using JEO3.Site.Components.Diagram
+@using JEO3.Site.Components.Icons
+@using Radzen
+
+@namespace JEO3.Site.Dashboard
+@inject IJSRuntime JS
+@inject DialogService DialogService
+
+<div class="dashboard-pane-container query-results-pane" @ref="queryResultsPaneDiv">
+	<div class="dashboard-pane-titlebar-container dashboard-pane-query-results-container">
+		<div class="dashboard-pane-titlebar diagram-titlebar">
+			<div class="titlebar-left-wrapper">
+				@*<span class="titlebar-text-bold"></span> *@
+				⬅️ SELECT A TABLE TO CHANGE!
+			</div>
+			<div class="dashboard-pane-titlebar-right-container titlebar-right-wrapper-gap">
+				SCROLL TO ZOOM ... CLICK & DRAG NODES...
+
+
+				@*ZOOM 
+				<RadzenSlider @bind-Value=@W.UI.Diagram.DiagramZoom" Change="OnDiagramZoomChanged" TValue="double" Min="@((decimal)0.1)" Max="2" Step=".1" class="fa-mr10" />
+				 *@
+				
+				
+				<RadzenDropDown TValue="SqlEditorTheme"
+								Data="@Enum.GetValues(typeof(SqlEditorTheme))"
+								@bind-Value="@W.UI.Appearance.DiagramTheme"
+								Change="@(args => OnThemeChange((SqlEditorTheme)args))"
+								class="theme-dropdown" />
+
+				<button type="button" class="dashboard-pane-titlebar-right-expand-button toggle-fullscreen-btn"
+						@onclick="TogglePaneExpansionFullScreen">
+					@if (W.UI.Appearance.IsPaneFullScreenResults)
+					{
+						<IconMinimize />
+					}
+					else
+					{
+						<IconMaximize />
+					}
+				</button>
+			</div>
+		</div>
+	</div>
+	<div class="dashboard-pane-body-container-scroll diagram-body-scroll">
+		<div class="dashboard-diagram-container diagram-container-full">
+
+			<div class="diagram-config-sidebar"
+				 style="width: @(W.UI.Appearance.IsSidebarExpandedDiagram ? "240px" : "0px");
+				min-width: @(W.UI.Appearance.IsSidebarExpandedDiagram ? "240px" : "0px");
+				border-right: @(W.UI.Appearance.IsSidebarExpandedDiagram ? "1px solid var(--rz-border-color, #ccc)" : "none");">
+
+				<div class="sidebar-inner-wrapper">
+
+					<div class="sidebar-header-row">
+						<span class="sidebar-title-text">
+							<VSIcon Type="VSIconType.VSCodeGithub" Name="Collaborative_Service" Extension="ImageType.svg" Width="20" Height="20" class="fa-ml5 fa-mr7"></VSIcon> Engine Layout
+						</span>
+						<button type="button" @onclick="ToggleDiagramSidebar" title="Collapse Panel" class="sidebar-toggle-button-left collapsed">
+							«
+						</button>
+					</div>
+
+					<div class="sidebar-content-wrapper">
+						<div class="sidebar-form-group">
+							<label class="sidebar-label">
+								<VSIcon Type="VSIconType.VSCodeGithub" Name="Collaborative_Service" Extension="ImageType.svg" Width="20" Height="20" class="fa-ml5 fa-mr7"></VSIcon> Diagram Type
+							</label>
+							<RadzenDropDown TValue="JEO3.Diagrams.GraphLayoutShape"
+											Data="@(Enum.GetValues(typeof(JEO3.Diagrams.GraphLayoutShape)))"
+											@bind-Value="@W.UI.Diagram.LayoutShape"
+											Change="@(async (val) => await OnDiagramLayoutShapeChanged(val))"
+											class="dropdown-full-width" />
+						</div>
+
+						<hr class="sidebar-divider" />
+						<div class="sidebar-form-group">
+							<label class="sidebar-label">
+								<VSIcon Type="VSIconType.VSCodeGithub" Name="Collaborative_Service" Extension="ImageType.svg" Width="20" Height="20" class="fa-ml5 fa-mr7"></VSIcon>  Presets
+							</label>
+							<RadzenDropDown TValue="LayoutPresetType?"
+											Data="@(Enum.GetValues(typeof(LayoutPresetType)).Cast<LayoutPresetType?>())"
+											Placeholder="Select a configuration preset..."
+											Change="@OnPresetChanged"
+											class="dropdown-full-width" />
+						</div>
+
+						<hr class="sidebar-divider" />
+						<div class="sidebar-form-group">
+							<span class="sidebar-label-bottom">
+								<VSIcon Type="VSIconType.VSCodeGithub" Name="Collaborative_Service" Extension="ImageType.svg" Width="20" Height="20" class="fa-ml5 fa-mr7"></VSIcon> Tuning
+							</span>
+							<ParameterEditor TargetParameters="@W.UI.Diagram.ActiveParameters" OnParameterChanged="DebouncedReRunLayout" />
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Canvas Container -->
+			<div class="canvas-container"
+				 oncontextmenu="return false;"
+				 onpointerup="if(event.button === 2) { this.releasePointerCapture(event.pointerId); }">
+
+				<button type="button" @onclick="ExportDiagram" title="Export Diagram" class="sidebar-toggle-button-left-export vertical-text-standard">
+					⚛️
+					<span> EXPORT</span>
+				</button>
+				@if (!W.UI.Appearance.IsSidebarExpandedDiagram)
+				{
+					<button type="button" @onclick="ToggleDiagramSidebar" title="Expand Configuration Options" class="sidebar-toggle-button-left expanded vertical-text-standard sidebar-toggle-expanded">
+						⚙️
+						<span>OPTIONS</span>
+					</button>
+				}
+
+				<!-- Canvas 2: ActiveDiagram (Jarvis Mode) -->
+				<div class="canvas-inner">
+					@if (ActiveDiagram != null)
+					{
+						<SilentErrorBoundary>
+							<CascadingValue Value="@ActiveDiagram">
+								<DiagramCanvas Class="cbJarvis">
+									<Widgets>
+										<GridWidget Size="10"
+													Mode="GridMode.Point"
+													BackgroundColor="@DiagramBackgroundColor" />
+										<NavigatorWidget Width="140" Height="90" class="navigator-widget-overlay" />
+									</Widgets>
+								</DiagramCanvas>
+							</CascadingValue>
+						</SilentErrorBoundary>
+					}
+					else
+					{
+						<LoadingCube></LoadingCube>
+					}
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

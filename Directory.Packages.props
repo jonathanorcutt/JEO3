@@ -1,0 +1,46 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- ASP.NET / Blazor -->
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.Web" Version="10.0.12" />
+    <!-- SQL Server / SqlClient -->
+    <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.1.0" />
+    <PackageVersion Include="Microsoft.Data.SqlClient.Extensions.Azure" Version="7.1.0" />
+    <!-- SQLite -->
+    <PackageVersion Include="Microsoft.Data.Sqlite.Core" Version="10.0.12" />
+    <!-- Hybrid Cache -->
+    <PackageVersion Include="Microsoft.Extensions.Caching.Hybrid" Version="10.10.0" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.12" />
+    <!-- ConfigurationManager -->
+    <PackageVersion Include="System.Configuration.ConfigurationManager" Version="10.0.12" />
+    <!-- System libs -->
+    <PackageVersion Include="System.DirectoryServices" Version="10.0.12" />
+    <PackageVersion Include="System.Management" Version="10.0.12" />
+    <!-- Database Providers -->
+    <PackageVersion Include="Npgsql" Version="10.0.3" />
+    <PackageVersion Include="Oracle.ManagedDataAccess.Core" Version="23.26.301" />
+    <PackageVersion Include="Oracle.ManagedDataAccess" Version="23.26.301" />
+    <PackageVersion Include="Microsoft.SqlServer.Types" Version="170.1000.7" />
+    <!-- Excel -->
+    <PackageVersion Include="ExcelDataReader" Version="3.9.0" />
+    <PackageVersion Include="ExcelDataReader.DataSet" Version="3.9.0" />
+    <!-- UI / Blazor -->
+    <PackageVersion Include="Z.Blazor.Diagrams" Version="3.0.4.1" />
+    <PackageVersion Include="Z.Blazor.Diagrams.Core" Version="3.0.4.1" />
+    <PackageVersion Include="BlazorMonaco" Version="3.5.0" />
+    <PackageVersion Include="Radzen.Blazor" Version="11.5.1" />
+    <PackageVersion Include="PanoramicData.ECharts" Version="6.1.5" />
+    <!-- Graph libs -->
+    <PackageVersion Include="GraphShape" Version="1.2.1" />
+    <PackageVersion Include="QuikGraph" Version="2.5.0" />
+    <!-- Misc -->
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.17.10" />
+    <PackageVersion Include="FuzzySharp" Version="2.0.2" />
+  </ItemGroup>
+</Project>

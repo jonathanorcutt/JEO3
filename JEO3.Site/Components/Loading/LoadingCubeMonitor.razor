@@ -1,0 +1,102 @@
+﻿@* @namespace JEO3.Site.Components
+@using JEO3.Monitor
+@using JEO3.Site.Services
+@implements IAsyncDisposable
+@inject MonitorSnapshotService Snapshots
+
+<div style="height:700px !important;width:100vw !important">
+	<div class="jeo-lazercube-container">
+		<div class="jeo-lazercube-10w">
+
+			<div class="jeo-cube-face jeo-cube-front">
+				<div class="jeo-cube-content">
+					<span class="jeo-cube-label">@_topWait</span>
+					<div class="jeo-cube-laser"></div>
+				</div>
+			</div>
+
+			<div class="jeo-cube-face jeo-cube-back">
+				<div class="jeo-cube-content">
+					<span class="jeo-cube-label">@_waitMsPerSec</span>
+					<div class="jeo-cube-laser"></div>
+				</div>
+			</div>
+
+			<div class="jeo-cube-face jeo-cube-right">
+				<div class="jeo-cube-content">
+					<span class="jeo-cube-label">@_waitingTasksPerSec</span>
+					<div class="jeo-cube-laser"></div>
+				</div>
+			</div>
+
+			<div class="jeo-cube-face jeo-cube-left">
+				<div class="jeo-cube-content">
+					<span class="jeo-cube-label">@_activeRequests</span>
+					<div class="jeo-cube-laser"></div>
+				</div>
+			</div>
+
+			<div class="jeo-cube-face jeo-cube-top">
+				<div class="jeo-cube-content">
+					<span class="jeo-cube-label">@_blockedCount</span>
+					<div class="jeo-cube-laser"></div>
+				</div>
+			</div>
+
+			<div class="jeo-cube-face jeo-cube-bottom">
+				<div class="jeo-cube-content">
+					<span class="jeo-cube-label"></span>
+					<div class="jeo-cube-laser"></div>
+				</div>
+			</div>
+
+		</div>
+
+		<div class="jeo-lazercube-pulse"></div>
+		<div class="jeo-lazercube-ring jeo-ring-1"></div>
+		<div class="jeo-lazercube-ring jeo-ring-2"></div>
+		<div class="jeo-lazercube-ring jeo-ring-3"></div>
+	</div>
+</div>
+
+@code {
+	private string _status = "…";
+	private string _waitMsPerSec = "0 ms/s";
+	private string _waitingTasksPerSec = "0 tasks/s";
+	private string _activeRequests = "0 active";
+	private string _blockedCount = "0 blocked";
+	private string _topWait = "—";
+
+	protected override void OnInitialized()
+	{
+		Snapshots.Start();
+		Snapshots.SnapshotUpdated += OnSnapshotUpdated;
+		if (Snapshots.Latest is not null) Render(Snapshots.Latest);
+		StateHasChanged();
+	}
+
+	private async void OnSnapshotUpdated(MonitorSnapshot snapshot)
+	{
+		Render(snapshot);
+		await InvokeAsync(StateHasChanged);
+	}
+
+	private void Render(MonitorSnapshot snapshot)
+	{
+		var latest = snapshot.History.FirstOrDefault();
+		var topWaitType = latest?.TopWaits.OrderByDescending(w => w.WaitMsPerSec).FirstOrDefault();
+
+		_status = string.IsNullOrWhiteSpace(snapshot.LastError) ? snapshot.Status.ToString() : "ERROR";
+		_waitMsPerSec = $"{Math.Round(latest?.TotalWaitMsPerSec ?? 0)} ms/s";
+		_waitingTasksPerSec = $"{Math.Round(latest?.TotalWaitingTasksPerSec ?? 0)} tasks/s";
+		_activeRequests = $"{snapshot.ActiveRequests.Count} active";
+		_blockedCount = $"{snapshot.BlockingChain.Count(b => b.IsBlocked)} blocked";
+		_topWait = topWaitType is not null ? topWaitType.WaitType : "—";
+	}
+
+	public ValueTask DisposeAsync()
+	{
+		Snapshots.SnapshotUpdated -= OnSnapshotUpdated;
+		return ValueTask.CompletedTask;
+	}
+} *@

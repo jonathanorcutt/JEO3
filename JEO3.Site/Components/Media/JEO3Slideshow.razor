@@ -1,0 +1,48 @@
+﻿@using JEO3.Site.Components.Media
+<RadzenRow Gap="8px">
+
+	<RadzenColumn Size="12" SizeMD="6">
+		<RadzenCard Style="height: 100%;padding:0px;" class="slideshow-card">
+			<RadzenText TextStyle="TextStyle.H5" TagName="TagName.P" Style="margin-left:15px;padding-top:8px;padding-bottom:8px;letter-spacing:.7px">ER Diagrams, Node Diagrams, Query Editors</RadzenText>
+			<Slideshow Images="@(  new string[]{"../img/branding/interesting.jpg"}.Concat(GetImgPaths (new []{"16", "15", "14", "13" })).ToList() )"
+					   IntervalSeconds="4"
+					   Captions="@(new string[] { "Example 1", "Example 2", "Example 3", "Example 4", "Example 5" })"></Slideshow>
+		</RadzenCard>
+	</RadzenColumn>
+
+	<RadzenColumn Size="12" SizeMD="6">
+		<RadzenCard Style="height: 100%;padding:0px;" class="slideshow-card">
+			<RadzenText TextStyle="TextStyle.H5" TagName="TagName.P" Style="margin-left:15px;padding-top:8px;padding-bottom:8px;letter-spacing:.7px">Beautiful Visual Grids and Drilldowns</RadzenText>
+			<Slideshow Images="@( GetImgPaths (new []{"12", "9", "17" }))"
+					   IntervalSeconds="4"
+					   Captions="@(new string[] { "Example 1", "Example 2", "Example 3", "Example 4", "Example 5" })"></Slideshow>
+		</RadzenCard>
+	</RadzenColumn>
+
+	<RadzenColumn Size="12" SizeMD="6">
+		<RadzenCard Style="height: 100%;padding:0px;" class="slideshow-card">
+			<RadzenText TextStyle="TextStyle.H5" TagName="TagName.P" Style="margin-left:15px;padding-top:8px;padding-bottom:8px;letter-spacing:.7px">Heatmaps, Treemaps, Contour</RadzenText>
+			<Slideshow Images="@(GetImgPaths (new []{"8", "7", "6", "5" }).ToList())"
+					   IntervalSeconds="4"
+					   Captions="@(new string[] { "Example 1", "Example 2", "Example 3", "Example 4" })"></Slideshow>
+		</RadzenCard>
+	</RadzenColumn>
+
+	<RadzenColumn Size="12" SizeMD="6">
+		<RadzenCard Style="height: 100%;padding:0px;" class="slideshow-card">
+			<RadzenText TextStyle="TextStyle.H5" TagName="TagName.P" Style="margin-left:15px;padding-top:8px;padding-bottom:8px;letter-spacing:.7px">12+ Charting Examples</RadzenText>
+			<Slideshow Images="@( GetImgPaths (new []{"18", "19", "20", "4", "3" }))"
+					   IntervalSeconds="4"
+					   Captions="@(new string[] { "Example 1", "Example 2", "Example 3", "Example 4", "Example 5" })"></Slideshow>
+		</RadzenCard>
+	</RadzenColumn>
+
+</RadzenRow>
+
+@code{
+		[Parameter]
+		public string RelativeFolderPath { get; set; } = "../img/gallery/";
+
+		private List<string> GetImgPaths(string[] names, string extension = ".png") => names.Select(v => RelativeFolderPath + v + extension).ToList();
+		private string GetImgPath(string name, string extension = ".png") => RelativeFolderPath + name + extension;
+	}

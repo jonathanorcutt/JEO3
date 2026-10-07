@@ -1,0 +1,85 @@
+@using JEO3.Site.Components
+@using JEO3.Monitor.ECharts
+@using JEO3.Site.Components.Layout
+@using JEO3.Site.Dashboard
+@using Microsoft.AspNetCore.Components
+@using Radzen.Blazor
+
+@inherits LayoutComponentBase
+@implements IDisposable
+@inject NavigationManager UriHelper
+@inject IJSRuntime JS
+@inject TooltipService TooltipService
+@inject DialogService DialogService
+@inject WSWorkspace W
+
+@namespace JEO3.Site.Layout
+
+<RadzenComponents />
+
+<RadzenLayout>
+	<RadzenHeader>
+		<ChildContent>
+			<MainTopNav OnSidebarToggleClicked="OnToggleSidebar" OnGaugeToggleClicked="@OnGaugeToggleClicked" />
+		</ChildContent>
+	</RadzenHeader>
+
+	@if (@W.UI.Appearance.IsSchemaLoaded)
+	{
+		<!-- LEFT SIDEBAR -->
+		<RadzenSidebar Position="SidebarPosition.Start" Visible="@W.UI.Appearance.IsSidebarExpandedLeft" class="sidebar-left-container">
+			<MatrixNavAccordion Groups="_navGroups"
+								ExpandedIndices="W.UI.Nav.ExpandedGroupIndices" ExpandedIndicesChanged="i => W.UI.Nav.ExpandedGroupIndices = i"
+								ActiveTabIndex="W.UI.Nav.SelectedTabIndex" ItemSelected="OnNavItemSelected" />
+		</RadzenSidebar>
+	}
+	<ErrorBoundary>
+		<ChildContent>
+			<!-- BODY -->
+			<RadzenBody Style="margin-bottom:10px">
+				@Body
+			</RadzenBody>
+			@if (W.UI.Appearance.IsSchemaLoaded && W.UI.Appearance.ShowMonitorGauge)
+			{
+				@if (_showGauge)
+				{
+					<!-- SQL Waits -->
+					<EGauge />
+				}
+			}
+			<!------- Animations ------->
+			<Bob @ref="@_bob" />
+
+		</ChildContent>
+		<ErrorContent Context="ex">
+			<div class="error-boundary-container">
+				<h3 class="error-boundary-title">💥 Hidden Object Reference Exception Unmasked</h3>
+				<p>
+					<strong>Message:</strong> @ex.Message
+				</p>
+				<hr class="error-boundary-hr" />
+				<h4 class="error-boundary-stack-title">Call Stack Track:</h4>
+				<pre class="error-boundary-stack">@ex.StackTrace</pre>
+			</div>
+		</ErrorContent>
+	</ErrorBoundary>
+</RadzenLayout>
+
+@code {
+
+	#region Fragments
+	internal static RenderFragment RenderTheme(Theme theme, bool showTitle = true)
+	{
+		return __builder =>
+		{
+			<text>
+				@if (showTitle)
+				{
+					@theme.Text
+				}
+			</text>
+		};
+	}
+	#endregion
+
+}

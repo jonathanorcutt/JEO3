@@ -1,0 +1,90 @@
+﻿@namespace JEO3.Site.Components
+@using JEO3.Site.Components.Icons
+@using JEO3.Site.Dashboard
+@inject IJSRuntime JS
+
+<div class="insane-loading-overlay">
+	<div class="insane-loading-card">
+
+		<div class="insane-spinner"></div>
+
+		<div class="hero-visual">
+			<div class="lazercube-container">
+
+				<div class="lazercube-10w">
+
+					<div class="cube-face cube-front">
+						<div class="cube-content">
+							<span class="cube-label">JEO3</span>
+							<div class="cube-laser"></div>
+						</div>
+					</div>
+
+					<div class="cube-face cube-back">
+						<div class="cube-content">
+							<span class="cube-label">CLR</span>
+							<div class="cube-laser"></div>
+						</div>
+					</div>
+
+					<div class="cube-face cube-right">
+						<div class="cube-content">
+							<span class="cube-label">SQL</span>
+							<div class="cube-laser"></div>
+						</div>
+					</div>
+
+					<div class="cube-face cube-left">
+						<div class="cube-content">
+							<span class="cube-label">C#</span>
+							<div class="cube-laser"></div>
+						</div>
+					</div>
+
+					<div class="cube-face cube-top">
+						<div class="cube-content">
+							<span class="cube-label"></span>
+						</div>
+					</div>
+
+					<div class="cube-face cube-bottom">
+						<div class="cube-content">
+							<span class="cube-label"></span>
+						</div>
+					</div>
+
+				</div>
+
+				<div class="lazercube-pulse"></div>
+				<div class="lazercube-ring ring-1"></div>
+				<div class="lazercube-ring ring-2">
+				</div>
+				<div class="lazercube-ring ring-3"></div>
+
+			</div>
+		</div>
+
+		<div class="insane-loading-title">Loading</div>
+		<div class="insane-loading-subtitle">
+			<VSIcon Type="VSIconType.VSCodeGithub" Name="Consortium" Extension="ImageType.svg" Width="34" Height="34" class="fa-ml5 fa-mr7 spinner"></VSIcon>
+			<label>Preparing your workspace</label>
+		</div>
+		<div class="insane-progress">
+			<div class="insane-progress-bar"></div>
+		</div>
+		 <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Success" Size="ProgressBarCircularSize.Medium" Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" AriaLabel="Danger loading" Style="color:lime !important;position:absolute;bottom:0px;right:10px;" />
+	</div>
+</div>
+<script>
+</script>
+@code
+{
+	private bool rendered = false;
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			rendered = true;
+		}
+	}
+}

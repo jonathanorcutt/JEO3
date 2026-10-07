@@ -1,0 +1,46 @@
+@using JEO3.Monitor
+@using PanoramicData.ECharts
+@inherits MonitorChartBase
+
+@namespace JEO3.Site.Components.ECharts
+
+<div class="monitor-panel">
+    <div class="monitor-panel-title">🚨 <label class="jeo3-typewriter dashboard-monitor-label">CONTENTION PROFILE (Tasks vs Wait)</label></div>
+    <div class="echart-container">
+        <PanoramicData.ECharts.EChart @ref="Chart"
+                                      Options="@Options"
+                                      Width="@Width"
+                                      Height="@Height" />
+    </div>
+</div>
+
+@code {
+    protected override ChartOptions Options { get; set; } = ChartOptionsLibrary.CorrelationChart_Options;
+
+    protected override async Task RenderInitialAsync(MonitorSnapshot initial)
+    {
+        UpdateChartData();
+        await InvokeAsync(StateHasChanged);
+        if (Chart != null) await Chart.UpdateAsync();
+    }
+
+    protected override async Task AppendDeltasAsync(MonitorDeltaResponse delta)
+    {
+        if (delta.History != null && delta.History.Count > 0)
+        {
+            UpdateChartData();
+            await InvokeAsync(StateHasChanged);
+            if (Chart != null) await Chart.UpdateAsync();
+        }
+    }
+
+    private void UpdateChartData()
+    {
+        if (Options.Series?.FirstOrDefault() is ScatterSeries scatter)
+        {
+            scatter.Data = WaitHistory
+                .Select(h => (object)new object[] { h.TotalWaitingTasksPerSec, h.TotalWaitMsPerSec })
+                .ToList();
+        }
+    }
+}

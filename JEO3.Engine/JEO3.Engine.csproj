@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Remove="Queries\**" />
+		<EmbeddedResource Remove="Queries\**" />
+		<None Remove="Queries\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\JEO3.Extensions\JEO3.Extensions.csproj" />
+		<ProjectReference Include="..\JEO3.Generation\JEO3.Generation.csproj" />
+		<ProjectReference Include="..\JEO3.Providers\JEO3.Providers.csproj" />
+		<ProjectReference Include="..\JEO3.Schema\JEO3.Schema.csproj" />
+	</ItemGroup>
+
+</Project>

@@ -1,0 +1,507 @@
+﻿@page "/"
+
+@using JEO3.Schema
+@using JEO3.Site.Components
+@using JEO3.Site.Components.Charting
+@using JEO3.Site.Components.ECharts
+@using JEO3.Site.Components.Icons
+@using JEO3.Site.Components.Media
+@using JEO3.Site.Components.TileLayout
+@using JEO3.Site.Dashboard
+@namespace JEO3.Site.Dashboard
+
+@implements IDisposable
+@inherits LayoutComponentBase
+@attribute [StreamRendering]
+
+<PageTitle>JEO3</PageTitle>
+
+@if (_rendered == false)
+{
+	<LoadingModal />
+	return;
+}
+
+<div class="dashboard dashboard-full-absolute">
+	<div class="dashboard-layout dashboard-layout-flex">
+		<RadzenSplitter Orientation="Orientation.Horizontal" class="splitter-full-hw-no-border">
+			<RadzenSplitterPane Size="275px" MinSize="100px" MaxSize="450px" Collapsible="true" Style=" transition: grid-template-rows 10.3s ease-in-out;">
+				<div class="sidebar-pane-wrapper">
+					<TableNav OnGenerateSQLProceduresToEditor="@GenerateSQLProceduresToEditor" OnGenerateAllDatabaseIndexesToEditor="GenerateAllDatabaseIndexesToEditor" OnGenerateMissingDatabaseIndexesToEditor="GenerateMissingDatabaseIndexesToEditor" OnArchiveGeneratorSelected="@ArchiveGeneratorSelected" />
+				</div>
+			</RadzenSplitterPane>
+			<RadzenSplitterPane>
+				<div class="main-content-pane-wrapper">
+					<RadzenTabs RenderMode="TabRenderMode.Client"
+								TabPosition="TabPosition.Left" @bind-SelectedIndex="@this.W.UI.Nav.SelectedTabIndex" @bind-SelectedIndex:after="OnNavTabIndexChanged"
+								class="main-nav-tabs" Style="background: var(--jeo-primary-rz) !important; color: var(--rz-white) !important;">
+						<Tabs>
+
+			@* 				<RadzenTabsItem>
+								<Template>
+									<VSIcon Width="22" Height="22" Name="file_type_liara" Type="VSIconType.VSCode" Class="fa-mr7 fa-ml2" /> What Is It?
+								</Template>
+								<ChildContent>
+									<div style="vertical-align: central; font-size:18pt" class="jeo3-xolonium-regular">
+										<center>
+											<br />
+											What is <em>IT?</em>
+											<br />
+											<br />
+											Its a kind of Entity Framework (EF)/SQL Management Objects (SMO) foundation.
+											<br />
+											<br />
+											Built from POCO's (plain old clr objects) via SQL Metadata queries and simple reflection hydration.
+											<br />
+											To produce an EF style Database Context of - The database itself.
+											<br />
+											<br />
+											Any database, Any schema.
+											<br />
+											Built for provider agnosticism from the beginning.
+											<br /><br />
+											Diagrams? sure, Query generation? yep, Live monitoring? works, 'Code First from schema?' :)
+											<br />
+											<br />
+											What does it <i>DO?</i>
+											<br />
+											<br />
+											Its mostly about what <i>YOU</i> can see when you point it at your database.
+											<br />
+											<br />
+											This website? Its a throwaway. Its only here to show the power of the API beneath it.
+											<br /><br />
+											The rest is up to you.
+										</center>
+									</div>
+								</ChildContent>
+							</RadzenTabsItem> *@
+
+@* 							<RadzenTabsItem>
+								<Template>
+									<ImageIcon Category="ImageIcon.CategoryType.branding" FileName="logo-2.png" Width="75" Height="16" Style="object-fit: contain;" Class="fa-mr5 fa-ml7"></ImageIcon>
+								</Template>
+								<ChildContent>
+									<PanoramicRelations3D Width="1530px" Height="1000px" Title="Welcome. Feel free to explore." Tables="@W.Context?.Tables" />
+								</ChildContent>
+							</RadzenTabsItem> *@
+							<RadzenTabsItem>
+								<Template>
+									<VSIcon Width="22" Height="22" Name="file_type_opencl" Type="VSIconType.VSCode" Class="fa-mr7 fa-ml2" /> Live
+								</Template>
+								<ChildContent>
+									<MonitorDashboard></MonitorDashboard>
+								</ChildContent>
+							</RadzenTabsItem>
+							<RadzenTabsItem>
+								<Template>
+									<VSIcon Width="22" Height="22" Name="file_type_liara" Type="VSIconType.VSCode" Class="fa-mr7 fa-ml2" />
+									Builder
+								</Template>
+								<ChildContent>
+									@if (W.UI.Appearance.IsSchemaLoaded)
+									{
+										<TileLayoutDashboard />
+									}
+								</ChildContent>
+							</RadzenTabsItem>
+							<RadzenTabsItem>
+								<Template>
+									<VSIcon Width="22" Height="22" Name="file_type_cabal" Type="VSIconType.VSCode" Class="fa-mr7 fa-ml2" />Diagram
+								</Template>
+								<ChildContent>
+
+									<DashboardTopBar @ref="@dashboardTopBar"
+													 OnStressTest="GenerateTraffic"
+													 OnGenerateAllCSharpClasses="GenerateAllTableClassesToEditor"
+													 OnGenerateDbContext="GenerateDbContextToEditor"
+													 OnGenerateProcedures="GenerateSQLProceduresToEditor"
+													 OnGenerateTableClass="GenerateTableClassToEditor"
+													 OnGenerateMissingIndexes="GenerateMissingDatabaseIndexesToEditor"
+													 OnGenerateAllIndexes="GenerateAllDatabaseIndexesToEditor" />
+
+									<RadzenSplitter @ref="@outerSplitter" Orientation="Orientation.Vertical" class="splitter-full-hw-minheight">
+										<RadzenSplitterPane Size="100%">
+											<RadzenSplitter @ref="@innerSplitter" class="splitter-full-hw">
+												<RadzenSplitterPane Size="55%">
+													<div class="diagram-pane-wrapper">
+														<DiagramViewerDatabase @ref="diagramViewer" OnDiagramSettingChanged="GenerationSettingChanged" />
+													</div>
+												</RadzenSplitterPane>
+												<RadzenSplitterPane Size="@(W.UI.Appearance.IsPaneFullScreenQueryEditor ? "100%" : "45%")">
+													<QueryEditor @ref="@queryEditor" Id="txtQueryEditor" OnGenerationSettingChanged="GenerationSettingChanged" />
+												</RadzenSplitterPane>
+											</RadzenSplitter>
+										</RadzenSplitterPane>
+									</RadzenSplitter>
+								</ChildContent>
+							</RadzenTabsItem>
+							<RadzenTabsItem>
+								<Template>
+									<VSIcon Width="22" Height="22" Name="file_type_n64" Type="VSIconType.VSCode" Class="fa-mr7 fa-ml2" /> Shapes
+								</Template>
+								<ChildContent>
+									<div class="diagram-pane-wrapper">
+										<DiagramViewerJarvis @ref="diagramViewer2" OnDiagramSettingChanged="GenerationSettingChanged" />
+									</div>
+								</ChildContent>
+							</RadzenTabsItem>
+							<RadzenTabsItem>
+								<Template>
+									<VSIcon Width="22" Height="22" Name="file_type_zizmor" Type="VSIconType.VSCode" Class="fa-mr7 fa-ml2" /> Entities
+								</Template>
+								<ChildContent>
+									<RadzenTabs RenderMode="TabRenderMode.Client" SelectedIndexChanged="UpdateEntitiesNavTabChanged" class="main-nav-tabs" Style="background: var(--jeo-primary-rz) !important; color: var(--rz-white) !important;">
+										<Tabs>
+											<RadzenTabsItem>
+												<Template>
+													<VSIcon Width="22" Height="22" Name="Web_Slots" Type="VSIconType.VSCodeGithub" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> DrillDown
+												</Template>
+												<ChildContent>
+													<div class="tab-pane-wrapper" style="height: 100%; width: 100%; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+														<JEOGridDrillDown DataTable="@W.Result.Databars?.Tables" ChildDataTable="@W.Result.Databars?.Columns"
+																		  OnRowClick="@HandleTableGridDrillDown" OnTableSelectionChanged="@OnDrillDownTableSelected"
+																		  AllowVirtualization="true" PrimaryColumnWidth="300" />
+													</div>
+												</ChildContent>
+											</RadzenTabsItem>
+											<RadzenTabsItem>
+												<Template>
+													<VSIcon Width="22" Height="22" Name="Process_Explorer" Type="VSIconType.VSCodeGithub" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> Tables
+												</Template>
+												<ChildContent>
+													<div class="tab-pane-wrapper" style="height: 100%; width: 100%; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+
+														<JEOGrid DataTable="@W.Result.Databars?.Tables" PrimaryKeyColumn="PrimaryKeyColumn"
+																 OnRowClick="@(async ((object? a, string? b) row) => {  await HandleTableGridDrillDown((row.a, row.b)); })"
+																 AllowVirtualization="true" />
+													</div>
+												</ChildContent>
+											</RadzenTabsItem>
+											<RadzenTabsItem>
+												<Template>
+													<VSIcon Width="22" Height="22" Name="Cubes" Type="VSIconType.VSCodeGithub" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> Columns
+												</Template>
+												<ChildContent>
+													<div class="tab-pane-wrapper" style="height: 100%; width: 100%; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+
+														<JEOGrid DataTable="@W.Result.Databars?.Columns" PrimaryKeyColumn="PrimaryKeyColumn"
+																 OnRowClick="@(async ((object? a, string? b) row) => { await HandleTableGridDrillDown((row.a, row.b)); })"
+																 AllowVirtualization="true" />
+													</div>
+												</ChildContent>
+											</RadzenTabsItem>
+											<RadzenTabsItem>
+												<Template>
+													<VSIcon Width="22" Height="22" Name="Relays" Type="VSIconType.VSCodeGithub" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> Procedures
+												</Template>
+												<ChildContent>
+													<div class="tab-pane-wrapper" style="height: 100%; width: 100%; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+														<ProcedureEntityViewer />
+													</div>
+												</ChildContent>
+											</RadzenTabsItem>
+											<RadzenTabsItem>
+												<Template>
+													<VSIcon Width="22" Height="22" Name="Azure_Blockchain_Service" Type="VSIconType.VSCodeGithub" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> Views
+												</Template>
+												<ChildContent>
+													<div class="tab-pane-wrapper" style="height: 100%; width: 100%; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+														<ViewEntityViewer />
+													</div>
+												</ChildContent>
+											</RadzenTabsItem>
+											<RadzenTabsItem>
+												<Template>
+													<VSIcon Width="22" Height="22" Name="Workload_Orchestration" Type="VSIconType.VSCodeGithub" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> Functions
+												</Template>
+												<ChildContent>
+													<div class="tab-pane-wrapper">
+														<FunctionEntityViewer />
+													</div>
+												</ChildContent>
+											</RadzenTabsItem>
+											<RadzenTabsItem>
+												<Template>
+													<VSIcon Width="22" Height="22" Name="Service_Health" Type="VSIconType.VSCodeGithub" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> Indexes
+												</Template>
+												<ChildContent>
+													<div class="tab-pane-wrapper">
+														<JEOGrid DataTable="@W.Result.Databars?.Indexes" PrimaryKeyColumn="PrimaryKeyColumn"
+																 OnRowClick="@(async ((object? a, string? b) row) => {  await HandleTableGridDrillDown((row.a, row.b)); })"
+																 AllowVirtualization="true" />
+													</div>
+												</ChildContent>
+											</RadzenTabsItem>
+											<RadzenTabsItem>
+												<Template>
+													<VSIcon Width="22" Height="22" Name="Metrics" Type="VSIconType.VSCodeGithub" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> Statistics
+												</Template>
+												<ChildContent>
+													<div class="tab-pane-wrapper">
+														<JEOGrid DataTable="@W.Result.Databars?.Statistics" PrimaryKeyColumn="PrimaryKeyColumn"
+																 OnRowClick="@(async ((object? a, string? b) row) => {  await HandleTableGridDrillDown((row.a, row.b)); })"
+																 AllowVirtualization="true" />
+													</div>
+												</ChildContent>
+											</RadzenTabsItem>
+											<RadzenTabsItem>
+												<Template>
+													<VSIcon Width="22" Height="22" Name="Workflow" Type="VSIconType.VSCodeGithub" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> UDT's'
+												</Template>
+												<ChildContent>
+													<div class="tab-pane-wrapper">
+														<JEOGrid DataTable="@W.Result.Databars?.UDTs" PrimaryKeyColumn="PrimaryKeyColumn"
+																 OnRowClick="@(async ((object? a, string? b) row) => { await HandleTableGridDrillDown((row.a, row.b)); })"
+																 AllowVirtualization="true" />
+													</div>
+												</ChildContent>
+											</RadzenTabsItem>
+											<RadzenTabsItem>
+												<Template>
+													<VSIcon Width="22" Height="22" Name="Power" Type="VSIconType.VSCodeGithub" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> Triggers
+												</Template>
+												<ChildContent>
+													<div class="tab-pane-wrapper">
+														<JEOGrid DataTable="@W.Result.Databars?.Triggers" PrimaryKeyColumn="PrimaryKeyColumn"
+																 OnRowClick="@(async ((object? a, string? b) row) => { await HandleTableGridDrillDown((row.a, row.b)); })"
+																 AllowVirtualization="true" />
+													</div>
+												</ChildContent>
+											</RadzenTabsItem>
+											<RadzenTabsItem>
+												<Template>
+													<VSIcon Width="22" Height="22" Name="Service_Groups" Type="VSIconType.VSCodeGithub" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> Extended Properties
+												</Template>
+												<ChildContent>
+													<div class="tab-pane-wrapper">
+														<JEOGrid DataTable="@W.Result.Databars?.ExtendedProperties" PrimaryKeyColumn="PrimaryKeyColumn"
+																 OnRowClick="@(async ((object? a, string? b) row) => { await HandleTableGridDrillDown((row.a, row.b)); })"
+																 AllowVirtualization="true" />
+													</div>
+												</ChildContent>
+											</RadzenTabsItem>
+										</Tabs>
+									</RadzenTabs>
+								</ChildContent>
+							</RadzenTabsItem>
+							<RadzenTabsItem>
+								<Template>
+									<VSIcon Width="22" Height="22" Name="file_type_csharp" Type="VSIconType.VSCode" Class="fa-mr7 fa-ml2" /> Code
+								</Template>
+								<ChildContent>
+									<ActionDashboard />
+								</ChildContent>
+							</RadzenTabsItem>
+							<RadzenTabsItem>
+								<Template>
+									<VSIcon Width="22" Height="22" Name="file_type_pulumi" Type="VSIconType.VSCode" Class="fa-mr7 fa-ml2" /> Density
+								</Template>
+								<ChildContent>
+									<ContourTemplateDisplay />
+								</ChildContent>
+							</RadzenTabsItem>
+							<RadzenTabsItem>
+								<Template>
+									<VSIcon Width="22" Height="22" Name="file_type_mojo" Type="VSIconType.VSCode" Class="fa-mr7 fa-ml2" /> Heat
+								</Template>
+								<ChildContent>
+									@if (W.UI.Appearance.IsSchemaLoaded)
+									{
+										<Heatmap TItem="ITable" Items="@W.Context?.Tables" Title="Schema Heat Map"
+												 LabelSelector="@(t => t.TablePath)" ValueSelector="GetTableMetric" CellWidth="240" CellHeight="52" />
+									}
+								</ChildContent>
+							</RadzenTabsItem>
+							<RadzenTabsItem>
+								<Template>
+									<VSIcon Width="22" Height="22" Name="file_type_coverage" Type="VSIconType.VSCode" Class="fa-mr7 fa-ml2" /> Treemap
+								</Template>
+								<ChildContent>
+									@if (W.UI.Appearance.IsSchemaLoaded)
+									{
+										<GenericTreeMap TItem="ITable" Data="@treeTables" LabelSelector="@(t => t.TablePath)" ValueSelector="@(t => (double)(t.Rows ?? 0))"
+														SubLabelSelector="@(t => (t.Rows ?? 0).ToString("N0"))" GroupKeySelector="@(t => t.TablePath.Split('.')[0])" />
+									}
+								</ChildContent>
+							</RadzenTabsItem>
+							<RadzenTabsItem>
+								<Template>
+									<VSIcon Width="22" Height="22" Name="file_type_pytest" Type="VSIconType.VSCode" Class="fa-mr7 fa-ml2" /> Charts
+								</Template>
+								<ChildContent>
+									<ChartsTemplateDisplay />
+								</ChildContent>
+							</RadzenTabsItem>
+							<RadzenTabsItem>
+								<Template>
+									<VSIcon Width="22" Height="22" Name="file_type_mojo" Type="VSIconType.VSCode" Class="fa-mr7 fa-ml2" />  Data
+								</Template>
+								<ChildContent>
+									<DataDisplay />
+								</ChildContent>
+							</RadzenTabsItem>
+							@* 	<RadzenTabsItem>
+								<Template>
+									<VSIcon Width="22" Height="22" Name="file_type_numpy" Type="VSIconType.VSCode" Class="fa-mr7 fa-ml2" /> WMI
+								</Template>
+								<ChildContent>
+									<RadzenTabs RenderMode="TabRenderMode.Client" SelectedIndexChanged="UpdateEntitiesNavTabChanged" class="main-nav-tabs" Style="background: var(--jeo-primary-rz) !important; color: var(--rz-white) !important;">
+										<Tabs>
+											<RadzenTabsItem>
+												<Template>
+													<VSIcon Width="22" Height="22" Name="Web_Slots" Type="VSIconType.VSCodeGithub" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> Databases
+												</Template>
+												<ChildContent>
+													<div class="tab-pane-wrapper" style="height: 100%; width: 100%; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+														<JEOWmiGrid WmiType="Monitor.WmiDataType.Databases" />
+													</div>
+												</ChildContent>
+											</RadzenTabsItem>
+											<RadzenTabsItem>
+												<Template>
+													<VSIcon Width="22" Height="22" Name="Web_Slots" Type="VSIconType.VSCodeGithub" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> Exceptions
+												</Template>
+												<ChildContent>
+													<div class="tab-pane-wrapper" style="height: 100%; width: 100%; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+														<JEOWmiGrid WmiType="Monitor.WmiDataType.Exceptions" />
+													</div>
+												</ChildContent>
+											</RadzenTabsItem>
+											<RadzenTabsItem>
+												<Template>
+													<VSIcon Width="22" Height="22" Name="Web_Slots" Type="VSIconType.VSCodeGithub" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> Locks
+												</Template>
+												<ChildContent>
+													<div class="tab-pane-wrapper" style="height: 100%; width: 100%; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+														<JEOWmiGrid WmiType="Monitor.WmiDataType.Locks" />
+													</div>
+												</ChildContent>
+											</RadzenTabsItem>
+											<RadzenTabsItem>
+												<Template>
+													<VSIcon Width="22" Height="22" Name="Web_Slots" Type="VSIconType.VSCodeGithub" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> Memory
+												</Template>
+												<ChildContent>
+													<div class="tab-pane-wrapper" style="height: 100%; width: 100%; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+														<JEOWmiGrid WmiType="Monitor.WmiDataType.Memory" />
+													</div>
+												</ChildContent>
+											</RadzenTabsItem>
+											<RadzenTabsItem>
+												<Template>
+													<VSIcon Width="22" Height="22" Name="Web_Slots" Type="VSIconType.VSCodeGithub" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> Query Store
+												</Template>
+												<ChildContent>
+													<div class="tab-pane-wrapper" style="height: 100%; width: 100%; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+														<JEOWmiGrid WmiType="Monitor.WmiDataType.QueryStore" />
+													</div>
+												</ChildContent>
+											</RadzenTabsItem>
+											<RadzenTabsItem>
+												<Template>
+													<VSIcon Width="22" Height="22" Name="Web_Slots" Type="VSIconType.VSCodeGithub" Class="fa-mr5 fa-ml7" Extension="ImageType.svg"></VSIcon> WebService
+												</Template>
+												<ChildContent>
+													<div class="tab-pane-wrapper" style="height: 100%; width: 100%; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+														<JEOWmiGrid WmiType="Monitor.WmiDataType.WebService" />
+													</div>
+												</ChildContent>
+											</RadzenTabsItem>
+										</Tabs>
+									</RadzenTabs>
+								</ChildContent>
+							</RadzenTabsItem> *@
+							<RadzenTabsItem>
+								<Template>
+									<VSIcon Width="22" Height="22" Name="file_type_dtd" Type="VSIconType.VSCode" Class="fa-mr7 fa-ml2" /> About
+								</Template>
+								<ChildContent>
+									<RadzenTabs RenderMode="TabRenderMode.Client" SelectedIndexChanged="UpdateEntitiesNavTabChanged" class="main-nav-tabs" Style="background: var(--jeo-primary-rz) !important; color: var(--rz-white) !important;">
+										<Tabs>
+											<RadzenTabsItem>
+												<Template>
+													<VSIcon Width="22" Height="22" Name="file_type_dtd" Type="VSIconType.VSCode" Class="fa-mr7 fa-ml2" /> About
+												</Template>
+												<ChildContent>
+													<div class="tab-pane-wrapper">
+														<About Text="Jonathan Orcutt" DatabaseName="@W.Context?.Provider?.Connection?.Database" ShowDatabase="true"></About>
+													</div>
+												</ChildContent>
+											</RadzenTabsItem>
+
+											<RadzenTabsItem>
+												<Template>
+													<VSIcon Width="22" Height="22" Name="file_type_genstat" Type="VSIconType.VSCode" Class="fa-mr7 fa-ml2" /> Slide
+												</Template>
+												<ChildContent>
+													<div class="tab-pane-wrapper">
+														<JEO3Slideshow />
+													</div>
+												</ChildContent>
+											</RadzenTabsItem>
+											<RadzenTabsItem>
+												<Template>
+													<VSIcon Width="22" Height="22" Name="file_type_opentofu" Type="VSIconType.VSCode" Class="fa-mr7 fa-ml2" /> Timeline
+												</Template>
+												<ChildContent>
+													<div style="display: flex; justify-content: center;">
+														<Timelapse />
+													</div>
+												</ChildContent>
+											</RadzenTabsItem>
+										</Tabs>
+									</RadzenTabs>
+								</ChildContent>
+							</RadzenTabsItem>
+							@* <RadzenTabsItem>
+								<Template>
+									<ImageIcon Category="ImageIcon.CategoryType.branding" FileName="logo-2.png" Width="75" Height="16" Style="object-fit: contain;" Class="fa-mr5 fa-ml7"></ImageIcon>
+								</Template>
+								<ChildContent>
+									<!-- Simply call the component and feed it an image path! -->
+									<VoxChart3D Title="Voxel Asset Blueprint" ImageUrl="../../img/branding/vox.jpg" />
+								</ChildContent>
+							</RadzenTabsItem> *@
+							<RadzenTabsItem>
+								<Template>
+									<VSIcon Width="22" Height="22" Name="file_type_liara" Type="VSIconType.VSCode" Class="fa-mr7 fa-ml2" /> SOON...
+								</Template>
+								<ChildContent>
+									@* <PacmanGame /> *@
+									@* <ChartsTemplateDisplay /> *@
+								</ChildContent>
+							</RadzenTabsItem>
+						</Tabs>
+					</RadzenTabs>
+				</div>
+			</RadzenSplitterPane>
+		</RadzenSplitter>
+	</div>
+</div>
+
+@code
+{
+
+	private async Task ShowGenericDialog(string title, string body)
+	{
+		var result = await DialogService.OpenAsync(title, ds =>
+			@<div class="dialog-content-wrapper">
+				<div class="dashboard-pane-container-scroll dialog-body-content">
+					<h3 class="dialog-title">@title</h3>
+					@((MarkupString)body);
+				</div>
+
+				<div class="dialog-footer-wrapper">
+					<button class="btn btn-primary" @onclick="() => DialogService.Close()">OK</button>
+				</div>
+			</div>
+				, new DialogOptions()
+				{
+					CloseDialogOnOverlayClick = true,
+					ShowClose = true,
+					Width = "auto"
+				});
+	}
+
+}

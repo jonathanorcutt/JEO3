@@ -1,0 +1,53 @@
+@typeparam TItem
+@namespace JEO3.Site.Components.Charting
+
+@using System.Globalization
+
+<div class="jeo-treemap" style="@ContainerStyle">
+    <div class="jeo-treemap__header">
+        <span class="jeo-treemap__title">@Title</span>
+        <span class="jeo-treemap__meta">@_items.Count NODES &#183; &#931; @TotalValue.ToString("N0")</span>
+	</div>
+
+	<div class="jeo-treemap__status">
+		@if (_hovered is not null)
+		{
+			<span class="jeo-treemap__status-label">@_hovered.Label</span>
+			<span class="jeo-treemap__status-sep">//</span>
+			<span class="jeo-treemap__status-value">@(_hovered.SubLabel ?? _hovered.Value.ToString("N0"))</span>
+			<span class="jeo-treemap__status-sep">//</span>
+			<span class="jeo-treemap__status-pct">@((_hovered.Value / Math.Max(1, TotalValue) * 100).ToString("0.0"))% OF TOTAL</span>
+		}
+		else
+		{
+			<span class="jeo-treemap__status-hint">HOVER A NODE // CLICK TO SELECT</span>
+		}
+	</div>
+
+    <svg class="jeo-treemap__svg" viewBox="0 0 @ViewWidth.ToString(CultureInfo.InvariantCulture) @ViewHeight.ToString(CultureInfo.InvariantCulture)" preserveAspectRatio="none">
+        @foreach (var item in _items)
+        {
+            @* "color:@color" *@ // style="color:white"
+
+            var color = ColorFor(item);
+            <g class="jeo-treemap__cell @(ReferenceEquals(item, _hovered) ? "is-hovered" : "")"
+               style="color:white"
+               transform="translate(@item.X.ToString(CultureInfo.InvariantCulture), @item.Y.ToString(CultureInfo.InvariantCulture))"
+               @onmouseenter="() => _hovered = item"
+               @onmouseleave="() => _hovered = null"
+               @onclick="() => HandleClick(item)">
+                <rect width="@item.W.ToString(CultureInfo.InvariantCulture)"
+                      height="@item.H.ToString(CultureInfo.InvariantCulture)"
+                      fill="@color" />
+                @if (item.W > 44 && item.H > 20)
+                {
+                    <SvgText x="6" y="16" class="jeo-treemap__label">@Truncate(item.Label, item.W)</SvgText>
+                }
+                @if (item.W > 60 && item.H > 34)
+                {
+                    <SvgText x="6" y="30" class="jeo-treemap__sublabel">@(item.SubLabel ?? item.Value.ToString("N0"))</SvgText>
+                }
+            </g>
+        }
+    </svg>
+</div>

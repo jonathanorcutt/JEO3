@@ -1,0 +1,58 @@
+﻿@using Microsoft.AspNetCore.Components.Web
+
+<div class="project-countdown-badge" title="Show/Hide @Label">
+    @* <img src="../img/vs_icons/GaugeMeter_16x.png" width="18" height="18" class="fa-mr-7" /> *@
+    @if (Label is not null)
+    {
+        <label for="@Id" class="label" @onclick:stopPropagation>@Label</label>
+    }
+    <div class="cyber-toggle-wrapper @(Value ? "is-checked" : "") @(Disabled ? "is-disabled" : "")"
+         @onclick="HandleClick">
+
+        <input type="checkbox"
+               id="@Id"
+               checked="@Value"
+               disabled="@Disabled"
+               tabindex="@(Disabled ? -1 : TabIndex)"
+               aria-checked="@(Value ? "true" : "false")"
+               aria-label="@Label"
+               @onchange="HandleChange"
+               @onclick:stopPropagation
+               class="cyber-hidden-input" />
+
+        <label for="@Id" class="cyber-toggle-track" @onclick:stopPropagation>
+            <span class="cyber-toggle-thumb"></span>
+        </label>
+
+    </div>
+
+</div>
+
+@code {
+    [Parameter] public bool Value { get; set; }
+    [Parameter] public EventCallback<bool> ValueChanged { get; set; }
+    [Parameter] public EventCallback<bool> Change { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public int TabIndex { get; set; } = 0;
+    [Parameter] public string Id { get; set; } = $"cyber-tg-{Guid.NewGuid().ToString("N")}";
+    [Parameter] public string? Label { get; set; }
+
+    private async Task HandleClick()
+    {
+        if (Disabled) return;
+        await ToggleState(!Value);
+    }
+
+    private async Task HandleChange(ChangeEventArgs e)
+    {
+        if (Disabled) return;
+        if (e.Value is bool boolVal) { await ToggleState(boolVal); }
+    }
+
+    private async Task ToggleState(bool newValue)
+    {
+        Value = newValue;
+        await ValueChanged.InvokeAsync(Value);
+        await Change.InvokeAsync(Value);
+    }
+}

@@ -1,0 +1,29 @@
+﻿<div class="drawer-container @(IsOpen ? "is-open" : "")" aria-hidden="@(!IsOpen)">
+    @* Background overlay to dim the screen *@
+    <div class="drawer-overlay" @onclick="CloseAsync"></div>
+
+    @* The sliding panel *@
+    <div class="drawer-content">
+        <div class="drawer-header">
+            <h3>@Title</h3>
+            <button class="close-btn" @onclick="CloseAsync" aria-label="Close">&times;</button>
+        </div>
+        <div class="drawer-body">
+            @ChildContent
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
+    [Parameter] public string Title { get; set; } = "Menu";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private async Task CloseAsync()
+    {
+        IsOpen = false;
+        // Two-way binding updates the parent component automatically
+        await IsOpenChanged.InvokeAsync(false);
+    }
+}

@@ -1,0 +1,119 @@
+﻿@using JEO3.Monitor
+@using JEO3.Monitor.Models
+@inherits MonitorBase
+@namespace JEO3.Site.Components.ECharts
+
+@* @if (Queries is not null && Queries.Count > 0)
+{ *@
+<div class="dashboard-pane-container" style="height:@(Height); width:@(Width)">
+	<div class="dashboard-pane-body-container-scroll">
+		<div class="monitor-section">
+			<div class="monitor-section-title">
+				🚨 TOP EXPENSIVE QUERIES
+
+				<span class="monitor-section-badge">
+					@Queries.Count
+				</span>
+			</div>
+
+			<RadzenDataGrid Data="@Queries"
+							TItem="TopExpensiveQueryRow"
+							AllowSorting="true"
+							AllowFiltering="true"
+							AllowColumnResize="true"
+							AllowColumnReorder="true"
+							Density="Density.Compact"
+							AllowAlternatingRows="true"
+							AllowVirtualization="true"
+							Style="width: 100%;">
+
+				<Columns>
+					<RadzenDataGridColumn TItem="TopExpensiveQueryRow"
+										  Property="@nameof(TopExpensiveQueryRow.QueryImpact)"
+										  Title="Impact"
+										  TextAlign="TextAlign.Right"
+										  Width="90px"
+										  FormatString="{0:N0}" />
+
+					<RadzenDataGridColumn TItem="TopExpensiveQueryRow"
+										  Property="@nameof(TopExpensiveQueryRow.AvgCpuMs)"
+										  Title="Avg CPU (ms)"
+										  TextAlign="TextAlign.Right"
+										  Width="120px"
+										  FormatString="{0:N2}" />
+
+					<RadzenDataGridColumn TItem="TopExpensiveQueryRow"
+										  Property="@nameof(TopExpensiveQueryRow.MaxCpuMs)"
+										  Title="Max CPU (ms)"
+										  TextAlign="TextAlign.Right"
+										  Width="120px"
+										  FormatString="{0:N2}" />
+
+					<RadzenDataGridColumn TItem="TopExpensiveQueryRow"
+										  Property="@nameof(TopExpensiveQueryRow.AvgElapsedMs)"
+										  Title="Avg Elapsed (ms)"
+										  TextAlign="TextAlign.Right"
+										  Width="130px"
+										  FormatString="{0:N2}" />
+
+					<RadzenDataGridColumn TItem="TopExpensiveQueryRow"
+										  Property="@nameof(TopExpensiveQueryRow.AvgIo)"
+										  Title="Avg I/O"
+										  TextAlign="TextAlign.Right"
+										  Width="110px"
+										  FormatString="{0:N0}" />
+
+					<RadzenDataGridColumn TItem="TopExpensiveQueryRow"
+										  Property="@nameof(TopExpensiveQueryRow.ExecutionCount)"
+										  Title="Executions"
+										  TextAlign="TextAlign.Right"
+										  Width="100px"
+										  FormatString="{0:N0}" />
+
+					<RadzenDataGridColumn TItem="TopExpensiveQueryRow"
+										  Property="@nameof(TopExpensiveQueryRow.DatabaseName)"
+										  Title="Database"
+										  Width="140px" />
+
+					<RadzenDataGridColumn TItem="TopExpensiveQueryRow"
+										  Property="@nameof(TopExpensiveQueryRow.LastExecutionTime)"
+										  Title="Last Executed"
+										  Width="160px"
+										  FormatString="{0:MM/dd HH:mm:ss}" />
+
+					<RadzenDataGridColumn TItem="TopExpensiveQueryRow"
+										  Property="QueryText"
+										  Title="Query Text"
+										  Width="600px" />
+				</Columns>
+			</RadzenDataGrid>
+		</div>
+	</div>
+	}
+</div>
+@* } *@
+}
+
+@code {
+	[Parameter]
+	public IReadOnlyList<TopExpensiveQueryRow> Queries { get; set; } = Array.Empty<TopExpensiveQueryRow>();
+
+	protected override async Task RenderInitialAsync(MonitorSnapshot initial)
+	{
+		if (initial.TopExpensiveQueries != null)
+		{
+			Queries = initial.TopExpensiveQueries.OrderByDescending(r => r.AvgElapsedMs).ToList();
+			await InvokeAsync(StateHasChanged);
+		}
+	}
+
+	protected override async Task AppendDeltasAsync(MonitorDeltaResponse delta)
+	{
+		// The API only returns this cache when it updates, so don't wipe it out if it's null
+		if (delta.TopExpensiveQueries != null && delta.TopExpensiveQueries.Count > 0)
+		{
+			Queries = delta.TopExpensiveQueries.OrderByDescending(r => r.AvgElapsedMs).ToList();
+			await InvokeAsync(StateHasChanged);
+		}
+	}
+}

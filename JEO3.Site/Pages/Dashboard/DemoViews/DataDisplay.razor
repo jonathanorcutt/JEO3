@@ -1,0 +1,46 @@
+﻿@using Radzen
+@using Radzen.Blazor
+
+@namespace JEO3.Site.Dashboard
+
+<div class="dashboard-pane-container">
+	<div class="dashboard-pane-body-container-scroll">
+		<RadzenTabs @bind-SelectedIndex="@this.W.UI.Tabs.SelectedIndex" RenderMode="TabRenderMode.Client" Style="height: calc(100% - 5px);">
+			<Tabs>
+				@if (W.UI.Tabs.Tabs != null && W.UI.Tabs.Tabs.Any())
+				{
+					@foreach (var tab in W.UI.Tabs.Tabs)
+					{
+						<RadzenTabsItem @key="tab.Id">
+							<Template>
+								<div class="tab-header">
+									@if (!string.IsNullOrEmpty(tab.Icon))
+									{
+										<i class="@tab.Icon"></i>
+									}
+									<span class="rz-tabview-title">@tab.Title</span>
+								</div>
+							</Template>
+							<ChildContent>
+								<div class="dashboard-pane-body-container-scroll">
+									<RadzenDataGrid Data="@tab.Rows" TItem="IDictionary<string, object>" AllowPaging="false" AllowSorting="true" AllowVirtualization="true"
+													Style=@($"height:100%; min-width:{tab.Columns.Count * 20}px;")>
+										<Columns>
+											@foreach (var column in tab.Columns)
+											{
+												<RadzenDataGridColumn TItem="IDictionary<string, object>" Title="@column.Key" Width="180px" Type="column.Value"
+																	  Property="@PropertyAccess.GetDynamicPropertyExpression(column.Key, column.Value)">
+													<Template Context="row">@row[column.Key]</Template>
+												</RadzenDataGridColumn>
+											}
+										</Columns>
+									</RadzenDataGrid>
+								</div>
+							</ChildContent>
+						</RadzenTabsItem>
+					}
+				}
+			</Tabs>
+		</RadzenTabs>
+	</div>
+</div>

@@ -1,0 +1,23 @@
+﻿@namespace JEO3.Site.Components
+
+@typeparam TItem
+
+<RadzenDataGridColumn TItem="TItem" Property="@Property" Title="@Title" Width="@Width" OrderIndex="@OrderIndex" Type="typeof(bool)">
+	<Template Context="data">
+		<RadzenCheckBox Value="@ValueSelector(data)" Disabled="true" TripleState="false" />
+	</Template>
+	<FilterTemplate Context="column">
+		<RadzenDropDown Data="@(new[] { new { Text = "Yes", Value = true }, new { Text = "No", Value = false } })"
+						TextProperty="Text" ValueProperty="Value"
+						Value="@column.GetFilterValue()"
+						Change="@(args => column.SetFilterValue(args))"
+						AllowClear="true" />
+	</FilterTemplate>
+</RadzenDataGridColumn>
+@code {
+	[Parameter, EditorRequired] public string Property { get; set; } = "";
+	[Parameter, EditorRequired] public string Title { get; set; } = "";
+	[Parameter] public string Width { get; set; } = "45px";
+	[Parameter, EditorRequired] public int OrderIndex { get; set; }
+	[Parameter, EditorRequired] public Func<TItem, bool> ValueSelector { get; set; } = _ => false;
+}

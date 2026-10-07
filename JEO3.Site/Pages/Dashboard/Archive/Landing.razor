@@ -1,0 +1,844 @@
+﻿@page "/landing"
+
+@using JEO3.Schema
+@using JEO3.Site.Components
+@using JEO3.Site.Components.Charting
+@using JEO3.Site.Dashboard
+
+@layout JEO3.Site.Layout.LandingLayout
+
+<PageTitle>JEO3 — Schema Traversal & Query Generation</PageTitle>
+
+<div class="jeo-landing">
+
+    @* =========================================================
+       HERO
+       ========================================================= *@
+
+    <section class="hero">
+        <div class="hero-background">
+            <svg class="hero-grid"
+                 viewBox="0 0 1200 640"
+                 preserveAspectRatio="xMidYMid slice"
+                 aria-hidden="true">
+
+                <defs>
+                    <pattern id="tech-grid"
+                             width="50"
+                             height="50"
+                             patternUnits="userSpaceOnUse">
+                        <path d="M 50 0 L 0 0 0 50"
+                              fill="none"
+                              stroke="#1a2634"
+                              stroke-width="1" />
+                    </pattern>
+
+                    <radialGradient id="grid-vignette"
+                                    cx="50%"
+                                    cy="50%"
+                                    r="70%">
+                        <stop offset="0%"
+                              stop-color="#0F1620"
+                              stop-opacity="0" />
+                        <stop offset="100%"
+                              stop-color="#0F1620"
+                              stop-opacity=".9" />
+                    </radialGradient>
+                </defs>
+
+                <rect width="1200"
+                      height="640"
+                      fill="url(#tech-grid)" />
+
+                <rect width="1200"
+                      height="640"
+                      fill="url(#grid-vignette)" />
+            </svg>
+        </div>
+
+        <div class="hero-container">
+
+            <div class="hero-content">
+
+                <p class="eyebrow">
+                    Database traversal & query generation
+                </p>
+
+                <h1>JEO3 — schema traversal engine in production UI.</h1>
+
+                <p class="hero-sub">
+                    JEO3 ingests real schemas, maps their graph, and generates executable SQL and C# models.
+                    It’s a full-stack experiment in turning database topology into working queries, diagrams,
+                    and code — wired into a Blazor dashboard.
+                </p>
+
+                <div class="hero-actions">
+                    <a class="btn btn-primary"
+                       href="/dashboard">
+                        DEMO
+                    </a>
+
+                    <a class="btn btn-link"
+                       href="#diagrams">
+                        Explore the diagrams &darr;
+                    </a>
+
+                    <a href="https://github.com/jorcutt1337/jeo3"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="github-admin-badge">
+                       github
+                        <i class="rz-icon-element rzi">
+                            <!-- Embedded SVG for the GitHub Icon -->
+                            <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor">
+                                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
+                            </svg>
+                        </i>
+                    </a>
+                </div>
+
+                <p class="hero-author">
+                    Built and engineered by Jonathan — C#, .NET, Blazor, SQL Server, graph traversal engines,
+                    and code generation.
+                </p>
+
+            </div>
+
+            <div class="hero-visual">
+                <div class="lazercube-container">
+
+                    <div class="lazercube-10w">
+
+                        <div class="cube-face cube-front">
+                            <div class="cube-content">
+                                <span class="cube-label">Traversal</span>
+                                <div class="cube-laser"></div>
+                            </div>
+                        </div>
+
+                        <div class="cube-face cube-back">
+                            <div class="cube-content">
+                                <span class="cube-label">JEO3</span>
+                                <div class="cube-laser"></div>
+                            </div>
+                        </div>
+
+                        <div class="cube-face cube-right">
+                            <div class="cube-content">
+                                <span class="cube-label">SQL</span>
+                                <div class="cube-laser"></div>
+                            </div>
+                        </div>
+
+                        <div class="cube-face cube-left">
+                            <div class="cube-content">
+                                <span class="cube-label">C#</span>
+                                <div class="cube-laser"></div>
+                            </div>
+                        </div>
+
+                        <div class="cube-face cube-top">
+                            <div class="cube-content">
+                                <span class="cube-label">API</span>
+                                <div class="cube-laser"></div>
+                            </div>
+                        </div>
+
+                        <div class="cube-face cube-bottom">
+                            <div class="cube-content">
+                                <span class="cube-label">DB</span>
+                                <div class="cube-laser"></div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="lazercube-pulse"></div>
+                    <div class="lazercube-ring ring-1"></div>
+                    <div class="lazercube-ring ring-2"></div>
+                    <div class="lazercube-ring ring-3"></div>
+
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+
+    @* =========================================================
+       INTRO
+       ========================================================= *@
+
+    <section class="landing-intro">
+
+        <p class="eyebrow">
+            THE APPLICATION
+        </p>
+
+        <h2>
+            Don’t take my word for it.
+            <br />
+            Look at the thing.
+        </h2>
+
+        <p>
+            Everything below is a live JEO3 component.
+            No screenshots. No mockups. No prerecorded video.
+        </p>
+
+        <p class="mono intro-author">
+            This page doubles as my portfolio: it shows how I design traversal engines, metadata models,
+            and UI surfaces that stay usable on real databases.
+        </p>
+
+    </section>
+
+    <section class="landing-intro">
+
+        <p class="eyebrow">
+            MAXIMIZE Reach
+        </p>
+
+        <h2>
+            Don’t take my word for it.
+            <br />
+            Look at the thing.
+        </h2>
+
+        <p>
+            Everything below is a live JEO3 component.
+            No screenshots. No mockups. No prerecorded video.
+        </p>
+        <h6>Selected Table: @(W.SelectedTable?.Name)</h6>
+        <DashboardTopBar/>
+
+    </section>
+    
+    @* =========================================================
+       DIAGRAM 01 — ER
+       ========================================================= *@
+
+    <section id="diagrams"
+             class="showcase showcase-dark">
+
+        <div class="showcase-copy">
+
+            <span class="showcase-number">
+                01
+            </span>
+
+            <p class="eyebrow">
+                ENTITY RELATIONSHIPS
+            </p>
+
+            <h2>
+                See the schema.
+            </h2>
+
+            <p>
+                Start with the relationships that make the database what it is. JEO3 ingests tables and
+                foreign keys, then renders an ER view that stays interactive even on dense schemas.
+            </p>
+
+            <div class="showcase-example">
+                <span>AdventureWorks</span>
+                <strong>Sales.SalesOrderHeader</strong>
+            </div>
+
+        </div>
+        <div class="showcase-stage grid-showcase-dark" aria-label="Entity relationship diagram for Sales.SalesOrderHeader">
+
+            @if (W.UI.Appearance.IsSchemaLoaded && diagramViewerDatabase?.ActiveDiagram2 != null)
+            {
+                <DiagramViewerDatabase @ref="diagramViewerDatabase"
+                                       OnDiagramSettingChanged="GenerationSettingChanged" />
+            }
+        </div>
+
+    </section>
+
+
+    @* =========================================================
+       DIAGRAM 02 — SECOND ER EXAMPLE
+       ========================================================= *@
+
+    <section class="showcase grid-showcase-dark">
+
+        <div class="showcase-stage diagram-stage" aria-label="Entity relationship diagram for Production.Product">
+
+            <DiagramViewerDatabase @ref="diagramViewerDatabase2"
+                                   OnDiagramSettingChanged="GenerationSettingChanged" />
+        </div>
+
+        <div class="showcase-copy">
+
+            <span class="showcase-number">
+                02
+            </span>
+
+            <p class="eyebrow">
+                ANOTHER VIEW
+            </p>
+
+            <h2>
+                Relationships tell a different story depending on where you start.
+            </h2>
+
+            <p>
+                A second live diagram gets its own room. The point isn’t to explain the renderer —
+                it’s to let the renderer show what it can do on a different root.
+            </p>
+
+            <div class="showcase-example">
+                <span>AdventureWorks</span>
+                <strong>Production.Product</strong>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    @* =========================================================
+       NODE DIAGRAM 01
+       ========================================================= *@
+
+    <section class="showcase grid-showcase-dark">
+
+        <div class="showcase-copy">
+
+            <span class="showcase-number">
+                03
+            </span>
+
+            <p class="eyebrow">
+                NODE DIAGRAM
+            </p>
+
+            <h2>
+                Same database.
+                Different abstraction.
+            </h2>
+
+            <p>
+                Sometimes the columns are noise. The node view makes the topology itself the object of interest.
+                Under the hood, JEO3 runs a plan-driven traversal and feeds the execution graph into this view.
+            </p>
+
+            <div class="showcase-example">
+                <span>Graph seed</span>
+                <strong>Sales.Customer</strong>
+            </div>
+
+        </div>
+
+        <div class="showcase-stage diagram-stage" aria-label="Graph topology diagram seeded from Sales.Customer">
+
+            <DiagramViewerJarvis @ref="diagramViewerJarvis"
+                                 OnDiagramSettingChanged="GenerationSettingChanged" />
+        </div>
+
+    </section>
+
+
+    @* =========================================================
+       NODE DIAGRAM 02
+       ========================================================= *@
+
+    <section class="showcase grid-showcase-dark">
+
+        <div class="showcase-stage diagram-stage" aria-label="Graph topology diagram seeded from another root">
+
+            <DiagramViewerJarvis @ref="diagramViewerJarvis2"
+                                 OnDiagramSettingChanged="GenerationSettingChanged" />
+        </div>
+
+        <div class="showcase-copy">
+
+            <span class="showcase-number">
+                04
+            </span>
+
+            <p class="eyebrow">
+                GRAPH TOPOLOGY
+            </p>
+
+            <h2>
+                Let the graph breathe.
+            </h2>
+
+            <p>
+                A different starting point produces a different neighborhood, which is exactly why JEO3 treats
+                diagrams as an exploration tool rather than a static picture.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    @* =========================================================
+       QUERY EDITOR — SQL
+       ========================================================= *@
+
+    <section class="showcase showcase-dark">
+
+        <div class="showcase-copy">
+
+            <span class="showcase-number">
+                05
+            </span>
+
+            <p class="eyebrow">
+                QUERY GENERATION
+            </p>
+
+            <h2>
+                From relationships to SQL.
+            </h2>
+
+            <p>
+                Once the schema is understood, the next question is what query can be built from it.
+                JEO3 takes the execution graph and emits a runnable SQL query with coverage metrics.
+            </p>
+
+            <div class="query-path">
+                <span>Customer</span>
+                <i>→</i>
+                <span>Order</span>
+                <i>→</i>
+                <span>Detail</span>
+                <i>→</i>
+                <span>Product</span>
+            </div>
+
+        </div>
+
+        <div class="showcase-stage editor-stage" aria-label="Generated SQL query editor">
+
+            <QueryEditor @ref="queryEditor"
+                         OnGenerationSettingChanged="GenerationSettingChanged"
+                         OnToolboxUpdate="GenerationSettingChanged" />
+        </div>
+
+    </section>
+
+
+    @* =========================================================
+       QUERY EDITOR — C# / API
+       ========================================================= *@
+
+    <section class="showcase showcase-dark">
+
+        <div class="showcase-copy">
+
+            <span class="showcase-number">
+                06
+            </span>
+
+            <p class="eyebrow">
+                CODE GENERATION
+            </p>
+
+            <h2>
+                From schema to C# models.
+            </h2>
+
+            <p>
+                The same traversal engine drives C# class generation. Keys, foreign keys, indexes and coverage
+                are all baked into the emitted types so the API surface matches the database reality.
+            </p>
+
+        </div>
+
+        <div class="showcase-stage editor-stage" aria-label="Generated C# class editor">
+
+            <QueryEditor @ref="queryEditor2"
+                         OnGenerationSettingChanged="GenerationSettingChanged"
+                         OnToolboxUpdate="GenerationSettingChanged" />
+        </div>
+
+    </section>
+
+    <section class="showcase showcase-dark">
+
+        <div class="showcase-copy">
+
+            <span class="showcase-number">
+                05
+            </span>
+
+            <p class="eyebrow">
+                QUERY GENERATION
+            </p>
+
+            <h2>
+                From relationships to SQL.
+            </h2>
+
+            <p>
+                Once the schema is understood, the next question is what query can be built from it.
+                JEO3 takes the execution graph and emits a runnable SQL query with coverage metrics.
+            </p>
+
+            <div class="query-path">
+                <span>Customer</span>
+                <i>→</i>
+                <span>Order</span>
+                <i>→</i>
+                <span>Detail</span>
+                <i>→</i>
+                <span>Product</span>
+            </div>
+
+        </div>
+
+        <div class="showcase-stage editor-stage" aria-label="Generated SQL query editor">
+
+            <QueryEditor @ref="queryEditor3"
+                         OnGenerationSettingChanged="GenerationSettingChanged"
+                         OnToolboxUpdate="GenerationSettingChanged" />
+        </div>
+
+    </section>
+
+
+    @* =========================================================
+       QUERY EDITOR — C# / API
+       ========================================================= *@
+
+    <section class="showcase showcase-dark">
+
+        <div class="showcase-copy">
+
+            <span class="showcase-number">
+                06
+            </span>
+
+            <p class="eyebrow">
+                CODE GENERATION
+            </p>
+
+            <h2>
+                From schema to C# models.
+            </h2>
+
+            <p>
+                The same traversal engine drives C# class generation. Keys, foreign keys, indexes and coverage
+                are all baked into the emitted types so the API surface matches the database reality.
+            </p>
+
+        </div>
+
+        <div class="showcase-stage editor-stage" aria-label="Generated C# class editor">
+
+            <QueryEditor @ref="queryEditor4"
+                         OnGenerationSettingChanged="GenerationSettingChanged"
+                         OnToolboxUpdate="GenerationSettingChanged" />
+        </div>
+
+    </section>
+
+
+    @* =========================================================
+       TOOLBOX
+       ========================================================= *@
+
+    <section class="showcase">
+
+        <div class="showcase-stage toolbox-stage" style="height:400px" aria-label="Schema toolbox">
+
+            <SchemaToolbox @ref="toolbox"
+                           OnStoredProcedureDefinitionSelected="SelectedStoredProcedureDefinitionChanged"
+                           OnViewDefinitionSelected="SelectedViewDefinitionChanged" />
+
+        </div>
+
+        <div class="showcase-copy">
+
+            <span class="showcase-number">
+                07
+            </span>
+
+            <p class="eyebrow">
+                SCHEMA TOOLBOX
+            </p>
+
+            <h2>
+                The database is more than tables.
+            </h2>
+
+            <p>
+                Procedures, views and definitions are part of the same schema surface. JEO3 treats them as
+                first-class citizens and lets you jump between them and the query editor.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    @* =========================================================
+       TREEMAP
+       ========================================================= *@
+
+    <section class="showcase showcase-dark showcase-vertical">
+
+        <div class="showcase-copy centered">
+
+            <span class="showcase-number">
+                08
+            </span>
+
+            <p class="eyebrow">
+                DISTRIBUTION
+            </p>
+
+            <h2>
+                Make the shape of the database visible.
+            </h2>
+
+            <p>
+                Table size becomes spatial structure. The treemap turns row counts into a visual map of where
+                the data actually lives.
+            </p>
+
+        </div>
+
+        <div class="showcase-stage treemap-stage" aria-label="Database table size treemap">
+            @if (treeTables != null)
+            {
+                <GenericTreeMap TItem="ITable"
+                                Data="@treeTables"
+                                LabelSelector="@(t => t.TablePath)"
+                                ValueSelector="@(t => (double)(t.Rows ?? 0))"
+                                SubLabelSelector="@(t => (t.Rows ?? 0).ToString("N0"))"
+                                GroupKeySelector="@(t => t.TablePath.Split('.')[0])" />
+            }
+        </div>
+
+    </section>
+
+
+    @* =========================================================
+       GRID — TABLES
+       ========================================================= *@
+
+    <section class="grid-showcase">
+
+        <div class="grid-heading">
+
+            <div>
+                <span class="showcase-number">09</span>
+
+                <p class="eyebrow">
+                    TABLE INVENTORY
+                </p>
+
+                <h2>
+                    The schema at a glance.
+                </h2>
+            </div>
+
+            <p>
+                Dense metadata deserves a large canvas. JEO3’s table grid surfaces object IDs, row counts,
+                and key information in one place.
+            </p>
+
+        </div>
+
+        <div class="grid-stage" aria-label="Database tables grid">
+            @if (databars != null)
+            {
+                <JEOGrid DataTable="@databars.Tables"
+                         PrimaryKeyColumn="PrimaryKeyColumn"
+                         OnRowClick="HandleTableGridDrillDown" />
+            }
+        </div>
+
+    </section>
+
+
+    @* =========================================================
+       GRID — COLUMNS
+       ========================================================= *@
+       
+    <section class="grid-showcase">
+
+        <div class="grid-heading">
+
+            <div>
+                <span class="showcase-number">10</span>
+
+                <p class="eyebrow">
+                    COLUMN METADATA
+                </p>
+
+                <h2>
+                    Down to the columns.
+                </h2>
+            </div>
+
+            <p>
+                Keys, types, lengths, nullability and everything else the schema exposes.
+            </p>
+
+        </div>
+
+        <div class="grid-stage" aria-label="Database columns grid">
+            @if (databars != null)
+            {
+                <JEOGrid DataTable="@databars.Columns"
+                         PrimaryKeyColumn="PrimaryKeyColumn"
+                         OnRowClick="HandleTableGridDrillDown" />
+            }
+        </div>
+
+    </section>
+
+
+    @* =========================================================
+       GRID — PROCEDURES
+       ========================================================= *@
+
+    <section class="grid-showcase">
+
+        <div class="grid-heading">
+
+            <div>
+                <span class="showcase-number">11</span>
+
+                <p class="eyebrow">
+                    PROCEDURES
+                </p>
+
+                <h2>
+                    Programmable objects.
+                </h2>
+            </div>
+
+        </div>
+
+        <div class="grid-stage" aria-label="Database procedures grid">
+            @if (databars != null)
+            {
+                <JEOGrid DataTable="@databars.Procedures"
+                         PrimaryKeyColumn="PrimaryKeyColumn"
+                         OnRowClick="HandleTableGridDrillDown" />
+            }
+        </div>
+
+    </section>
+
+
+    @* =========================================================
+       GRID — VIEWS
+       ========================================================= *@
+
+    <section class="grid-showcase grid-showcase-dark">
+
+        <div class="grid-heading">
+
+            <div>
+                <span class="showcase-number">12</span>
+
+                <p class="eyebrow">
+                    VIEWS
+                </p>
+
+                <h2>
+                    And views.
+                </h2>
+            </div>
+
+        </div>
+
+        <div class="grid-stage" aria-label="Database views grid">
+            @if (databars != null)
+            {
+                <JEOGrid DataTable="@databars.Views"
+                         PrimaryKeyColumn="PrimaryKeyColumn"
+                         OnRowClick="HandleTableGridDrillDown" />
+            }
+        </div>
+
+    </section>
+
+    
+    @* =========================================================
+       ABOUT
+       ========================================================= *@
+
+    <section class="grid-showcase grid-showcase-dark">
+
+        <div class="grid-heading">
+
+            <div>
+                <span class="showcase-number">12</span>
+
+                <p class="eyebrow">
+                    VIEWS
+                </p>
+
+                <h2>
+                    And views.
+                </h2>
+            </div>
+
+        </div>
+
+        <div class="grid-stage" aria-label="Database views grid">
+                <About></About>
+        </div>
+
+    </section>
+
+
+    @* =========================================================
+       FINAL — FOR HIRING MANAGERS
+       ========================================================= *@
+
+    <section class="landing-final">
+
+        <p class="eyebrow">
+            For hiring managers
+        </p>
+
+        <h2>
+            What this page is actually demonstrating.
+        </h2>
+
+        <p>
+            JEO3 is a full-stack, production-grade experiment: schema ingestion, graph traversal, query planning,
+            diagram rendering, and code generation — all wired into a Blazor UI. I designed the traversal engines,
+            the metadata model, and the visualization surface end-to-end.
+        </p>
+
+        <p>
+            If team works with complex databases, query planners, or developer tooling, this is the kind of
+            system I like to build.
+        </p>
+
+        <a class="btn btn-primary"
+           href="/dashboard">
+            Open the Dashboard →
+        </a>
+
+    </section>
+
+</div>
+
+@code {
+
+    private DiagramViewerDatabase? diagramViewerDatabase;
+    private DiagramViewerDatabase? diagramViewerDatabase2;
+
+    private DiagramViewerJarvis? diagramViewerJarvis;
+    private DiagramViewerJarvis? diagramViewerJarvis2;
+
+    private Task SelectedStoredProcedureDefinitionChanged(object args)
+        => Task.CompletedTask;
+
+    private Task SelectedViewDefinitionChanged(object args)
+        => Task.CompletedTask;
+}

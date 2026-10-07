@@ -1,0 +1,124 @@
+﻿@using System.Reflection
+@using JEO3.Diagrams
+
+@namespace JEO3.Site.Components.Diagram
+
+<div class="dynamic-parameter-inline-wrapper" style="display: flex; flex-direction: row; align-items: center; gap: 16px; height: 100%;">
+    <div class="dynamic-parameter-vertical-wrapper" style="display: flex; flex-direction: column; gap: 14px; width: 100%;">
+        @foreach (var prop in GetDecoratedProperties())
+        {
+            var attr = prop.GetCustomAttribute<DiagramParameterAttribute>();
+            if (attr == null) continue;
+
+            var propKey = $"{TargetParameters.GetType().Name}.{prop.Name}";
+
+            if (!_inputBuffers.ContainsKey(propKey))
+            {
+                _inputBuffers[propKey] = FormatInitialValue(prop.GetValue(TargetParameters));
+            }
+
+            <ParameterInputRow @key="propKey"
+                               Prop="@prop"
+                               Attr="@attr"
+                               TargetParameters="@TargetParameters"
+                               InputValue="@_inputBuffers[propKey]"
+                               OnLiveInput="@((val) => OnLiveInputChanged(prop, propKey, val))"
+                                OnBlur="@(() => OnFieldBlur(prop, propKey))" 
+                                OnBoolChanged="@((val) => UpdateBoolValue(prop, val))"
+                                OnEnumChanged="@((val) => UpdateEnumValue(prop, val))"/>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public BaseLayoutParameters TargetParameters { get; set; } = null!;
+    [Parameter] public EventCallback OnParameterChanged { get; set; }
+
+    private readonly Dictionary<string, string> _inputBuffers = new();
+
+    private IEnumerable<PropertyInfo> GetDecoratedProperties()
+    {
+        if (TargetParameters == null) return Enumerable.Empty<PropertyInfo>();
+
+        return TargetParameters.GetType()
+            .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Where(p => p.GetCustomAttribute<DiagramParameterAttribute>() != null);
+    }
+
+    private string FormatInitialValue(object? val) => val switch
+    {
+        double d => d.ToString("0.##"),
+        int i => i.ToString(),
+        bool b => b.ToString(),
+        Enum e => e.ToString(),
+        _ => val?.ToString() ?? "0"
+    };
+
+    private void OnLiveInputChanged(PropertyInfo prop, string key, object? value)
+    {
+        var rawString = value?.ToString() ?? "";
+        _inputBuffers[key] = rawString;
+
+        if (prop.PropertyType == typeof(double))
+        {
+            if (rawString.EndsWith(".") || rawString == "-") return;
+
+            if (double.TryParse(rawString, out double parsedDouble))
+            {
+                prop.SetValue(TargetParameters, parsedDouble);
+                _ = OnParameterChanged.InvokeAsync();
+            }
+        }
+        else if (prop.PropertyType == typeof(int))
+        {
+            if (rawString == "-") return;
+
+            if (int.TryParse(rawString, out int parsedInt))
+            {
+                prop.SetValue(TargetParameters, parsedInt);
+                _ = OnParameterChanged.InvokeAsync();
+            }
+        }
+    }
+
+    private void OnFieldBlur(PropertyInfo prop, string key)
+    {
+        var freshValue = prop.GetValue(TargetParameters);
+        _inputBuffers[key] = FormatInitialValue(freshValue);
+    }
+
+    private void UpdateBoolValue(PropertyInfo prop, object? value)
+    {
+        if (value != null && bool.TryParse(value.ToString(), out bool result))
+        {
+            prop.SetValue(TargetParameters, result);
+
+            // Keep the local dictionary buffer aligned
+            var propKey = $"{TargetParameters.GetType().Name}.{prop.Name}";
+            _inputBuffers[propKey] = result.ToString();
+
+            _ = OnParameterChanged.InvokeAsync();
+        }
+    }
+    private void UpdateEnumValue(PropertyInfo prop, object? value)
+    {
+        if (value != null)
+        {
+            try
+            {
+                var parsedEnum = Enum.Parse(prop.PropertyType, value.ToString()!);
+                prop.SetValue(TargetParameters, parsedEnum);
+
+                var propKey = $"{TargetParameters.GetType().Name}.{prop.Name}";
+                _inputBuffers[propKey] = value.ToString()!;
+
+                _ = OnParameterChanged.InvokeAsync();
+            }
+            catch { /* Fallback guard */ }
+        }
+    }
+    protected override void OnParametersSet()
+    {
+        _inputBuffers.Clear();
+    }
+}

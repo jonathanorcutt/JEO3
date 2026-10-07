@@ -1,0 +1,37 @@
+﻿@using BlazorMonaco.Editor
+@using JEO3.Core
+@using JEO3.Schema
+@using JEO3.Site.Components
+@using JEO3.Site.Dashboard
+@inject WSWorkspace W
+
+@namespace JEO3.Site.Dashboard
+
+
+<JEOGrid DataTable="@W.Result.Databars?.Views" PrimaryKeyColumn="PrimaryKeyColumn"
+		 OnRowClick="@(async ((object? a, string? b) row) => { await updateViewsQuery((row.a, row.b)); })"
+		 AllowVirtualization="true" />
+
+<div class="dashboard-query-editor-container" style="min-height:300px">
+
+	<div class="grid-query-editor" oncontextmenu="return false;" onpointerup="if(event.button === 2) { this.releasePointerCapture(event.pointerId); }">
+		<StandaloneCodeEditor @key=@("query-editor-instance-views") CssClass="txtQueryEditor" ConstructionOptions="@EditorOptionsViews"
+							  @ref="@queryEditorViews" OnDidInit="@OnEditorInitializedViews" OnDidChangeModelContent="@OnEditorContentChangedViews" />
+	</div>
+
+</div>
+@code {
+	private StandaloneCodeEditor queryEditorViews;
+	async Task updateViewsQuery((object? a, object? b) x)
+	{
+		if (queryEditorViews == null) { return; }
+		var view = W.Context.Views.FirstOrDefault(v => x.b.ToString().EndsWith(v.Name));
+		await queryEditorViews.SetValue(view?.Definition ?? string.Empty);
+	}
+	void OnEditorInitializedViews() { }
+	void OnEditorContentChangedViews() { }
+
+	private StandaloneEditorConstructionOptions EditorOptionsViews(StandaloneCodeEditor editor)
+		=> MonacoHelpers.EditorOptions(editor, MonacoLanguageType.SQL, "view");
+
+}

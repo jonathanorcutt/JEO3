@@ -1,0 +1,214 @@
+@using JEO3.Schema
+@using JEO3.Site.Components.Icons
+
+@namespace JEO3.Site.Dashboard
+@inject DialogService DialogService
+@inject WSWorkspace W
+
+<style>
+	.dashboard-top-bar {
+		width: 100%;
+		max-width: 100%;
+		min-width: 0;
+		box-sizing: border-box;
+		overflow: hidden;
+	}
+
+		.dashboard-top-bar .rz-card {
+			padding-left: 0px !important;
+			padding-right: 0px !important;
+		}
+
+	.dashboard-top-bar-tabs {
+		width: 100%;
+		min-height: 0;
+		min-width: 0;
+		max-width: 100%;
+		overflow: hidden;
+		box-sizing: border-box;
+		display: flex;
+		flex-direction: row;
+		height: 100%;
+	}
+
+		.dashboard-top-bar-tabs .mud-tabs-panels {
+			min-width: 0;
+			max-width: 100%;
+			overflow: hidden;
+			height: 0;
+			flex: 1 1 auto;
+		}
+
+		.dashboard-top-bar-tabs .mud-tab-panel {
+			min-height: 0;
+			min-width: 0;
+			max-width: 100%;
+		}
+
+	.dashboard-top-bar-stack {
+		width: 100%;
+		max-width: 100%;
+		min-width: 0;
+		flex-wrap: nowrap !important;
+		overflow: hidden;
+		box-sizing: border-box;
+	}
+
+		.dashboard-top-bar-stack .rz-card {
+			margin: 0px !important;
+		}
+
+	.dashboard-top-bar-content {
+		display: flex;
+		align-items: center;
+		flex-wrap: nowrap;
+		min-width: 0;
+		margin-left: 15px;
+		width: 100%;
+		overflow: hidden;
+		box-sizing: border-box;
+		gap: 1rem;
+	}
+
+		.dashboard-top-bar-content > * {
+			min-width: 0;
+		}
+</style>
+
+<RadzenCard Variant="Variant.Outlined" class="dashboard-config-container padding-left-0 dashboard-top-bar">
+	<RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Start" Wrap="FlexWrap.NoWrap" class="dashboard-top-bar-stack">
+
+		<RadzenTabs RenderMode="TabRenderMode.Client" TabPosition="TabPosition.Left" SelectedIndexChanged="UpdateTabChanged" class="main-nav-tabs">
+			<Tabs>
+				<RadzenTabsItem Text="INSIGHT" Style="font-size:9pt;padding-left:0px;padding-right:0px;">
+					<Template>
+						INSIGHT&nbsp;&nbsp;<RadzenBadge BadgeStyle="BadgeStyle.Success" Text="📊" />
+					</Template>
+					<ChildContent>
+						<div class="dashboard-top-bar-content">
+							@if (SelectedView != null)
+							{
+								var view = SelectedView;
+
+								<div class="dashboard-config-section-right-start dashboard-config-section-right-start-flex config-section-margin-left-40">
+									<span class="dashboard-config-label">Object</span>
+									<span class="metric-value-bold">@view.FullName</span>
+								</div>
+
+								@if (view.IsSystemObject || view.IsEncrypted || view.IsMaterialized)
+								{
+									<div class="dashboard-config-section-right-start dashboard-config-section-right-flex-2">
+										<span class="dashboard-config-label">Flags</span>
+										<span class="metric-value-bold">
+											@(view.IsSystemObject ? "SYSTEM " : "")@(view.IsEncrypted ? "ENCRYPTED " : "")@(view.IsMaterialized ? "MATERIALIZED " : "")
+										</span>
+									</div>
+								}
+
+								<div class="dashboard-config-section-right-start dashboard-config-section-right-flex-2">
+									<span class="dashboard-config-label">Columns</span>
+									<span class="metric-reach-value">@view.Columns.Count</span>
+								</div>
+								<div class="dashboard-config-section-right">
+									<!-- Decorative gauge: no real threshold, visual only -->
+									<RadzenProgressBarCircular Value="@view.Columns.Count" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Success" AriaLabel="Columns" Max="20" />
+								</div>
+
+								<div class="dashboard-config-section-right-start dashboard-config-section-right-flex-2">
+									<span class="dashboard-config-label">Relations</span>
+									<span class="metric-reach-value">@view.Relations.Count</span>
+								</div>
+								<div class="dashboard-config-section-right">
+									<!-- Decorative gauge: no real threshold, visual only -->
+									<RadzenProgressBarCircular Value="@view.Relations.Count" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Info" AriaLabel="Relations" Max="10" />
+								</div>
+
+								<div class="dashboard-config-section-right-start dashboard-config-section-right-flex-2">
+									<span class="dashboard-config-label">Definition</span>
+									<span class="metric-value-wrapper">
+										<span class="metric-reach-label" style="color: @((string.IsNullOrEmpty(view.Definition)) ? "var(--rz-warning)" : "cornflowerblue")">
+											<span class="metric-reach-value">@(string.IsNullOrEmpty(view.Definition) ? "UNAVAILABLE" : "View")</span>
+										</span>
+										@if (!string.IsNullOrEmpty(view.Definition))
+										{
+											<button type="button" @onclick="ShowDefinitionDialog" title="View Definition" class="info-icon-btn">
+												<IconLink IconStyle="IconLink.IconStyleType.Info" />
+											</button>
+										}
+									</span>
+								</div>
+							}
+							else
+							{
+								<span class="dialog-empty-text">Select a view to see insights.</span>
+							}
+						</div>
+					</ChildContent>
+				</RadzenTabsItem>
+
+				<RadzenTabsItem Text="ACTION" Style="font-size:9pt;padding-left:0px;padding-right:0px;">
+					<Template>
+						&nbsp;ACTION&nbsp;&nbsp;<RadzenBadge BadgeStyle="BadgeStyle.Info" Text="🛠️" />
+					</Template>
+					<ChildContent>
+						<div class="dashboard-top-bar-content">
+							@* No generation logic exists anywhere for IView (confirmed - nothing
+                               shared touches views). Only real action available is surfacing
+                               the definition that's already on the interface. Not fabricating
+                               scripting/generation behavior that doesn't exist yet. *@
+							@if (SelectedView != null)
+							{
+								<div class="dashboard-config-section-right">
+									@if (!string.IsNullOrEmpty(SelectedView.Definition))
+									{
+										<button @onclick="ShowDefinitionDialog">View Definition</button>
+									}
+								</div>
+								<div class="dashboard-config-section-right">
+									<button type="button" class="btn btn-primary" @onclick="ShowDefinitionDialog" disabled="@(string.IsNullOrEmpty(SelectedView.Definition))">
+										Copy Definition
+									</button>
+								</div>
+							}
+							else
+							{
+								<span class="dialog-empty-text">Select a view to see available actions.</span>
+							}
+						</div>
+					</ChildContent>
+				</RadzenTabsItem>
+			</Tabs>
+		</RadzenTabs>
+	</RadzenStack>
+</RadzenCard>
+
+@code {
+	private int selectedIndex = 0;
+	private void UpdateTabChanged(int index)
+	{
+		selectedIndex = index;
+	}
+
+	// ASSUMPTION NOT YET CONFIRMED: mirrors the confirmed W.UI.Grids.Selected.Columns
+	// pattern, but "Views" on Selected has not been verified to exist.
+	private IView? SelectedView => W.UI.Grids.Selected?.ViewDefinitions?.FirstOrDefault();
+
+	private async Task ShowDefinitionDialog()
+	{
+		var view = SelectedView;
+		if (view == null) return;
+
+		var result = await DialogService.OpenAsync("VIEW DEFINITION", ds =>
+			@<RadzenStack Gap="1rem" class="dialog-stack-wrapper-large">
+				<div><span class="dialog-label-bold">OBJECT:</span> @view.FullName</div>
+				<div class="dialog-scroll-container">
+					<pre class="table-item-text" style="white-space:pre-wrap;">@view.Definition</pre>
+				</div>
+				<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" class="dialog-footer-margin">
+					<RadzenButton Text="Dismiss" Click="() => ds.Close(true)" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" Style="width: 90px;" />
+				</RadzenStack>
+			</RadzenStack>
+		,
+			new DialogOptions() { CloseDialogOnOverlayClick = true, ShowClose = true, Width = "auto" });
+	}
+}

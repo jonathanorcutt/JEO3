@@ -1,0 +1,109 @@
+﻿@* NavRail.razor *@
+<div class="rail-system-container" @onmouseleave="CloseAccordion">
+
+    <div class="icon-rail-strip">
+        <button type="button" class="strip-item @(ActiveRoot == "Views" ? "active" : "")"
+                @onmouseenter='() => OpenAccordion("Views")'>
+            <i class="fas fa-layer-group"></i>
+            <span class="micro-text">VIEWS</span>
+        </button>
+
+        <button type="button" class="strip-item @(ActiveRoot == "Analysis" ? "active" : "")"
+                @onmouseenter='() => OpenAccordion("Analysis")'>
+            <i class="fas fa-chart-network"></i>
+            <span class="micro-text">ANALYTICS</span>
+        </button>
+
+        <button type="button" class="strip-item @(ActiveRoot == "Settings" ? "active" : "")"
+                @onmouseenter='() => OpenAccordion("Settings")'>
+            <i class="fas fa-sliders-h"></i>
+            <span class="micro-text">CONFIG</span>
+        </button>
+    </div>
+
+    <div class="flyout-accordion-panel @(IsAccordionOpen ? "is-visible" : "")">
+        <div class="panel-header"><h3>@ActiveRoot Menu</h3></div>
+
+        <div class="accordion-scroll-container">
+            @if (ActiveRoot == "Views")
+            {
+                <div class="accordion-group">
+                    <button class="accordion-trigger" @onclick="() => ToggleSection(1)">
+                        <span>Core Workspaces</span>
+                        <i class="fas @(OpenSectionId == 1 ? "fa-chevron-down" : "fa-chevron-right")"></i>
+                    </button>
+                    <div class="accordion-content @(OpenSectionId == 1 ? "is-expanded" : "")">
+                        <a class="sub-link" @onclick="() => Navigate(0)">☢️ Monitoring</a>
+                        <a class="sub-link" @onclick="() => Navigate(2)">🖼️ ER Diagram</a>
+                        <a class="sub-link" @onclick="() => Navigate(3)">👻 Node Diagram</a>
+                        <a class="sub-link" @onclick="() => Navigate(1)">🖼️ Gallery</a>
+                    </div>
+                </div>
+
+                <div class="accordion-group">
+                    <button class="accordion-trigger" @onclick="() => ToggleSection(2)">
+                        <span>Builder</span>
+                        <i class="fas @(OpenSectionId == 2 ? "fa-chevron-down" : "fa-chevron-right")"></i>
+                    </button>
+                    <div class="accordion-content @(OpenSectionId == 2 ? "is-expanded" : "")">
+                        <a class="sub-link" @onclick="() => Navigate(12)">🕹️ Dashboard Builder</a>
+                    </div>
+                </div>
+            }
+            @if (ActiveRoot == "Analysis")
+            {
+                <div class="accordion-group">
+                    <button class="accordion-trigger" @onclick="() => ToggleSection(3)">
+                        <span>Database Objects</span>
+                        <i class="fas @(OpenSectionId == 3 ? "fa-chevron-down" : "fa-chevron-right")"></i>
+                    </button>
+                    <div class="accordion-content @(OpenSectionId == 3 ? "is-expanded" : "")">
+                        <a class="sub-link" @onclick="() => Navigate(4)">🌈 Drilldown / Tables / Columns</a>
+                        <a class="sub-link" @onclick="() => Navigate(4)">🌈 Procedures / Views</a>
+                    </div>
+                </div>
+
+                <div class="accordion-group">
+                    <button class="accordion-trigger" @onclick="() => ToggleSection(4)">
+                        <span>Performance Metrics</span>
+                        <i class="fas @(OpenSectionId == 4 ? "fa-chevron-down" : "fa-chevron-right")"></i>
+                    </button>
+                    <div class="accordion-content @(OpenSectionId == 4 ? "is-expanded" : "")">
+                        <a class="sub-link" @onclick="() => Navigate(5)">🔥 Hotspots</a>
+                        <a class="sub-link" @onclick="() => Navigate(6)">🛣️ Distribution</a>
+                        <a class="sub-link" @onclick="() => Navigate(7)">🔭 Density</a>
+                        <a class="sub-link" @onclick="() => Navigate(8)">📊 Charts</a>
+                        <a class="sub-link" @onclick="() => Navigate(9)">🛢️ Data</a>
+                    </div>
+                </div>
+            }
+            @if (ActiveRoot == "Settings")
+            {
+                <div class="accordion-group">
+                    <button class="accordion-trigger" @onclick="() => ToggleSection(5)">
+                        <span>System</span>
+                        <i class="fas @(OpenSectionId == 5 ? "fa-chevron-down" : "fa-chevron-right")"></i>
+                    </button>
+                    <div class="accordion-content @(OpenSectionId == 5 ? "is-expanded" : "")">
+                        <a class="sub-link" @onclick="() => Navigate(10)">👨🏻‍💻 About</a>
+                        <a class="sub-link" @onclick="() => Navigate(11)">🎞️ Timeline</a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback<int> OnNavigate { get; set; }
+
+    private string ActiveRoot { get; set; } = "";
+    private bool IsAccordionOpen { get; set; }
+    private int OpenSectionId { get; set; } = 1;
+
+    private void OpenAccordion(string rootMenu) { ActiveRoot = rootMenu; IsAccordionOpen = true; }
+    private void CloseAccordion() { IsAccordionOpen = false; ActiveRoot = ""; }
+    private void ToggleSection(int sectionId) => OpenSectionId = OpenSectionId == sectionId ? 0 : sectionId;
+
+    private async Task Navigate(int tabIndex) => await OnNavigate.InvokeAsync(tabIndex);
+}

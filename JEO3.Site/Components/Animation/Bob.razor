@@ -1,0 +1,26 @@
+﻿@namespace JEO3.Site.Components
+@using JEO3.Site.Dashboard
+
+<img id="@Id" src="../img/pacman/pacman_ghost_gif.gif" class="bob"/>
+
+@code {
+    [Inject] private WSWorkspace W { get; set; } = new();
+
+    [Inject]
+    private IJSRuntime JS { get; set; } = default!;
+
+	public readonly string Id = $"bob-{Guid.NewGuid():N}";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+        }
+    }
+
+    public async Task Play()
+    {
+        await JS.InvokeVoidAsync("bob.play", "JumpEscalation");
+        await JS.InvokeVoidAsync("bob.play", "NavigatorClimb");
+    }
+}

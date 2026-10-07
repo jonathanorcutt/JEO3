@@ -1,0 +1,61 @@
+﻿
+@namespace JEO3.Site.Components
+
+<CascadingValue Value="this">
+    @* Hidden render pass to collect child MyTabPage definitions *@
+    <div style="display:none;">@ChildContent</div>
+
+    <div class="rz-tabview">
+        <!-- Tab Headers -->
+        <ul class="rz-tabview-nav" role="tablist">
+            @foreach (var pg in Pages)
+            {
+                var isSelected = pg == ActivePage;
+                <li class="rz-tabview-header @(isSelected ? "rz-state-active" : "")" 
+                    role="presentation" 
+                    @onclick="() => SelectPage(pg)">
+                    <a role="tab" href="javascript:void(0)">
+                        <span class="rz-tabview-title">@pg.Title</span>
+                    </a>
+                </li>
+            }
+        </ul>
+
+        <!-- Tab Panels -->
+        <div class="rz-tabview-panels">
+            @foreach (var pg in Pages)
+            {
+                var isSelected = pg == ActivePage;
+                <div class="rz-tabview-panel" 
+                     role="tabpanel" 
+                     style="display: @(isSelected ? "block" : "none")">
+                    @pg.ChildContent
+                </div>
+            }
+        </div>
+    </div>
+</CascadingValue>
+
+@code {
+    [Parameter] 
+    public RenderFragment ChildContent { get; set; }
+
+    public List<JEOTabItem> Pages { get; } = new();
+    public JEOTabItem ActivePage { get; private set; }
+
+    public void AddPage(JEOTabItem page)
+    {
+        Pages.Add(page);
+        if (ActivePage == null)
+        {
+            ActivePage = page;
+        }
+        StateHasChanged();
+    }
+
+    public void SelectPage(JEOTabItem page)
+    {
+        ActivePage = page;
+        StateHasChanged();
+    }
+}

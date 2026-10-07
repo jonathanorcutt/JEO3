@@ -1,0 +1,190 @@
+﻿@using System.Data
+@namespace JEO3.Site.Dashboard
+<style>
+    .stupidgrid td span{
+        font-size:7.25pt !important;
+    }
+</style>
+<div class="dashboard-pane-body-container-scroll stupidgrid full-height-width">
+    <RadzenDataGrid TItem="IDictionary<string, object>"
+                    Data="@_gridData"
+                    AllowSorting="true"
+                    AllowFiltering="false"
+                    AllowColumnResize="true"
+                    AllowVirtualization="@AllowVirtualization"
+                    AllowColumnPicking="true"
+                    ShowMultiColumnSortingIndex="false"
+    class="jeo-grid">
+        <Columns>
+            @if (DataTable != null && DataTable.Columns.Count > 0)
+            {
+                var columns = DataTable.Columns.Cast<DataColumn>().ToList();
+                int totalCols = columns.Count;
+
+                @for (int i = 0; i < totalCols; i++)
+                {
+                    var col = columns[i];
+                    var colName = col.ColumnName;
+                    var columnColor = GetDynamicRainbowColor(i, totalCols);
+
+                    // Check if this column is our designated Primary Key
+                    bool isPrimaryKey = !string.IsNullOrEmpty(PrimaryKeyColumn) &&
+                                        colName.Equals(PrimaryKeyColumn, StringComparison.OrdinalIgnoreCase);
+
+                    var radzenSortType = col.DataType.IsValueType && Nullable.GetUnderlyingType(col.DataType) == null
+                                         ? typeof(Nullable<>).MakeGenericType(col.DataType)
+                                         : col.DataType;
+
+                    <RadzenDataGridColumn TItem="IDictionary<string, object>"
+                                          Title="@colName"
+                                          Type="@radzenSortType"
+                                          Property="@($"it[\"{colName}\"]")"
+                                          Visible="@(!isPrimaryKey)" MinWidth="@(i == 0 ? "200px" : "100px")">
+                        @* <-- Hides the ID column visually *@
+                        <Template Context="row">
+                            @{
+                                var cellValue = row.ContainsKey(colName) ? row[colName] : null;
+                            }
+
+                            @if (colName.Equals("Name", StringComparison.OrdinalIgnoreCase))
+                            {
+                                // Grab the actual object_id from the dictionary to pass to the drill-down
+                                var rowId = !string.IsNullOrEmpty(PrimaryKeyColumn) && row.ContainsKey(PrimaryKeyColumn)
+                                            ? row[PrimaryKeyColumn]
+                                            : null;
+
+                                <a class="link-bold-pointer" style="width:@(PrimaryColumnWidth)px"
+                                   @onclick="@(() => OpenDrillDown(rowId, cellValue?.ToString()))">
+                                    @cellValue
+                                </a>
+                            }
+                            else if (cellValue != null && TryGetDouble(cellValue, out double val))
+                            {
+                                var (min, max) = GetCachedColumnMinMax(colName);
+                                var percentage = max == min ? 0 : ((val - min) / (max - min)) * 100;
+
+                                <div class="cell-bar-container">
+                                    <div class="cell-bar-track">
+                                        <div style="width: @(percentage)%; height: 100%; background-color: @columnColor;"></div>
+                                    </div>
+                                    <span class="cell-text-numeric">@cellValue</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="cell-text-standard">@(cellValue?.ToString() ?? "")</span>
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
+                }
+            }
+        </Columns>
+    </RadzenDataGrid>
+</div>
+
+@code {
+    [Parameter] public DataTable? DataTable { get; set; }
+    [Parameter] public string? PrimaryKeyColumn { get; set; } // e.g., "object_id" or "Id"
+    [Parameter] public int PrimaryColumnWidth { get; set; } = 220;
+    [Parameter] public EventCallback<(object? Id, string? Name)> OnRowClick { get; set; }
+
+    // This holds the mapped data that Radzen actually binds to
+    private IEnumerable<IDictionary<string, object>>? _gridData;
+
+    // Cache for column min/max values to avoid O(n²) cell rendering
+    private Dictionary<string, (double Min, double Max)> _columnMinMaxCache = new();
+
+    // Track the last DataTable we built _gridData from to avoid redundant rebuilds.
+    private DataTable? _lastDataTable;
+
+    protected override void OnParametersSet()
+    {
+        // Skip the O(rows × cols) rebuild if the DataTable reference hasn't changed.
+        // Blazor calls OnParametersSet on every parent re-render regardless of whether
+        // parameters actually differ -- this guard prevents wasted allocations.
+        if (ReferenceEquals(DataTable, _lastDataTable)) return;
+        _lastDataTable = DataTable;
+
+        // Rebuild the dictionary list anytime the DataTable parameter changes
+        if (DataTable != null)
+        {
+            var list = new List<IDictionary<string, object>>();
+            foreach (DataRow dr in DataTable.Rows)
+            {
+                var dict = new Dictionary<string, object>();
+                foreach (DataColumn col in DataTable.Columns)
+                {
+                    // DBNull check ensures Radzen sorting doesn't trip on DBNull.Value vs null
+                    dict[col.ColumnName] = dr[col] == DBNull.Value ? null! : dr[col];
+                }
+                list.Add(dict);
+            }
+            _gridData = list;
+
+            // Pre-compute and cache column min/max values
+            BuildColumnMinMaxCache();
+        }
+        else
+        {
+            _gridData = null;
+            _columnMinMaxCache.Clear();
+        }
+    }
+
+    private void BuildColumnMinMaxCache()
+    {
+        _columnMinMaxCache.Clear();
+        if (DataTable == null) return;
+
+        foreach (DataColumn col in DataTable.Columns)
+        {
+            _columnMinMaxCache[col.ColumnName] = GetColumnMinMax(DataTable, col.ColumnName);
+        }
+    }
+
+    private async Task OpenDrillDown(object? id, string? name)
+    {
+        if (OnRowClick.HasDelegate)
+        {
+            await OnRowClick.InvokeAsync((id, name));
+        }
+    }
+    private string GetDynamicRainbowColor(int index, int totalColumns)
+    {
+        if (totalColumns <= 1) return "hsl(0, 75%, 50%)";
+        double hue = (index * (360.0 / totalColumns)) % 360;
+        return $"hsl({hue:F1}, 75%, 50%)";
+    }
+
+    private bool TryGetDouble(object? value, out double result)
+    {
+        result = 0;
+        if (value == null || value == DBNull.Value) return false;
+
+        return double.TryParse(value.ToString(), out result);
+    }
+
+    // This stays exactly the same, iterating over the raw DataTable.Rows for our min/max bounds
+    private (double Min, double Max) GetColumnMinMax(DataTable? table, string colName)
+    {
+        if (table == null || !table.Columns.Contains(colName)) return (0, 100);
+
+        var values = new List<double>();
+        foreach (DataRow r in table.Rows)
+        {
+            if (TryGetDouble(r[colName], out double val))
+            {
+                values.Add(val);
+            }
+        }
+
+        if (!values.Any()) return (0, 100);
+        return (values.Min(), values.Max());
+    }
+
+    // Get cached min/max values - O(1) lookup instead of O(n) scan
+    private (double Min, double Max) GetCachedColumnMinMax(string colName)
+    {
+        return _columnMinMaxCache.TryGetValue(colName, out var cached) ? cached : (0, 100);
+    }
+}

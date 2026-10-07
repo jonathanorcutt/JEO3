@@ -1,0 +1,221 @@
+﻿@using Radzen
+@using Radzen.Blazor
+
+@namespace JEO3.Site.Components.Charting
+@typeparam TRow
+
+<div class="schema-contour-wrapper">
+    <!-- Header control stripe that houses the dynamic selector -->
+    <div class="contour-toolbar">
+        <span class="contour-title">@Title</span>
+        <div class="picker-group">
+            <span class="picker-label">Analyze Metric:</span>
+            <RadzenDropDown TValue="string"
+                            Data="@Columns"
+                            @bind-Value="@_activeMetric"
+                            Change="@HandleMetricChange"
+                            Class="metric-dropdown" />
+        </div>
+    </div>
+
+    <!-- The underlying structural grid canvas -->
+    <div class="chart-container">
+        <RadzenChart Animate="true" Style="width:100%; height:100% !important; min-height:870px">
+
+            <RadzenContourSeries Data="@_filteredSamples"
+                                 CategoryProperty="X"
+                                 ValueProperty="Y"
+                                 IntensityProperty="Intensity"
+                                 ColorRange="@ColorRanges"
+                                 ShowLines="@ShowLines"
+                                 LineColor="rgba(0,0,0,0.4)"
+                                 LineWidth="1"
+                                 IntensityLabel="@IntensityLabel"
+                                 Title="@_activeMetric" />
+
+            <!-- X Axis represents the active isolated parameter lane -->
+            <RadzenCategoryAxis Min="0" Max="0" Step="1">
+                <RadzenGridLines Visible="true" />
+                <RadzenAxisTitle Text="Selected Metric Vector" />
+            </RadzenCategoryAxis>
+
+            <!-- Y Axis scales automatically to match your physical database objects -->
+            <RadzenValueAxis Min="0" Max="@YMax" Step="1">
+                <RadzenGridLines Visible="true" />
+                <RadzenAxisTitle Text="@YAxisTitle" />
+            </RadzenValueAxis>
+
+            <RadzenLegend Position="LegendPosition.Right" />
+
+        </RadzenChart>
+    </div>
+</div>
+
+<style>
+    .schema-contour-wrapper {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        background-color: #111827; /* Matches deep dark theme */
+        padding: 1.5rem;
+        border-radius: 8px;
+    }
+
+    .contour-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #1f2937;
+        padding-bottom: 1rem;
+    }
+
+    .contour-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #f9fafb;
+    }
+
+    .picker-group {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .picker-label {
+        font-size: 0.875rem;
+        color: #9ca3af;
+    }
+
+    ::deep .metric-dropdown {
+        width: 220px;
+        background-color: #1f2937 !important;
+        color: #ffffff !important;
+        border: 1px solid #374151 !important;
+    }
+
+    .chart-container {
+        width: 100%;
+    }
+</style>
+
+@code {
+    [Parameter] public IEnumerable<TRow> Rows { get; set; } = [];
+    [Parameter] public IReadOnlyList<string> Columns { get; set; } = [];
+    [Parameter] public Func<TRow, string> RowLabelSelector { get; set; } = _ => string.Empty;
+    [Parameter] public Func<TRow, string, double> CellSelector { get; set; } = (_, _) => 0;
+
+    [Parameter] public string Title { get; set; } = "Schema Heat Map";
+    [Parameter] public string YAxisTitle { get; set; } = "Database Object";
+    [Parameter] public string IntensityLabel { get; set; } = "Density Weight";
+    [Parameter] public bool ShowLines { get; set; } = true;
+
+    private List<ContourSample> _allSamples = [];
+    private List<ContourSample> _filteredSamples = [];
+    private string _activeMetric = string.Empty;
+    private int _rowCount = 0;
+
+    // Boundary scales cleanly to match your physical database tables
+    private double YMax => Math.Max(1, _rowCount - 1);
+
+    private IList<SeriesColorRange> ColorRanges { get; } =
+    [
+        new() { Min = 0.0, Max = 0.2, Color = "#1e3a8a" }, // Cool baseline
+        new() { Min = 0.2, Max = 0.4, Color = "#2563eb" },
+        new() { Min = 0.4, Max = 0.6, Color = "#22c55e" }, // Operational equilibrium
+        new() { Min = 0.6, Max = 0.8, Color = "#facc15" },
+        new() { Min = 0.8, Max = 1.0, Color = "#ef4444" }  // Hotspot alert!
+    ];
+
+    protected override void OnParametersSet()
+    {
+        // 1. Build the raw multidimensional coordinate mesh
+        BuildMasterSamples();
+
+        // 2. Set default dropdown choice if not already active
+        if (string.IsNullOrEmpty(_activeMetric) && Columns.Count > 0)
+        {
+            _activeMetric = Columns[0];
+        }
+
+        // 3. Slice the matrix down to the chosen parameter
+        FilterActiveSamples();
+    }
+
+    private void BuildMasterSamples()
+    {
+        var rowsList = Rows?.ToList() ?? [];
+        _rowCount = rowsList.Count;
+        _allSamples.Clear();
+
+        if (_rowCount == 0 || Columns.Count == 0) return;
+
+        for (var y = 0; y < _rowCount; y++)
+        {
+            var row = rowsList[y];
+            string labelName = RowLabelSelector(row);
+
+            for (var x = 0; x < Columns.Count; x++)
+            {
+                var metricName = Columns[x];
+                double rawValue = CellSelector(row, metricName);
+
+                // Keep values pristine within bounds to protect the color ranges
+                double normalizedValue = double.IsNaN(rawValue) || double.IsInfinity(rawValue)
+                    ? 0
+                    : Math.Clamp(rawValue, 0.0, 1.0);
+
+                _allSamples.Add(new ContourSample
+                {
+                    X = x,
+                    Y = y,
+                    MetricKey = metricName,
+                    Intensity = normalizedValue,
+                    Label = $"{labelName} / {metricName}",
+                    Item = row
+                });
+            }
+        }
+    }
+
+    private void FilterActiveSamples()
+    {
+        if (string.IsNullOrEmpty(_activeMetric))
+        {
+            _filteredSamples = [];
+            return;
+        }
+
+        // We pull the raw metric values, but force their visual X coordinates back to 0.
+        // This forces the marching squares engine to align them flatly down a single column
+        // vector, completely bypassing the stacked-bar crunch distortion trap.
+        _filteredSamples = _allSamples
+            .Where(s => s.MetricKey == _activeMetric)
+            .Select(s => new ContourSample
+            {
+                X = 0,
+                Y = s.Y,
+                MetricKey = s.MetricKey,
+                Intensity = s.Intensity,
+                Label = s.Label,
+                Item = s.Item
+            })
+            .ToList();
+    }
+
+    private void HandleMetricChange()
+    {
+        FilterActiveSamples();
+        StateHasChanged(); // Repaint the isoline grid instantly
+    }
+
+    private sealed class ContourSample
+    {
+        public double X { get; init; }
+        public double Y { get; init; }
+        public string MetricKey { get; init; } = string.Empty;
+        public double Intensity { get; init; }
+        public string Label { get; init; } = string.Empty;
+        public TRow Item { get; init; } = default!;
+    }
+}

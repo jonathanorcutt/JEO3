@@ -1,0 +1,180 @@
+﻿@using System.Diagnostics
+@using JEO3.Logging
+@using JEO3.Schema
+@using JEO3.Site.Components.Charting
+@using JEO3.Site.Components.ECharts
+@using JEO3.Site.Components.Icons
+@using JEO3.Site.Dashboard
+@using JEO3.Site.Infrastructure
+@using JEO3.Site.Services
+@using JEO3.Providers
+@using JEO3.Site.Models
+
+@namespace JEO3.Site.Dashboard
+@inject WSWorkspace W
+@inject ConnectionService ConnectionService
+@inject ISchemaCacheService SchemaService
+
+@page "/demo"
+
+@inject WSWorkspace W
+
+
+<RadzenTabs RenderMode="TabRenderMode.Client"
+			TabPosition="TabPosition.Left" @bind-SelectedIndex="@selectedTabIndex"
+			class="main-nav-tabs" Style="background: black !important; color: var(--rz-white) !important;width:130px;">
+	<Tabs>
+		<RadzenTabsItem>
+			<Template>
+				<ImageIcon Category="ImageIcon.CategoryType.vs_icons" FileName="Graphics3D_16x.png" Width="22" Height="22" Style="object-fit: contain;" Class="fa-ml10 fa-mr7"></ImageIcon>
+				<label class="nav-label jeo3-typewriter">Globe</label>
+			</Template>
+			<ChildContent>
+				<PanoramicRelations3D Width="1790px" Height="850px" Title="Welcome. Feel free to explore." Tables="@W.Context?.Tables" />
+			</ChildContent>
+		</RadzenTabsItem>
+@* 		<RadzenTabsItem>
+			<Template>
+				<ImageIcon Category="ImageIcon.CategoryType.vs_icons" FileName="Model3D_16x.png" Width="22" Height="22" Style="object-fit: contain;" Class="fa-ml10 fa-mr7"></ImageIcon>
+				<label class="nav-label jeo3-typewriter">Contour</label>
+			</Template>
+			<ChildContent>
+				<PanoramicContour3D Width="1530px" Height="900px" TRow="ITable" Rows="@W.Context?.Tables" Columns="@MetricNames" RowLabelSelector="@(t => t.TablePath)"
+									CellSelector="@((t, m) => GetContourNormalizedMetric(t, m))" Title="Schema Heat Map" IntensityLabel="Complexity" />
+			</ChildContent>
+		</RadzenTabsItem> *@
+	</Tabs>
+</RadzenTabs>
+
+								
+@code {
+
+	// Flags
+	private int selectedTabIndex = 0;
+	private bool _isDisposed { get; set; }
+	private bool _rendered { get; set; }
+	private static IReadOnlyList<string> MetricNames => GetTableCaps().Keys.ToList();
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			// Primary Connection String
+			if (System.Configuration.ConfigurationManager.ConnectionStrings.Count == 0) throw new Exception("Exception: No Connection Strings.");
+			var conns = ConnectionService.ConnectionSettings.ToDatabaseProviderList();
+			var prov = conns.FirstOrDefault();
+
+			// Validation
+			if (prov != null)
+			{
+				// Load Context :)
+				var context = await SchemaService.GetDatabaseSchemaAsync(prov);
+				W.LoadSchemaContext(context, prov);
+			}
+		}
+		catch (Exception ex)
+		{
+			await ExceptionUtility.LogExceptionAsync(ex);
+		}
+	}
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			try
+			{
+			}
+			catch (Exception ex)
+			{
+				await ExceptionUtility.LogExceptionAsync(ex);
+			}
+			finally
+			{
+				_rendered = true;
+				StateHasChanged();
+			}
+		}
+	}
+
+
+	
+	#region Charts
+	// --- VIEW 2: COLUMN METRIC VECTOR ---
+	public static readonly IReadOnlyList<string> ColumnMetrics = new[]
+	{
+			"IsPrimaryKey", "IsForeignKey", "IsNullable", "IsIndexed"
+		};
+
+	private double GetContourNormalizedMetric(ITable t, string metric)
+	{
+		double raw = metric switch
+		{
+			"Columns" => t.Columns.Count,
+			"Indexes" => t.Indexes.Count,
+			"Foreign Keys" => t.ForeignKeys.Count,
+			"Referenced By FKs" => t.ReferencedByForeignKeys.Count,
+			"Triggers" => t.Triggers.Count,
+			"Check Constraints" => t.CheckConstraints.Count,
+			"Parents" => t.ParentRelations.Count,
+			"Children" => t.ChildRelations.Count,
+			"Statistics" => t.Statistics.Count,
+			"Missing Indexes" => t.MissingIndexes.Count,
+			_ => 0
+		};
+
+		return Math.Min(1.0, raw / GetTableCaps()[metric]);
+	}
+
+	private void UpdateEntitiesNavTabChanged(int index)
+	{
+	}
+
+	private static Dictionary<string, double> GetTableCaps()
+	{
+		return new()
+		{
+			["Columns"] = 50,
+			["Indexes"] = 15,
+			["Foreign Keys"] = 15,
+			["Referenced By FKs"] = 15,
+			["Triggers"] = 10,
+			["Check Constraints"] = 10,
+			["Parents"] = 15,
+			["Children"] = 15,
+			["Statistics"] = 15,
+			["Missing Indexes"] = 10
+		};
+	}
+	public static double GetColumnMetric(IColumn col, string metric)
+	{
+		if (col == null) return 0;
+		return metric switch
+		{
+			"IsPrimaryKey" => col.IsPrimaryKey ? 1.0 : 0.0,
+			"IsForeignKey" => col.IsForeignKey ? 1.0 : 0.0,
+			"IsNullable" => col.IsNullable ? 1.0 : 0.0,
+			"IsIndexed" => col.IsIndexed ? 1.0 : 0.0,
+			_ => 0.0
+		};
+	}
+
+	// --- VIEW 3: MISSING INDEX METRIC VECTOR ---
+	public static readonly IReadOnlyList<string> MissingIndexMetrics = new[]
+	{
+			"UserSeeks", "UserScans", "AvgUserImpact", "Score"
+		};
+	public static double GetMissingIndexMetric(IMissingIndex idx, string metric)
+	{
+		if (idx == null) return 0;
+		return metric switch
+		{
+			"UserSeeks" => Math.Clamp((double)(idx.UserSeeks ?? 0) / 100_000.0, 0.0, 1.0),
+			"UserScans" => Math.Clamp((double)(idx.UserScans ?? 0) / 10_000.0, 0.0, 1.0),
+			"AvgUserImpact" => Math.Clamp((double)(idx.AvgUserImpact ?? 0) / 100.0, 0.0, 1.0),
+			"Score" => Math.Clamp((double)idx.Score / 1_000_000.0, 0.0, 1.0),
+			_ => 0.0
+		};
+	}
+
+	#endregion
+}

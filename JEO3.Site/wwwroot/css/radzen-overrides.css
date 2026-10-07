@@ -1,0 +1,333 @@
+﻿
+/* 
+--------------------------------------------------------------------------------------------
+-------------------------------         compact         ------------------------------------
+--------------------------------------------------------------------------------------------
+*/
+/* get this out of way never. anywhere */
+h1:focus {
+    outline: none;
+}
+
+:root {
+    /* 1. Global Typography Shrink */
+    --rz-font-size: 0.75rem !important; /* Drops the base application font size */
+    --rz-body-font-size: 0.75rem !important;
+    --rz-grid-cell-font-size: 0.7rem !important; /* Makes datagrid text hyper-compact */
+    /* 2. Global Padding & Spacing Compression */
+    --rz-gap: 0.25rem !important; /* Shrinks RadzenRow/RadzenColumn gaps */
+    --rz-padding: 0.35rem !important; /* Default padding for cards, panels, fields */
+    --rz-cell-padding: 4px 6px !important; /* Crushes datagrid cell heights right down */
+    /* 3. Input & Component Height Limits */
+    --rz-input-height: 1.75rem !important; /* Shrinks text inputs, dropdowns, buttons */
+    --rz-button-height: 1.75rem !important;
+    --rz-form-field-phone-padding: 0.25rem !important;
+    /* 4. Layout Framework Adjustments */
+    --rz-splitter-bar-width: 6px !important; /* Thins out layout splitters */
+    --rz-tree-node-padding: 0.15rem !important; /* Perfect for tight schema trees */
+    /* ----------------------*/
+    /* JEO Default Override */
+    /* ----------------------*/
+    --rz-primary: rgba(100, 124, 100, 1);
+    --rz-primary-light: var(--rz-primary);
+    --rz-splitter-bar-color: var(--rz-primary);
+    --rz-header-background-color: var(--rz-primary);
+    --rz-grid-selected-color: var(--rz-primary);
+    --rz-grid-header-color: var(--rz-black);
+    /* ----------------------*/
+    /* Nav Menu Vertical Shadow */
+    /* ----------------------*/
+
+    .rz-button.rz-primary {
+        background-color: var(--rz-primary);
+    }
+
+    .rz-tabview-nav{
+        background-color: var(--rz-black);
+    }
+
+        /* ----------  Query Result Tabs   ---------- */
+        .rz-tabview-nav button[role="tab"] {
+            padding: 2px 5px 0px 5px;
+            font-size: 9pt;
+            font-weight: 500;
+            /*border: 1px solid white;*/
+            color: var(--rz-white);
+        }
+
+            .rz-tabview-nav button[role="tab"] p {
+                margin-bottom: 0px;
+            }
+}
+
+
+/* Force Radzen DataGrids into an ultra-dense, zero-waste workstation density */
+.rz-datagrid-data td, .rz-grid-table th {
+    padding: var(--rz-cell-padding) !important;
+    line-height: 1.2 !important;
+}
+
+.rz-textbox, .rz-dropdown, .rz-spinner, .rz-numeric, .rz-chkbox, .rz-chkbox-box, .rz-checkbox {
+    padding: 2px 0.5rem 0px 0.5rem !important;
+    margin-top: 2px 0.5rem 0px 0.5rem !important;
+    font-size: var(--rz-font-size) !important;
+}
+
+.rz-lookup-panel {
+    padding: 2px;
+    border: 1px solid var(--rz-primary);
+}
+
+.rz-column-title-content {
+    font-size: 8pt;
+}
+
+.rz-column-title {
+    padding-left: 5px !important;
+}
+
+.rz-dropdown-label {
+    padding-left: 0px !important;
+}
+
+.rz-dropdown {
+    padding-top: 5px !important;
+}
+
+.rz-radiobutton-label {
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+/* 
+--------------------------------------------------------------------------------------------
+-------------------------------     theme-overrides     ------------------------------------
+--------------------------------------------------------------------------------------------
+*/
+.rz-sidebar,
+.accordion-scroll-container,
+.accordion-group,
+.flyout-accordion-panel {
+    z-index: 999999 !important;
+}
+.rz-sidebar,
+.rz-sidebar-responsive {
+    box-shadow: 5px 0 10px var(--rz-primary);
+    transition: none !important;
+}
+
+.rz-sidebar-toggle {
+    margin-right: 0px;
+    padding-right: 0px;
+}
+    .rz-sidebar-toggle:hover{
+        background:transparent;
+    }
+
+    .rz-sidebar-expanded {
+        width: 135px;
+        resize: horizontal;
+        /*transition: ease .1s;*/
+    }
+
+.rz-sidebar-toggle-right {
+    margin-right: 15px !important;
+    padding-left: 0px;
+}
+
+.rz-sidebar-second {
+    border-left: 3px solid var(--rz-primary) !important;
+}
+
+.rz-numeric-down {
+    bottom: -1px;
+}
+
+.rz-numeric-up {
+    top: -1px;
+}
+
+.rz-datagrid-data tr {
+    cursor: pointer;
+}
+
+.rz-splitter-bar {
+    opacity: 1 !important;
+}
+
+    .rz-splitter-bar .rz-resize {
+        color: red !important;
+        opacity: 1;
+    }
+
+    .rz-splitter-bar .rz-collapse {
+        color: red !important;
+    }
+
+    .rz-splitter-bar .rz-expand {
+        color: green !important;
+    }
+
+
+
+.rz-state-highlight.rz-data-row td {
+    background-color: var(--jeo3-primary) !important;
+}
+
+.rz-data-row td {
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+
+.rz-sortable-column > div:nth-child(1) {
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+}
+.rz-tabview-nav li > button > span::after{
+    letter-spacing:-2px;
+}
+.rz-tabview-nav li {
+    padding-left: 0px;
+    padding-right: 0px;
+}
+
+.rz-splitter .rz-splitter-bar .rz-collapse::before,
+.rz-splitter .rz-splitter-bar .rz-expand::before {
+    font-size: 2.5rem; /* Adjust the size as needed */
+    padding-left: 2px !important;
+    padding-right: 2px !important;
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+}
+
+.rz-tabview {
+    padding-bottom: 6px !important;
+}
+
+.rz-tabview-selected buttom {
+    padding-top: 2px;
+    padding-bottom: 6px !important;
+}
+
+.rz-tabview,
+.rz-tabview-panel {
+    height: 100% !important;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.rz-splitter > .rz-splitter-bar {
+    background: none;
+}
+
+/* Force dropdown popups to appear above the splitter containers */
+.rz-dropdown-panel, .rz-overlaypanel {
+    z-index: 9999 !important;
+    position: absolute !important;
+}
+
+.rz-splitter-bar-lastresizable .rz-collapse {
+    transition: all 1.3s ease;
+}
+
+.gridcell:hover {
+    animation: neon2 1s infinite alternate;
+}
+
+.rz-body {
+    box-shadow: 0 2px 9px 0px var(--jeo-primary);
+}
+
+.rz-tabview-panel {
+    padding: 0px;
+}
+/* Make These Blazor Lego Blocks Smaller */
+.rz-numeric-input,
+.rz-inputtext,
+.rz-text-align-left {
+    padding-left: 8px;
+}
+/* Tab View Scroll */
+.rz-tabview-panel {
+    width: 100%;
+    height: 100%;
+}
+/*  -------------------- MISC  ------------------  */
+.rz-layout .rz-body {
+    /*overflow: hidden !important;*/
+    padding: 0px 0px 0px 0px !important;
+}
+/* -------------------- GRID ----------------------*/
+.rz-grid-table {
+    /* Grid Header Heights  */
+    thead th .rz-column-title {
+        height: 15px;
+    }
+    /* -- Header|Data|Font|Padding|Height --- */
+    thead th[role="columnheader"],
+    .rz-data-row td[role="gridcell"] {
+        padding: 0px 0px 0px 0px !important;
+    }
+
+        thead th[role="columnheader"] .rz-column-title,
+        .rz-data-row td[role="gridcell"] .rz-cell-data {
+            font-size: 8pt !important;
+            padding: 1px 1px 0px 3px !important;
+        }
+
+    thead[role="rowgroup"] th div {
+        background-color: var(--rz-white);
+    }
+    /* Grid Header Border */
+    th[role="columnheader"] {
+        border-right: 0.1px solid lightgray;
+        padding-left: 0px !important;
+    }
+        /* Grid Column Header Padding */
+        th[role="columnheader"] div {
+            padding-top: 2px;
+            padding-bottom: 2px;
+        }
+
+    .rz-state-highlight {
+        background-color: var(--jeo-primary) !important;
+
+        .rz-cell-data {
+            color: var(--rz-white) !important;
+        }
+    }
+
+    .rz-cell-filter,
+    .rz-cell-filter-content,
+    span.rz-cell-filter-label,
+    span.rz-cell-filter-label input {
+        height: 20px !important;
+        padding: 0px 0px 0px 0px !important;
+    }
+}
+
+.rz-tabview-nav button[role="tab"] p {
+    margin-bottom: 0px;
+}
+
+.rz-tick-text {
+    font-size: 6.5pt;
+}
+
+.rz-scheme-pastel .rz-series-0, .rz-series-value-label text {
+    fill: lime !important;
+    stroke: lime !important;
+    background-color: lime !important;
+}
+/*  ------------- RAZDEN OVERRIDES  -------------  */
+.rz-splitter {
+    width: 100%;
+    height: 100%;
+}
+
+.rz-splitter-pane {
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}

@@ -1,0 +1,48 @@
+﻿@implements IDisposable
+
+@namespace JEO3.Site.Dashboard
+
+<div class="project-countdown-badge" title="Started: @StartTime.ToString()">
+    <span class="pulse-dot"></span>
+    <span class="label">@Label</span>
+    <span class="time-elapsed">@formattedTime</span>
+</div>
+
+@code {
+    // Pass in the past date/time when project started
+    [Parameter] public DateTime StartTime { get; set; }
+    [Parameter] public string Label { get; set; } = "Age:";
+
+    private string formattedTime = "00d 00h 00m 00s";
+    private System.Threading.Timer? timer;
+
+    protected override void OnInitialized()
+    {
+        CalculateElapsedTime();
+
+        // Update every 1 second
+        timer = new System.Threading.Timer(_ => InvokeAsync(() =>
+        {
+            CalculateElapsedTime();           
+        }), null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+    }
+
+    private void CalculateElapsedTime()
+    {
+        var span = DateTime.Now - StartTime;
+
+        if (span.TotalSeconds < 0)
+        {
+            formattedTime = "00d 00h 00m 00s";
+            return;
+        }
+
+        // Formats exactly as dd:hh:mm:ss (e.g., 92d 04h 12m 34s)
+        formattedTime = $"{(int)span.TotalDays:D2}d {span.Hours:D2}h {span.Minutes:D2}m {span.Seconds:D2}s";
+    }
+
+    public void Dispose()
+    {
+        timer?.Dispose();
+    }
+}

@@ -1,0 +1,56 @@
+@using JEO3.Core
+@using JEO3.Monitor
+@using JEO3.Site.Services
+@using PanoramicData.ECharts
+@inherits MonitorChartBase
+
+@namespace JEO3.Site.Components.ECharts
+
+<div class="monitor-panel">
+	<div class="monitor-panel-title">🚨 TOP WAITS DISTRIBUTION</div>
+	<div class="echart-container">
+		<PanoramicData.ECharts.EChart @ref="Chart"
+									  Options="@Options"
+									  Width="@Width"
+									  Height="@Height" />
+	</div>
+</div>
+
+@code {
+	[Parameter] public int TopN { get; set; } = 10;
+
+	protected override ChartOptions Options { get; set; } = ChartOptionsLibrary.WaitDistributionChart_Options;
+
+	protected override async Task RenderInitialAsync(MonitorSnapshot initial)
+	{
+		UpdatePieChart();
+		await InvokeAsync(StateHasChanged);
+		if (Chart != null) await Chart.UpdateAsync();
+	}
+
+	protected override async Task AppendDeltasAsync(MonitorDeltaResponse delta)
+	{
+		// Only redraw if the delta actually contained new wait data
+		if (delta.History != null && delta.History.Count > 0)
+		{
+			UpdatePieChart();
+			await InvokeAsync(StateHasChanged);
+			if (Chart != null) await Chart.UpdateAsync();
+		}
+	}
+
+	private void UpdatePieChart()
+	{
+		var latest = WaitHistory.OrderByDescending(h => h.Timestamp).FirstOrDefault();
+		if (latest?.TopWaits == null) return;
+
+		if (Options.Series?.FirstOrDefault() is PieSeries pie)
+		{
+			pie.Data = latest.TopWaits
+				.Take(TopN)
+				.Select(w => new { name = w.WaitType, value = w.WaitMsPerSec })
+				.Cast<object>()
+				.ToList();
+		}
+	}
+}

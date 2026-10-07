@@ -1,0 +1,162 @@
+﻿@using System.Data
+@using System.Globalization
+
+@namespace JEO3.Site.Dashboard
+
+<style>
+	.stupidgrid td span {
+		font-size: 8pt !important;
+	}
+</style>
+<div class="dashboard-pane-body-container-scroll stupidgrid full-height-width">
+	<RadzenDataGrid TItem="IDictionary<string, object>"
+					Data="@_gridData"
+					AllowSorting="true"
+					AllowFiltering="false"
+					AllowColumnResize="true"
+					AllowVirtualization="@AllowVirtualization"
+					AllowColumnPicking="true"
+					ShowMultiColumnSortingIndex="false"
+					ExpandMode="DataGridExpandMode.Multiple"
+					RowRender="@RenderParentRow"
+					RowExpand="@ParentRowExpanded"
+					class="jeo-grid">
+
+		<Columns>
+			@if (DataTable != null && DataTable.Columns.Count > 0)
+			{
+				var columns = DataTable.Columns.Cast<DataColumn>().ToList();
+				int totalCols = columns.Count;
+
+				@for (int i = 0; i < totalCols; i++)
+				{
+					var col = columns[i];
+					var colName = col.ColumnName;
+					var columnColor = GetDynamicRainbowColor(i, totalCols);
+
+					bool isPrimaryKey = colName.Equals(KeyCol, StringComparison.OrdinalIgnoreCase);
+					bool isTableName = colName.Equals("Name", StringComparison.OrdinalIgnoreCase);
+
+					var radzenSortType = col.DataType.IsValueType && Nullable.GetUnderlyingType(col.DataType) == null
+							? typeof(Nullable<>).MakeGenericType(col.DataType)
+							: col.DataType;
+
+					<RadzenDataGridColumn TItem="IDictionary<string, object>"
+										  Title="@colName"
+										  Type="@radzenSortType"
+										  Property="@($"it[\"{colName}\"]")"
+										  Visible="@(!isPrimaryKey)"
+										  MinWidth="@(isTableName ? "250px" : null)">
+
+						<Template Context="row">
+							@{
+								var cellValue = row.ContainsKey(colName) ? row[colName] : null;
+							}
+
+							@if (isTableName)
+							{
+								var rowId = row.ContainsKey(KeyCol) ? row[KeyCol] : null;
+
+								<a class="link-bold-pointer"
+								   style="display:block; width:100%; min-width:250px;"
+								   @onclick="@(() => OpenDrillDown(rowId, cellValue?.ToString()))">
+									@cellValue
+								</a>
+							}
+							else if (cellValue != null && TryGetDouble(cellValue, out double val))
+							{
+								var (min, max) = GetCachedColumnMinMax(colName);
+								var percentage = max == min ? 0 : ((val - min) / (max - min)) * 100;
+
+								<div class="cell-bar-container">
+									<div class="cell-bar-track">
+										<div style="width:@(percentage)%; height:100%; background-color:@columnColor;"></div>
+									</div>
+									<span class="cell-text-numeric">@cellValue</span>
+								</div>
+							}
+							else
+							{
+								<span class="cell-text-standard">@(cellValue?.ToString() ?? "")</span>
+							}
+						</Template>
+					</RadzenDataGridColumn>
+				}
+			}
+		</Columns>
+		<Template Context="parentRow">
+			@{
+				var childTable = GetChildDataTable(parentRow);
+				var mappedChildData = GetCachedMappedChildData(parentRow);
+				var childColumns = childTable?.Columns.Cast<DataColumn>().ToList() ?? new List<DataColumn>();
+			}
+
+			<div class="drilldown-child-grid">
+				<RadzenDataGrid TItem="IDictionary<string, object>"
+								Data="@mappedChildData"
+								AllowSorting="true"
+								AllowFiltering="false"
+								AllowColumnResize="true"
+								AllowVirtualization="false"
+								AllowColumnPicking="true"
+								ShowMultiColumnSortingIndex="false"
+								Sort="@(args => OnChildSort(args, parentRow))"
+								class="jeo-grid">
+					<Columns>
+						@for (int i = 0; i < childColumns.Count; i++)
+						{
+							var childCol = childColumns[i];
+							var childColName = childCol.ColumnName;
+							var childColor = GetDynamicRainbowColor(i, childColumns.Count);
+
+							bool isPrimaryKey = childColName.Equals(KeyCol, StringComparison.OrdinalIgnoreCase);
+
+							var childSortType = childCol.DataType.IsValueType && Nullable.GetUnderlyingType(childCol.DataType) == null
+															? typeof(Nullable<>).MakeGenericType(childCol.DataType)
+															: childCol.DataType;
+
+							<RadzenDataGridColumn TItem="IDictionary<string, object>"
+												  Title="@childColName"
+												  Type="@childSortType"
+												  Visible="@(!isPrimaryKey)"
+												  Property="@($"it[\"{childColName}\"]")"
+												  Sortable="true">
+
+								<Template Context="childRow">
+									@{
+										object childValue = null;
+										try
+										{
+											childValue = childRow.ContainsKey(childColName) ? childRow[childColName] : null;
+										}
+										catch (Exception ex)
+										{
+											var gemeniSucks = ex.Message;
+										}
+									}
+
+									@if (childValue != null && TryGetDouble(childValue, out double childVal))
+									{
+										var (min, max) = GetChildColumnMinMax(childTable, childColName);
+										var percentage = max == min ? 0 : ((childVal - min) / (max - min)) * 100;
+
+										<div class="cell-bar-container">
+											<div class="cell-bar-track">
+												<div style="width:@(percentage)%; height:100%; background-color:@childColor;"></div>
+											</div>
+											<span class="cell-text-numeric">@childValue</span>
+										</div>
+									}
+									else
+									{
+										<span class="cell-text-standard">@(childValue?.ToString() ?? "")</span>
+									}
+								</Template>
+							</RadzenDataGridColumn>
+						}
+					</Columns>
+				</RadzenDataGrid>
+			</div>
+		</Template>
+	</RadzenDataGrid>
+</div>

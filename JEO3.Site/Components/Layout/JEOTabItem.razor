@@ -1,0 +1,37 @@
+﻿@namespace JEO3.Site.Components
+
+@code {
+    /// <summary>
+    /// Captures the parent control reference automatically.
+    /// </summary>
+    [CascadingParameter]
+    private JEOTabControl Parent { get; set; }
+
+    /// <summary>
+    /// The text displayed on the tab navigation header.
+    /// </summary>
+    [Parameter]
+    public string Title { get; set; }
+
+    /// <summary>
+    /// The HTML or Blazor component content inside this specific tab.
+    /// </summary>
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    /// <summary>
+    /// Registers this page with the parent container upon initialization.
+    /// </summary>
+    protected override void OnInitialized()
+    {
+        if (Parent == null)
+        {
+            throw new ArgumentNullException(
+                nameof(Parent),
+                "MyTabPage must be nested inside a MyTabControl component."
+            );
+        }
+
+        Parent.AddPage(this);
+    }
+}

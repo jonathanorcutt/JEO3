@@ -1,0 +1,43 @@
+﻿@using BlazorMonaco.Editor
+@using JEO3.Site.Components.Icons
+@using Radzen.Blazor
+
+@namespace JEO3.Site.Dashboard
+
+<div class="dashboard-pane-container" @ref="queryQueryEditorPaneDiv">
+
+	<div class="dashboard-pane-titlebar-container">
+		<div class="dashboard-pane-titlebar diagram-titlebar">
+			<div class="titlebar-left-wrapper">
+				<span class="titlebar-text-bold">Output</span>
+			</div>
+			<div class="dashboard-pane-titlebar-right-container titlebar-right-wrapper-gap">
+				<RadzenDropDown TValue="SqlEditorTheme" Data="@Enum.GetValues(typeof(SqlEditorTheme))" @bind-Value="@W.UI.Appearance.EditorTheme"
+								Change="@(args => OnThemeChange((SqlEditorTheme)args))" class="theme-dropdown" />
+				<button type="button" class="dashboard-pane-titlebar-right-expand-button query-pane-toggle-btn"
+						@onclick="ToggleQueryPaneExpansionFullScreen">
+					@if (W.UI.Appearance.IsPaneFullScreenResults)
+					{
+						<IconMinimize/>
+					}
+					else
+					{
+						<IconMaximize/>
+					}
+				</button>
+			</div>
+		</div>
+	</div>
+
+	<div class="dashboard-query-editor-container">
+
+		<div class="grid-query-editor" oncontextmenu="return false;" onpointerup="if(event.button === 2) { this.releasePointerCapture(event.pointerId); }">
+			<StandaloneCodeEditor @key=@("query-editor-instance") CssClass="txtQueryEditor" ConstructionOptions="EditorOptions"
+								  @ref="queryEditor" OnDidInit="OnEditorInitialized" OnDidChangeModelContent="OnEditorContentChanged" />
+		</div>
+
+	</div>
+</div>
+
+@code {
+}

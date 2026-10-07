@@ -1,0 +1,86 @@
+﻿@using JEO3.Core
+@using JEO3.Logging
+@using JEO3.Monitor
+@using JEO3.Site.Dashboard
+@using JEO3.Site.Services
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using PanoramicData.ECharts
+
+@inherits MonitorChartBase
+@inject ProtectedLocalStorage LocalStorage
+@inject IJSRuntime JS
+@inject WSWorkspace W
+
+@namespace JEO3.Site.Components.ECharts
+
+<div class="monitor-panel" onmousemove="updateCoordinates(event)">
+	<div class="echart-container">
+		<div class="coordinate-selector"></div>
+		<PanoramicData.ECharts.EChart @ref="Chart"
+									  Options="@Options"
+									  Width="@Width"
+									  Height="@Height" />
+	</div>
+</div>
+
+@code {
+	// Use 'new' to intentionally override the MonitorBase defaults for this specific widget
+	[Parameter] public override string Width { get; set; } = "270px";
+	[Parameter] public override string Height { get; set; } = "270px";
+	[Parameter] public string Title { get; set; } = "PRESSURE";
+
+	private double Bottom { get; set; } = 0;
+	private double Right { get; set; } = 0;
+
+	private double _offsetBottom;
+	private double _offsetRight;
+
+	private const string StorageKey = "component_bottom_right_position";
+
+	private static double currentWaitPressure = 0;
+
+	protected override ChartOptions Options { get; set; } = ChartOptionsLibrary.EGauge_Options;
+
+	protected override async Task RenderInitialAsync(MonitorSnapshot initial)
+	{
+		if (W.UI.Appearance.IsSchemaLoaded == false) return;
+
+		UpdateChartData();
+		await InvokeAsync(StateHasChanged);
+		if (Chart != null) await Chart.UpdateAsync();
+	}
+
+	protected override async Task AppendDeltasAsync(MonitorDeltaResponse delta)
+	{
+		if (W.UI.Appearance.IsSchemaLoaded == false) return;
+
+		if (delta.History != null && delta.History.Count > 0)
+		{
+			UpdateChartData();
+			await InvokeAsync(StateHasChanged);
+			if (Chart != null) await Chart.UpdateAsync();
+		}
+	}
+
+	private void UpdateChartData()
+	{
+		// Pull the most recent value from the globally maintained WaitHistory
+		var latest = WaitHistory.OrderByDescending(v => v.Timestamp).FirstOrDefault();
+		currentWaitPressure = Math.Round(latest?.TotalWaitMsPerSec ?? 0);
+
+		if (Options.Series?.FirstOrDefault() is GaugeSeries gaugeSeries)
+		{
+			gaugeSeries.Data = new List<object> { new { value = currentWaitPressure, name = "☢️" + Title } };
+
+			// Dynamic arc coloring based on real-time pressure
+			if (gaugeSeries.Progress?.ItemStyle != null)
+			{
+				gaugeSeries.Progress.ItemStyle.Color = currentWaitPressure > 200000
+					? new Color(ColorHex.Red)
+					: currentWaitPressure > 100000
+						? new Color(ColorHex.Yellow)
+						: new Color(ColorHex.MatrixGlow);
+			}
+		}
+	}
+}
