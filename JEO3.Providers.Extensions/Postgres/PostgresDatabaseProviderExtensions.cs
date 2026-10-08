@@ -10,10 +10,10 @@ using JEO3.Extensions;
 
 namespace JEO3.Providers.Extensions.Postgres
 {
-    internal static class PostgresDatabaseProviderExtensions
+    internal sealed class PostgresDatabaseProviderExtensions : IProviderOperations
     {
         #region Properties
-        private static readonly ConcurrentDictionary<Type, EntityDescriptor> _descriptorCache = new();
+        private readonly ConcurrentDictionary<Type, EntityDescriptor> _descriptorCache = new();
         #endregion
 
         #region Meta
@@ -24,12 +24,12 @@ namespace JEO3.Providers.Extensions.Postgres
         /// <typeparam name="T"></typeparam>
         /// <param name="provider"></param>
         /// <returns></returns>
-        internal static async Task<IReadOnlyList<T>> GetAll<T>(this IDatabaseProvider provider) where T : class, new()
+        public async Task<IReadOnlyList<T>> GetAll<T>(IDatabaseProvider provider) where T : class, new()
         {
             var meta = GetMetadata<T>();
             return await provider.GetInstances<T>($"SELECT * FROM {QualifiedTable(meta)};");
         }
-      
+
         /// <summary>
         /// Get By Id - Requires use of class and key attribute decorations JeoTable and JeoKey
         /// </summary>
@@ -39,7 +39,7 @@ namespace JEO3.Providers.Extensions.Postgres
         /// <param name="id"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        internal static async Task<T?> GetById<T, K>(this IDatabaseProvider provider, K id) where T : class, new()
+        public async Task<T?> GetById<T, K>(IDatabaseProvider provider, K id) where T : class, new()
         {
             var meta = GetMetadata<T>();
             var pk = meta.PrimaryKeys.FirstOrDefault()
@@ -50,11 +50,11 @@ namespace JEO3.Providers.Extensions.Postgres
             using var cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.Add(new NpgsqlParameter("@Id", (object)id ?? DBNull.Value));
 
-            var table = await provider.ExecuteCommandToDataTable(cmd, conn);
+            var table = await ExecuteCommandToDataTable(provider, cmd, conn);
             var list = table.ToList<T>();
             return list.Count > 0 ? list[0] : null;
         }
-      
+
         /// <summary>
         /// Get By IDs - Requires use of class and key attribute decorations JeoTable and JeoKey
         /// </summary>
@@ -64,7 +64,7 @@ namespace JEO3.Providers.Extensions.Postgres
         /// <param name="ids"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        internal static async Task<IReadOnlyList<T>> GetByIds<T, K>(this IDatabaseProvider provider, IEnumerable<K> ids) where T : class, new()
+        public async Task<IReadOnlyList<T>> GetByIds<T, K>(IDatabaseProvider provider, IEnumerable<K> ids) where T : class, new()
         {
             if (ids == null || !ids.Any()) return Array.Empty<T>();
 
@@ -88,10 +88,10 @@ namespace JEO3.Providers.Extensions.Postgres
             sqlBuilder.Append(string.Join(", ", paramNames)).Append(");");
             cmd.CommandText = sqlBuilder.ToString();
 
-            var table = await provider.ExecuteCommandToDataTable(cmd, conn);
+            var table = await ExecuteCommandToDataTable(provider, cmd, conn);
             return table.ToList<T>();
         }
-      
+
         /// <summary>
         /// Get By Composite - Requires use of class and key attribute decorations JeoTable and JeoKey
         /// </summary>
@@ -100,7 +100,7 @@ namespace JEO3.Providers.Extensions.Postgres
         /// <param name="criteriaEntity"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        internal static async Task<T?> GetByCompositeKey<T>(this IDatabaseProvider provider, T criteriaEntity) where T : class, new()
+        public async Task<T?> GetByCompositeKey<T>(IDatabaseProvider provider, T criteriaEntity) where T : class, new()
         {
             var meta = _descriptorCache.GetOrAdd(typeof(T), _ => EntityScanner.Scan<T>());
             if (!meta.PrimaryKeys.Any())
@@ -124,11 +124,11 @@ namespace JEO3.Providers.Extensions.Postgres
             sqlBuilder.Append(string.Join(" AND ", whereClauses)).Append(";");
             cmd.CommandText = sqlBuilder.ToString();
 
-            var table = await provider.ExecuteCommandToDataTable(cmd, conn);
+            var table = await ExecuteCommandToDataTable(provider, cmd, conn);
             var list = table.ToList<T>();
             return list.Count > 0 ? list[0] : null;
         }
-      
+
         /// <summary>
         /// Get By FK - Requires use of class and key attribute decorations JeoTable and JeoKey
         /// </summary>
@@ -138,7 +138,7 @@ namespace JEO3.Providers.Extensions.Postgres
         /// <param name="fk"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        internal static async Task<IReadOnlyList<T>> GetByForeignKey<T, TValue>(this IDatabaseProvider provider, Expression<Func<T, TValue>> fk, TValue value) where T : class, new()
+        public async Task<IReadOnlyList<T>> GetByForeignKey<T, TValue>(IDatabaseProvider provider, Expression<Func<T, TValue>> fk, TValue value) where T : class, new()
         {
             var meta = GetMetadata<T>();
             var fkColumnName = GeneralExtensions.GetColumnName(fk);
@@ -148,10 +148,10 @@ namespace JEO3.Providers.Extensions.Postgres
             using var cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.Add(new NpgsqlParameter("@FkValue", (object)value ?? DBNull.Value));
 
-            var table = await provider.ExecuteCommandToDataTable(cmd, conn);
+            var table = await ExecuteCommandToDataTable(provider, cmd, conn);
             return table.ToList<T>();
         }
-      
+
         /// <summary>
         /// Get By FK - Requires use of class and key attribute decorations JeoTable and JeoKey
         /// </summary>
@@ -161,7 +161,7 @@ namespace JEO3.Providers.Extensions.Postgres
         /// <param name="fk"></param>
         /// <param name="values"></param>
         /// <returns></returns>
-        internal static async Task<IReadOnlyList<T>> GetByForeignKeys<T, TValue>(this IDatabaseProvider provider, Expression<Func<T, TValue>> fk, IEnumerable<TValue> values) where T : class, new()
+        public async Task<IReadOnlyList<T>> GetByForeignKeys<T, TValue>(IDatabaseProvider provider, Expression<Func<T, TValue>> fk, IEnumerable<TValue> values) where T : class, new()
         {
             if (values == null || !values.Any()) return Array.Empty<T>();
 
@@ -187,7 +187,7 @@ namespace JEO3.Providers.Extensions.Postgres
             var table = await ExecuteCommandToDataTable(provider, cmd, conn);
             return table.ToList<T>();
         }
-      
+
         /// <summary>
         /// Create - Requires use of class and key attribute decorations JeoTable and JeoKey.
         /// Uses PostgreSQL's native RETURNING clause instead of a follow-up scalar query.
@@ -198,7 +198,7 @@ namespace JEO3.Providers.Extensions.Postgres
         /// <param name="entity"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        internal static async Task<K> Create<T, K>(this IDatabaseProvider provider, T entity) where T : class, new()
+        public async Task<K> Create<T, K>(IDatabaseProvider provider, T entity) where T : class, new()
         {
             var meta = GetMetadata<T>();
             var columns = meta.InsertableColumns;
@@ -241,7 +241,7 @@ namespace JEO3.Providers.Extensions.Postgres
             await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
             return directId;
         }
-      
+
         /// <summary>
         /// Update - Requires use of class and key attribute decorations JeoTable and JeoKey
         /// </summary>
@@ -250,7 +250,7 @@ namespace JEO3.Providers.Extensions.Postgres
         /// <param name="entity"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        internal static async Task<int> Update<T>(this IDatabaseProvider provider, T entity) where T : class, new()
+        public async Task<int> Update<T>(IDatabaseProvider provider, T entity) where T : class, new()
         {
             var meta = GetMetadata<T>();
             var pk = meta.PrimaryKeys.FirstOrDefault()
@@ -271,7 +271,7 @@ namespace JEO3.Providers.Extensions.Postgres
             await conn.OpenAsync().ConfigureAwait(false);
             return await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
         }
-      
+
         /// <summary>
         /// Upsert Range - Requires use of class and key attribute decorations JeoTable and JeoKey.
         /// Uses PostgreSQL's INSERT ... ON CONFLICT (...) DO UPDATE idiom (the standard PG upsert,
@@ -282,7 +282,7 @@ namespace JEO3.Providers.Extensions.Postgres
         /// <param name="entities"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        internal static async Task<int> UpsertRange<T>(this IDatabaseProvider provider, IEnumerable<T> entities) where T : class, new()
+        public async Task<int> UpsertRange<T>(IDatabaseProvider provider, IEnumerable<T> entities) where T : class, new()
         {
             if (entities == null || !entities.Any()) return 0;
 
@@ -355,7 +355,7 @@ namespace JEO3.Providers.Extensions.Postgres
         /// <param name="entity"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        internal static async Task<int> UpdateComposite<T>(this IDatabaseProvider provider, T entity) where T : class, new()
+        public async Task<int> UpdateComposite<T>(IDatabaseProvider provider, T entity) where T : class, new()
         {
             var meta = _descriptorCache.GetOrAdd(typeof(T), _ => EntityScanner.Scan<T>());
             if (!meta.PrimaryKeys.Any())
@@ -385,7 +385,7 @@ namespace JEO3.Providers.Extensions.Postgres
             await conn.OpenAsync().ConfigureAwait(false);
             return await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
         }
-     
+
         /// <summary>
         /// Delete - Requires use of class and key attribute decorations JeoTable and JeoKey
         /// </summary>
@@ -395,7 +395,7 @@ namespace JEO3.Providers.Extensions.Postgres
         /// <param name="id"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        internal static async Task<int> Delete<T, K>(this IDatabaseProvider provider, K id) where T : class, new()
+        public async Task<int> Delete<T, K>(IDatabaseProvider provider, K id) where T : class, new()
         {
             var meta = GetMetadata<T>();
             var pk = meta.PrimaryKeys.FirstOrDefault()
@@ -410,7 +410,7 @@ namespace JEO3.Providers.Extensions.Postgres
             return await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
         }
 
-        private static async Task<DataTable> ExecuteCommandToDataTable(this IDatabaseProvider provider, NpgsqlCommand cmd, NpgsqlConnection conn)
+        private async Task<DataTable> ExecuteCommandToDataTable(IDatabaseProvider provider, NpgsqlCommand cmd, NpgsqlConnection conn)
         {
             await conn.OpenAsync().ConfigureAwait(false);
             using var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false);
@@ -434,7 +434,7 @@ namespace JEO3.Providers.Extensions.Postgres
         #endregion
 
         #region Helpers
-        private static EntityDescriptor GetMetadata<T>() where T : class
+        private EntityDescriptor GetMetadata<T>() where T : class
         {
             return _descriptorCache.GetOrAdd(typeof(T), _ => EntityScanner.Scan<T>());
         }

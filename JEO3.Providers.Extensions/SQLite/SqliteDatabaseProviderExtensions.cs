@@ -8,10 +8,10 @@ using JEO3.Extensions;
 using Microsoft.Data.Sqlite;
 namespace JEO3.Providers.Extensions.Sqlite
 {
-    internal static class SqliteDatabaseProviderExtensions
+    internal sealed class SqliteDatabaseProviderExtensions : IProviderOperations
     {
         #region Properties
-        private static readonly ConcurrentDictionary<Type, EntityDescriptor> _descriptorCache = new();
+        private readonly ConcurrentDictionary<Type, EntityDescriptor> _descriptorCache = new();
         #endregion
 
         #region Meta
@@ -22,7 +22,7 @@ namespace JEO3.Providers.Extensions.Sqlite
         /// <typeparam name="T"></typeparam>
         /// <param name="provider"></param>
         /// <returns></returns>
-        internal static async Task<IReadOnlyList<T>> GetAll<T>(this IDatabaseProvider provider)
+        public async Task<IReadOnlyList<T>> GetAll<T>(IDatabaseProvider provider)
             where T : class, new()
         {
             var meta = GetMetadata<T>();
@@ -38,7 +38,7 @@ namespace JEO3.Providers.Extensions.Sqlite
         /// <param name="id"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        internal static async Task<T?> GetById<T, K>(this IDatabaseProvider provider, K id)
+        public async Task<T?> GetById<T, K>(IDatabaseProvider provider, K id)
             where T : class, new()
         {
             var meta = GetMetadata<T>();
@@ -64,7 +64,7 @@ namespace JEO3.Providers.Extensions.Sqlite
         /// <param name="ids"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        internal static async Task<IReadOnlyList<T>> GetByIds<T, K>(this IDatabaseProvider provider, IEnumerable<K> ids)
+        public async Task<IReadOnlyList<T>> GetByIds<T, K>(IDatabaseProvider provider, IEnumerable<K> ids)
             where T : class, new()
         {
             if (ids == null || !ids.Any()) return Array.Empty<T>();
@@ -101,7 +101,7 @@ namespace JEO3.Providers.Extensions.Sqlite
         /// <param name="criteriaEntity"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        internal static async Task<T?> GetByCompositeKey<T>(this IDatabaseProvider provider, T criteriaEntity)
+        public async Task<T?> GetByCompositeKey<T>(IDatabaseProvider provider, T criteriaEntity)
             where T : class, new()
         {
             var meta = GetMetadata<T>();
@@ -141,7 +141,7 @@ namespace JEO3.Providers.Extensions.Sqlite
         /// <param name="fk"></param>
         /// <param name="value"></param>
         /// <returns></returns>              
-        internal static async Task<IReadOnlyList<T>> GetByForeignKey<T, TValue>(this IDatabaseProvider provider, Expression<Func<T, TValue>> fk, TValue value)
+        public async Task<IReadOnlyList<T>> GetByForeignKey<T, TValue>(IDatabaseProvider provider, Expression<Func<T, TValue>> fk, TValue value)
             where T : class, new()
         {
             var meta = GetMetadata<T>();
@@ -165,7 +165,7 @@ namespace JEO3.Providers.Extensions.Sqlite
         /// <param name="fk"></param>
         /// <param name="values"></param>
         /// <returns></returns>
-        internal static async Task<IReadOnlyList<T>> GetByForeignKeys<T, TValue>(this IDatabaseProvider provider, Expression<Func<T, TValue>> fk, IEnumerable<TValue> values)
+        public async Task<IReadOnlyList<T>> GetByForeignKeys<T, TValue>(IDatabaseProvider provider, Expression<Func<T, TValue>> fk, IEnumerable<TValue> values)
             where T : class, new()
         {
             if (values == null || !values.Any()) return Array.Empty<T>();
@@ -203,7 +203,7 @@ namespace JEO3.Providers.Extensions.Sqlite
         /// <param name="entity"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        internal static async Task<K> Create<T, K>(this IDatabaseProvider provider, T entity)
+        public async Task<K> Create<T, K>(IDatabaseProvider provider, T entity)
             where T : class, new()
         {
             var meta = GetMetadata<T>();
@@ -259,7 +259,7 @@ namespace JEO3.Providers.Extensions.Sqlite
         /// <param name="entity"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        internal static async Task<int> Update<T>(this IDatabaseProvider provider, T entity)
+        public async Task<int> Update<T>(IDatabaseProvider provider, T entity)
             where T : class, new()
         {
             var meta = GetMetadata<T>();
@@ -292,7 +292,7 @@ namespace JEO3.Providers.Extensions.Sqlite
         /// <param name="entities"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        internal static async Task<int> UpdateComposite<T>(this IDatabaseProvider provider, T entity)
+        public async Task<int> UpdateComposite<T>(IDatabaseProvider provider, T entity)
             where T : class, new()
         {
             var meta = GetMetadata<T>();
@@ -330,7 +330,7 @@ namespace JEO3.Providers.Extensions.Sqlite
         /// <param name="id"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        internal static async Task<int> Delete<T, K>(this IDatabaseProvider provider, K id)
+        public async Task<int> Delete<T, K>(IDatabaseProvider provider, K id)
             where T : class, new()
         {
             var meta = GetMetadata<T>();
@@ -347,7 +347,7 @@ namespace JEO3.Providers.Extensions.Sqlite
             return await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
         }
 
-        internal static async Task<int> UpsertRange<T>(this IDatabaseProvider provider, IEnumerable<T> entities)
+        public async Task<int> UpsertRange<T>(IDatabaseProvider provider, IEnumerable<T> entities)
             where T : class, new()
         {
             if (entities == null || !entities.Any()) return 0;
@@ -388,7 +388,7 @@ namespace JEO3.Providers.Extensions.Sqlite
             return totalRowsAffected;
         }
 
-        private static async Task<DataTable> ExecuteCommandToDataTable(this IDatabaseProvider provider, SqliteCommand cmd, SqliteConnection conn)
+        private async Task<DataTable> ExecuteCommandToDataTable(IDatabaseProvider provider, SqliteCommand cmd, SqliteConnection conn)
         {
             await conn.OpenAsync().ConfigureAwait(false);
 
@@ -418,7 +418,7 @@ namespace JEO3.Providers.Extensions.Sqlite
         #endregion
 
         #region Helpers
-        private static EntityDescriptor GetMetadata<T>() where T : class
+        private EntityDescriptor GetMetadata<T>() where T : class
         {
             return _descriptorCache.GetOrAdd(typeof(T), _ => EntityScanner.Scan<T>());
         }

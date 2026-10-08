@@ -1,5 +1,4 @@
 ﻿using System.Text.Json.Serialization;
-using JEO3.Core.ORM;
 using JEO3.Providers.Extensions;
 
 namespace JEO3.Monitor

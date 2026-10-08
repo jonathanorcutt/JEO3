@@ -40,7 +40,8 @@ namespace JEO3.Engine
                 var flatFunctions = ctx.Functions?.ToList() ?? [];
                 var flatUserDefinedTypes = ctx.UserDefinedTypes?.ToList() ?? [];
                 var checkConstraintModels = ctx.CheckConstraints?.ToList() ?? [];
-                var checkConstraintsByTable = checkConstraintModels.GroupBy(x => x.ParentObjectId).ToDictionary(x => x.Key, x => (IReadOnlyList<ICheckConstraint>)x.ToList());
+                var checkConstraintsByTable = checkConstraintModels.ToLookup(x => x.ParentObjectId);
+                //var checkConstraintsByTable = checkConstraintModels.GroupBy(x => x.ParentObjectId).ToDictionary(x => x.Key, x => (IReadOnlyList<ICheckConstraint>)x.ToList());
                 var missingIndexModels = ctx.MissingIndexes?.ToList() ?? [];
 
                 // COLUMNS
@@ -96,8 +97,7 @@ namespace JEO3.Engine
 
                 // STATISTICS, TRIGGERS & EXTENDED PROPERTIES HYDRATION
                 var statisticModels = ctx.Statistics?.ToList() ?? [];
-                var statisticsByTable = statisticModels.GroupBy(x => x.ParentObjectId).ToDictionary(x => x.Key, x => (IReadOnlyList<IStatistic>)x.ToList());
-
+                var statisticsByTable = statisticModels.ToLookup(x => x.ParentObjectId);
                 var triggersByTable = triggerModels.GroupBy(x => x.ParentObjectId).ToDictionary(x => x.Key, x => (IReadOnlyList<ITrigger>)x.ToList());
 
                 var extendedPropertyModels = ctx.ExtendedProperties?.ToList() ?? [];
@@ -114,7 +114,7 @@ namespace JEO3.Engine
                     table.MissingIndexes = tableMissingIndexes;
 
                     // TABLE -> STATISTICS
-                    table.Statistics = statisticsByTable.TryGetValue(objectId, out var stats) ? stats : Array.Empty<IStatistic>();
+                    table.Statistics = statisticsByTable[objectId].ToList();
 
                     // TABLE -> TRIGGERS
                     table.Triggers = triggersByTable.TryGetValue(objectId, out var trig) ? trig : Array.Empty<ITrigger>();
@@ -133,8 +133,8 @@ namespace JEO3.Engine
                     }
 
                     // TABLE -> CHECK CONSTRAINTS
-                    table.CheckConstraints = checkConstraintsByTable.TryGetValue(objectId, out var constraints) ? constraints : Array.Empty<ICheckConstraint>();
-
+                    table.CheckConstraints = checkConstraintsByTable[objectId].ToList();
+    
                     // COLUMN -> CHECK CONSTRAINTS (exact column Path match: Schema.Table.Column)
                     foreach (var column in table.Columns)
                     {
@@ -189,8 +189,13 @@ namespace JEO3.Engine
                 var columnLinksByColumn = columnIndexLinks.GroupBy(x => new { x.ObjectName, x.ColumnId }).ToDictionary(x => x.Key, x => (IReadOnlyList<IColumnIndexLink>)x.ToList());
 
                 var indexByTableAndId = tableList
-                    .SelectMany(table => table.Indexes.Where(index => index.IndexId.HasValue).Select(index => new { Key = $"{table.SchemaName}.{table.Name}.{index.IndexId!.Value}", Index = index }))
-                    .ToDictionary(x => x.Key, x => x.Index, StringComparer.OrdinalIgnoreCase);
+                    .SelectMany(table => table.Indexes
+                        .Where(i => i.IndexId.HasValue)
+                        .Select(i => new {
+                            Key = (SchemaName: table.SchemaName, TableName: table.Name, IndexId: i.IndexId!.Value),
+                            Index = i
+                        }))
+                    .ToDictionary(x => x.Key, x => x.Index);
 
                 // COLUMN NAVIGATION WIRING
                 foreach (var column in columns)
@@ -200,15 +205,23 @@ namespace JEO3.Engine
                     if (column.ColumnId.HasValue && columnLinksByColumn.TryGetValue(new { ObjectName = columnTableName, ColumnId = column.ColumnId }, out var columnLinks))
                         column.IndexLinks = columnLinks;
 
-                    // COLUMN -> INDEXES
+                    // COLUMN -> INDEXES (Using matching value tuple key instead of string interpolation)
                     column.Indexes = column.IndexLinks
-                        .Select(link => { var indexKey = $"{column.SchemaName}.{column.TableName}.{link.IndexId}"; return indexByTableAndId.TryGetValue(indexKey, out var index) ? index : null; })
+                        .Select(link =>
+                        {
+                            var indexKey = (
+                                SchemaName: column.SchemaName ?? string.Empty,
+                                TableName: column.TableName ?? string.Empty,
+                                IndexId: link.IndexId ?? 0L
+                            );
+
+                            return indexByTableAndId.TryGetValue(indexKey, out var index) ? index : null;
+                        })
                         .Where(index => index != null)
                         .Cast<IIndex>()
                         .Distinct()
                         .ToList();
                 }
-
                 // COLUMN <-> FOREIGN KEY NAVIGATION
                 var parentColumnForeignKeys = new Dictionary<Schema.Column, List<IForeignKey>>();
                 var referencedColumnForeignKeys = new Dictionary<Schema.Column, List<IForeignKey>>();
@@ -304,312 +317,6 @@ namespace JEO3.Engine
 
                 var log = Math.Round((DateTime.Now - now).TotalSeconds, 2);
                 Trace.WriteLine($"GetContext - Elapsed {log}sec");
-
-                return newCtx;
-            }
-            catch (Exception ex)
-            {
-                ExceptionUtility.LogException(ex);
-                throw;
-            }
-        }
-
-        public static DatabaseContext GetContext_Original(IFlatDatabaseContext ctx, IDatabaseProvider provider)
-        {
-            try
-            {
-                DateTime now = DateTime.Now;
-                //IEnumerable<Table> tables = ctx.Tables.OrderBy(v => v.DatabaseName).ThenBy(v => v.TablePath).ToList();
-                var columns = ctx.Columns.OrderBy(v => v.SchemaName).ThenBy(v => v.Table).ThenBy(v => v.ColumnId).ToList();
-                var relations = ctx.Relations.OrderBy(v => v.PrimaryColumnPath).ThenBy(v => v.ForeignColumnPath).ToList();
-                var triggers = ctx.Triggers.OrderBy(v => v.Name).ToList();
-                var indexes = ctx.Indexes.OrderBy(v => v.SchemaName).ThenBy(v => v.TableName).ThenBy(v => v.ColumnId).ToList();
-                var procedures = ctx.Procedures.OrderBy(v => v.SchemaName).ThenBy(v => v.Name).ToList();
-                var views = ctx.Views.OrderBy(v => v.SchemaName).ThenBy(v => v.Name).ToList();
-
-                var flatIndexes = indexes?.ToList() ?? [];
-                var flatRelations = relations?.ToList() ?? [];
-                var flatProcedures = procedures?.ToList() ?? [];
-                var flatViews = ctx.Views?.ToList() ?? [];
-                var flatFunctions = ctx.Functions?.ToList() ?? [];
-                var flatUserDefinedTypes = ctx.UserDefinedTypes?.ToList() ?? [];
-                var checkConstraintModels = ctx.CheckConstraints?.ToList() ?? []; //HydrateCheckConstraints(checkConstraints.ToList());
-                var checkConstraintsByTable = checkConstraintModels.GroupBy(x => x.ParentObjectId).ToDictionary(x => x.Key, x => (IReadOnlyList<ICheckConstraint>)x.ToList());
-                var missingIndexModels = ctx.MissingIndexes?.ToList() ?? []; // HydrateMissingIndexes(missingIndexes.ToList());
-
-                // COLUMNS
-                var columnsByObjectId = columns.GroupBy(x => x.ObjectId ?? 0).ToDictionary(x => x.Key, x => (IReadOnlyList<Schema.IColumn>)x.ToList());
-
-                // INDEXES
-                var indexHydration = HydrateIndexes(flatIndexes);
-                var indexModels = indexHydration.Select(x => x.Index).ToList();
-                var indexesByTable = indexHydration.GroupBy(x => x.TableKey).ToDictionary(x => x.Key, x => (IReadOnlyList<IIndex>)x.Select(y => y.Index).ToList(), StringComparer.OrdinalIgnoreCase);
-
-                // TABLES
-                var tableList = ctx.Tables.OrderBy(v => v.DatabaseName).ThenBy(v => v.TablePath).ToList();
-
-                // Database Set
-                foreach (var db in ctx.Databases)
-                {
-                    //db.Tables = tableList.Where(v => v.DatabaseName == db.Name).ToList();
-                    db.Schemas = ctx.Schemas;
-                }
-
-                // Schemas Set
-                foreach (var schema in ctx.Schemas)
-                {
-                    schema.Database = ctx.Databases.FirstOrDefault();
-                    schema.Tables = tableList.Where(v => v.SchemaName == schema.Name).ToList();
-                    schema.Parent = ctx.Databases.FirstOrDefault();
-                }
-
-                // Tables Set
-                foreach (var table in tableList)
-                {
-                    MapTable(table, columnsByObjectId, indexesByTable);
-                    table.Database = ctx.Databases.FirstOrDefault();
-                    table.Schema = ctx.Schemas.FirstOrDefault(v => v.Name == table.SchemaName);
-                    table.Parent = table.Database;
-                }
-                var tablesByKey = tableList.ToDictionary(x => TableKey(x.SchemaName, x.Name), StringComparer.OrdinalIgnoreCase);
-                var schemasByName = ctx.Schemas.ToDictionary(s => s.Name, StringComparer.OrdinalIgnoreCase);
-
-                // RELATIONS / FOREIGN KEYS
-                var relationModels = HydrateRelations(flatRelations, tablesByKey);
-
-                // RELATIONS BY TABLE
-                var relationsByTable = relationModels
-                    .SelectMany(relation => GetRelationTableKeys(relation).Select(tableKey => new { TableKey = tableKey, Relation = relation }))
-                    .GroupBy(x => x.TableKey, StringComparer.OrdinalIgnoreCase)
-                    .ToDictionary(x => x.Key, x => (IReadOnlyList<Schema.IRelation>)x.Select(y => y.Relation).ToList(), StringComparer.OrdinalIgnoreCase);
-
-                // MISSING INDEXES BY TABLE
-                var missingIndexesByTable = missingIndexModels.Where(x => x.ObjectId.HasValue).GroupBy(x => x.ObjectId!.Value).ToDictionary(x => x.Key, x => (IReadOnlyList<MissingIndex>)x.ToList());
-
-                // CHECK CONSTRAINTS BY COLUMN PATH
-                var constraintsByPath = checkConstraintModels.Where(cc => !string.IsNullOrEmpty(cc.Path)).GroupBy(cc => cc.Path!).ToDictionary(g => g.Key, g => g.ToList(), StringComparer.OrdinalIgnoreCase);
-
-                // STATISTICS, TRIGGERS & EXTENDED PROPERTIES HYDRATION
-                var statisticModels = ctx.Statistics?.ToList() ?? []; //HydrateStatistics(statistics);
-                var statisticsByTable = statisticModels.GroupBy(x => x.ParentObjectId).ToDictionary(x => x.Key, x => (IReadOnlyList<IStatistic>)x.ToList());
-
-                var triggerModels = triggers?.ToList() ?? []; // HydrateTriggers(triggers);
-                var triggersByTable = triggerModels.GroupBy(x => x.ParentObjectId).ToDictionary(x => x.Key, x => (IReadOnlyList<ITrigger>)x.ToList());
-
-                var extendedPropertyModels = ctx.ExtendedProperties?.ToList() ?? []; // HydrateExtendedProperties(extendedProperties);
-                var extendedPropertiesByTable = extendedPropertyModels.Where(v => v.ParentObjectId != null).GroupBy(x => x.ParentObjectId!.Value).ToDictionary(x => x.Key, x => (IReadOnlyList<IExtendedProperty>)x.ToList());
-
-                // TABLE NAVIGATION WIRING
-                foreach (var table in tableList)
-                {
-                    var objectId = table.ObjectId.GetValueOrDefault();
-                    var tableKey = TableKey(table.SchemaName, table.Name);
-
-                    // TABLE -> MISSING INDEXES
-                    var tableMissingIndexes = missingIndexesByTable.TryGetValue(objectId, out var missing) ? missing : Array.Empty<MissingIndex>();
-                    table.MissingIndexes = tableMissingIndexes;
-
-                    // TABLE -> STATISTICS
-                    table.Statistics = statisticsByTable.TryGetValue(objectId, out var stats) ? stats : Array.Empty<IStatistic>();
-
-                    // TABLE -> TRIGGERS
-                    table.Triggers = triggersByTable.TryGetValue(objectId, out var trig) ? trig : Array.Empty<ITrigger>();
-
-                    // TABLE -> EXTENDED PROPERTIES
-                    table.ExtendedProperties = extendedPropertiesByTable.TryGetValue(objectId, out var extProps) ? extProps : Array.Empty<IExtendedProperty>();
-
-                    // TABLE -> RELATIONS / FOREIGN KEYS
-                    var tableRelations = relationsByTable.TryGetValue(tableKey, out var relationsForTable) ? relationsForTable : Array.Empty<Schema.IRelation>();
-                    table.Relations = tableRelations;
-
-                    // TABLE -> SCHEMA (Parent)
-                    if (schemasByName.TryGetValue(table.SchemaName ?? string.Empty, out var schema))
-                    {
-                        table.Parent = schema;
-                    }
-
-                    // TABLE -> CHECK CONSTRAINTS
-                    table.CheckConstraints = checkConstraintsByTable.TryGetValue(objectId, out var constraints) ? constraints : Array.Empty<ICheckConstraint>();
-
-                    // COLUMN -> CHECK CONSTRAINTS (exact column Path match: Schema.Table.Column)
-                    foreach (var column in table.Columns)
-                    {
-                        if (column is Schema.Column concreteColumn && !string.IsNullOrEmpty(concreteColumn.Path))
-                            concreteColumn.CheckConstraints = constraintsByPath.TryGetValue(concreteColumn.Path, out var colConstraints) ? colConstraints.Where(v => v != null).ToList() : [];
-
-                        if (table.MissingIndexes.Count > 0)
-                        {
-                            //var parts = table.MissingIndexes.Where(v => v.EqualityColumns != null).SelectMany(v => v.EqualityColumns.Split(',').Select(v => v.Trim().TrimStart('[').TrimEnd(']'))).ToList(); 
-                            ((Column)column).MissingIndexes = tableMissingIndexes.Where(v => v.EqualityColumns != null && v.EqualityColumnsString?.Contains(column.Name) == true).ToList();
-                        }
-                    }
-
-                    // ForeignKeys on this table (this table is the Child holding the FK constraint)
-                    table.ForeignKeys = tableRelations.OfType<IForeignKey>().Where(fk => fk.ReferencedTable != null && string.Equals(fk.ReferencedTable.SchemaName, table.SchemaName, StringComparison.OrdinalIgnoreCase) && string.Equals(fk.ReferencedTable.Name, table.Name, StringComparison.OrdinalIgnoreCase)).ToList();
-
-                    // ReferencedByForeignKeys on this table (this table is the Parent / PK table being pointed to).
-                    // NOTE: this is the ONLY place this gets set now - a later block used to overwrite it with an
-                    // incorrect computation that effectively duplicated table.ForeignKeys. That block is removed.
-                    table.ReferencedByForeignKeys = tableRelations.OfType<IForeignKey>().Where(fk => fk.ParentTable != null && string.Equals(fk.ParentTable.SchemaName, table.SchemaName, StringComparison.OrdinalIgnoreCase) && string.Equals(fk.ParentTable.Name, table.Name, StringComparison.OrdinalIgnoreCase)).ToList();
-                    foreach (var refFk in table.ReferencedByForeignKeys)
-                    {
-                    }
-
-                    // TABLE -> COLUMNS
-                    if (columnsByObjectId.TryGetValue(objectId, out var tableColumns))
-                    {
-                        table.Columns = tableColumns;
-                        foreach (var column in tableColumns)
-                            if (column is Schema.Column metadataColumn) { metadataColumn.Table = table; metadataColumn.Parent = table; }
-                    }
-                    // TABLE -> INDEXES
-                    if (indexesByTable.TryGetValue(tableKey, out var tableIndexes))
-                    {
-                        table.Indexes = tableIndexes;
-                        foreach (var index in tableIndexes)
-                            if (index is Schema.Index metadataIndex) { metadataIndex.Table = table; metadataIndex.Parent = table; }
-                    }
-
-                    // WIRE MISSING INDEX COLUMNS
-                    foreach (var index in table.MissingIndexes)
-                    {
-                        var eqColNames = index.EqualityColumnsString?.Split('|').ToList() ?? [];
-                        var ineqColNames = index.InequalityColumnsString?.Split('|').ToList() ?? [];
-                        var inclColNames = index.IncludedColumnsString?.Split('|').ToList() ?? [];
-                        var suggColNames = index.SuggestedKeyColumnsString?.Split('|').ToList() ?? [];
-                        ((MissingIndex)index).IncludedColumns = table.Columns.Where(v => inclColNames.Contains(v.Name)).ToList();
-                        ((MissingIndex)index).InequalityColumns = table.Columns.Where(v => ineqColNames.Contains(v.Name)).ToList();
-                        ((MissingIndex)index).SuggestedKeyColumns = table.Columns.Where(v => suggColNames.Contains(v.Name)).ToList();
-                        ((MissingIndex)index).EqualityColumns = table.Columns.Where(v => eqColNames.Contains(v.Name)).ToList();
-                    }
-                }
-
-                // COLUMN INDEX LINKS
-                var columnIndexLinks = flatIndexes.Select(MapColumnIndexLink).ToList();
-
-                // COLUMN INDEX LINK LOOKUPS
-                var columnLinksByColumn = columnIndexLinks.GroupBy(x => new { x.ObjectName, x.ColumnId }).ToDictionary(x => x.Key, x => (IReadOnlyList<IColumnIndexLink>)x.ToList());
-
-                var indexByTableAndId = tableList
-                    .SelectMany(table => table.Indexes.Where(index => index.IndexId.HasValue).Select(index => new { Key = $"{table.SchemaName}.{table.Name}.{index.IndexId!.Value}", Index = index }))
-                    .ToDictionary(x => x.Key, x => x.Index, StringComparer.OrdinalIgnoreCase);
-
-                // COLUMN NAVIGATION WIRING
-                foreach (var column in columns)
-                {
-                    // COLUMN -> INDEX LINKS
-                    var columnTableName = column.TableName ?? string.Empty;
-                    if (column.ColumnId.HasValue && columnLinksByColumn.TryGetValue(new { ObjectName = columnTableName, ColumnId = column.ColumnId }, out var columnLinks))
-                        column.IndexLinks = columnLinks;
-
-                    // COLUMN -> INDEXES
-                    column.Indexes = column.IndexLinks
-                        .Select(link => { var indexKey = $"{column.SchemaName}.{column.TableName}.{link.IndexId}"; return indexByTableAndId.TryGetValue(indexKey, out var index) ? index : null; })
-                        .Where(index => index != null)
-                        .Cast<IIndex>()
-                        .Distinct()
-                        .ToList();
-                }
-
-                // COLUMN <-> FOREIGN KEY NAVIGATION
-                foreach (var foreignKey in relationModels)
-                {
-                    if (foreignKey.ParentTable is null || foreignKey.ReferencedTable is null) continue;
-
-                    foreach (var pair in foreignKey.ColumnPairs)
-                    {
-                        // PARENT / FOREIGN KEY COLUMN
-                        var parentColumn = foreignKey.ParentTable.Columns.FirstOrDefault(column => string.Equals(column.Name, pair.ParentColumnName, StringComparison.OrdinalIgnoreCase));
-                        if (parentColumn is Schema.Column parentMetadataColumn)
-                            parentMetadataColumn.ForeignKeys = parentMetadataColumn.ForeignKeys.Append(foreignKey).Distinct().ToList();
-                        pair.ParentColumn = parentColumn as Schema.IColumn;
-
-                        // REFERENCED COLUMN
-                        var referencedColumn = foreignKey.ReferencedTable.Columns.FirstOrDefault(column => string.Equals(column.Name, pair.ReferencedColumnName, StringComparison.OrdinalIgnoreCase));
-                        if (referencedColumn is Schema.Column referencedMetadataColumn)
-                            referencedMetadataColumn.ReferencedByForeignKeys = referencedMetadataColumn.ReferencedByForeignKeys.Append(foreignKey).Distinct().ToList();
-                        pair.ReferencedColumn = referencedColumn as Schema.IColumn;
-                    }
-                }
-
-                // VIEW MODELS
-                var viewModels = MapView(flatViews, columnsByObjectId).ToList();
-
-                // VIEW COLUMN NAVIGATION (prevent view columns from thinking they belong to a Table)
-                foreach (var view in viewModels)
-                {
-                    if (columnsByObjectId.TryGetValue(view.ObjectId.GetValueOrDefault(), out var viewColumns))
-                        foreach (var column in viewColumns)
-                            if (column is Schema.Column metadataColumn) metadataColumn.Table = null;
-                }
-
-                // PROCEDURES / FUNCTIONS / USER DEFINED TYPES
-                var procedureModels = MapProcedure(flatProcedures).ToList();
-                var functionModels = MapFunction(flatFunctions).ToList();
-
-                // SYNONYM & TARGET TABLE NAVIGATION PASS
-                // Group all synonyms into a fast lookup by their target table key strings
-                var synonymsByTargetTable = ctx.Synonyms
-                    .ToLookup(syn => TableKey(syn.TargetSchemaName, syn.TargetTableName), StringComparer.OrdinalIgnoreCase);
-
-                // Multi-map the navigation links in a single loop pass over tables
-                foreach (var table in tableList)
-                {
-                    var tableKey = TableKey(table.SchemaName, table.Name);
-
-                    if (synonymsByTargetTable.Contains(tableKey))
-                    {
-                        // Materialize the read-only list for the table
-                        var matchedSynonyms = synonymsByTargetTable[tableKey].ToList();
-
-                        // Set the backlink on each synonym pointing to this Table instance
-                        foreach (var syn in matchedSynonyms)
-                        {
-                            syn.TargetTable = table;
-                        }
-
-                        // Assign the immutable list directly to the table asset
-                        table.Synonyms = matchedSynonyms;
-                    }
-                }
-
-                var finalColumns = tableList.SelectMany(v => v.Columns).Cast<Schema.IColumn>().ToList();
-                var userDefinedTypeModels = MapUserDefinedType(flatUserDefinedTypes, finalColumns).ToList();
-
-
-                var database = ctx.Databases.First();
-                // FINAL CONTEXT
-                // At this point every canonical object collection has been created and the graph
-                // navigation has been wired. The same instances are exposed through every navigation path.
-                var newCtx = new DatabaseContext
-                {
-                    Provider = provider,
-                    Database = database,
-                    Schemas = ctx.Schemas.ToList(),
-                    Tables = tableList,
-                    Views = viewModels,
-                    Procedures = procedureModels,
-                    Functions = functionModels,
-                    UserDefinedTypes = userDefinedTypeModels,
-                    Relations = relationModels.Cast<Schema.IRelation>().ToList(),
-                    ForeignKeys = relationModels.Cast<IForeignKey>().ToList(),
-                    Indexes = indexModels,
-                    ColumnIndexLinks = columnIndexLinks,
-                    Columns = finalColumns,
-                    CheckConstraints = checkConstraintModels.ToList(),
-                    MissingIndexes = missingIndexModels,
-                    Statistics = statisticModels,
-                    Triggers = triggerModels,
-                    //Principals = ctx.Principals.Select(v => new  ).ToList(),
-                    //Users = principalList.OfType<DatabaseUser>().ToList(),
-                    //Roles = principalList.OfType<DatabaseRole>().ToList(),
-                    //ApplicationRoles = principalList.OfType<ApplicationRole>().ToList(),
-                    Synonyms = synonymsByTargetTable.SelectMany(g => g).ToList(),
-                    ExtendedProperties = extendedPropertyModels
-                };
-
-                var log = Math.Round((DateTime.Now - now).TotalSeconds, 2);
-                Trace.WriteLine($"PollOnce - Elapsed {log}sec");
 
                 return newCtx;
             }
